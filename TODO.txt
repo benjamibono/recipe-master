@@ -1,0 +1,20 @@
+# Core Features
+- Add image to recipe (cloudinary)
+- Sort recipes by date/name 
+- Add search option
+- Add pagination
+- Add username to sign up and login
+
+# AI Features
+- Add AI to calculate macronutrients
+- Add AI to generate recipe
+- Add AI to generate shopping list
+
+# Authentication & User Management
+- Correct message when registering
+- Correct message when confirming email
+- Make a logout button
+- Add a forgot password button
+
+# UI/UX Improvements
+- Add a share button so users can add the recipe to their own recipes

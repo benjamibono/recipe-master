@@ -7,10 +7,10 @@ import RecipeCard from "@/components/RecipeCard";
 import { Recipe } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Utensils } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function RecipesPage() {
+export default function CleaningPage() {
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ export default function RecipesPage() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("Please log in to view your recipes");
+        toast.error("Please log in to view your cleaning recipes");
         return;
       }
 
@@ -30,14 +30,14 @@ export default function RecipesPage() {
         .from("recipes")
         .select("*")
         .eq("user_id", user.id)
-        .eq("type", "cooking")
+        .eq("type", "cleaning")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       setRecipes(data || []);
     } catch (error) {
-      console.error("Error loading recipes:", error);
-      toast.error("Failed to load recipes");
+      console.error("Error loading cleaning recipes:", error);
+      toast.error("Failed to load cleaning recipes");
     } finally {
       setLoading(false);
     }
@@ -48,14 +48,14 @@ export default function RecipesPage() {
 
     // Subscribe to realtime changes
     const channel = supabase
-      .channel("recipe_changes")
+      .channel("cleaning_changes")
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "recipes",
-          filter: `type=eq.cooking`,
+          filter: `type=eq.cleaning`,
         },
         () => {
           loadRecipes();
@@ -71,22 +71,22 @@ export default function RecipesPage() {
   return (
     <div className="container py-8">
       <div className="flex flex-col gap-4 mb-6">
-        <h1 className="text-3xl font-bold">Your Cooking Recipes</h1>
+        <h1 className="text-3xl font-bold">Your Cleaning Recipes</h1>
         <Button
           variant="outline"
           className="flex items-center gap-2 sm:self-start"
-          onClick={() => router.push("/cleaning")}
+          onClick={() => router.push("/recipes")}
         >
-          <Sparkles className="h-4 w-4" />
-          Go to Cleaning Recipes
+          <Utensils className="h-4 w-4" />
+          Go to Cooking Recipes
         </Button>
       </div>
       {loading ? (
-        <div className="text-center">Loading your recipes...</div>
+        <div className="text-center">Loading your cleaning recipes...</div>
       ) : recipes.length === 0 ? (
         <div className="text-center text-gray-500">
-          You haven&apos;t created any recipes yet. Click the + button to get
-          started!
+          You haven&apos;t created any cleaning recipes yet. Click the + button
+          to get started!
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -95,7 +95,7 @@ export default function RecipesPage() {
           ))}
         </div>
       )}
-      <CreateRecipeDialog />
+      <CreateRecipeDialog type="cleaning" />
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { Clock, ArrowLeft, Trash2, ChevronDown } from "lucide-react";
+import { ArrowLeft, Trash2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,14 +23,14 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-export default function RecipeDetailPage() {
+export default function CleaningDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
+  const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
 
   useEffect(() => {
@@ -51,19 +51,20 @@ export default function RecipeDetailPage() {
           .select("*")
           .eq("id", params.id)
           .eq("user_id", user.id)
+          .eq("type", "cleaning")
           .single();
 
         if (error) throw error;
         if (!data) {
-          toast.error("Recipe not found");
-          router.push("/recipes");
+          toast.error("Cleaning recipe not found");
+          router.push("/cleaning");
           return;
         }
 
         setRecipe(data);
       } catch (error) {
-        console.error("Error loading recipe:", error);
-        toast.error("Failed to load recipe");
+        console.error("Error loading cleaning recipe:", error);
+        toast.error("Failed to load cleaning recipe");
       } finally {
         setLoading(false);
       }
@@ -84,11 +85,11 @@ export default function RecipeDetailPage() {
 
       if (error) throw error;
 
-      toast.success("Recipe deleted successfully");
-      router.push("/recipes");
+      toast.success("Cleaning recipe deleted successfully");
+      router.push("/cleaning");
     } catch (error) {
-      console.error("Error deleting recipe:", error);
-      toast.error("Failed to delete recipe");
+      console.error("Error deleting cleaning recipe:", error);
+      toast.error("Failed to delete cleaning recipe");
       setDeleteDialogOpen(false);
     } finally {
       setDeleting(false);
@@ -98,7 +99,7 @@ export default function RecipeDetailPage() {
   if (loading) {
     return (
       <div className="container py-8">
-        <div className="text-center">Loading recipe...</div>
+        <div className="text-center">Loading cleaning recipe...</div>
       </div>
     );
   }
@@ -113,10 +114,10 @@ export default function RecipeDetailPage() {
         <Button
           variant="ghost"
           className="flex items-center gap-2"
-          onClick={() => router.push("/recipes")}
+          onClick={() => router.push("/cleaning")}
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to recipes
+          Back to cleaning recipes
         </Button>
 
         <div className="flex items-center gap-2">
@@ -129,7 +130,7 @@ export default function RecipeDetailPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Delete Recipe</DialogTitle>
+                <DialogTitle>Delete Cleaning Recipe</DialogTitle>
                 <DialogDescription>
                   Are you sure you want to delete &quot;{recipe.name}&quot;?
                   This action cannot be undone.
@@ -171,22 +172,17 @@ export default function RecipeDetailPage() {
         <div className="p-6">
           <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
 
-          <div className="flex items-center text-gray-600 mb-6">
-            <Clock className="h-5 w-5 mr-2" />
-            <span>{recipe.time} minutes</span>
-          </div>
-
           <div className="space-y-6">
             <Collapsible
-              open={isIngredientsOpen}
-              onOpenChange={setIsIngredientsOpen}
+              open={isMaterialsOpen}
+              onOpenChange={setIsMaterialsOpen}
             >
               <CollapsibleTrigger asChild>
                 <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                  <h2 className="text-2xl font-semibold">Ingredients</h2>
+                  <h2 className="text-2xl font-semibold">Materials</h2>
                   <ChevronDown
                     className={`h-5 w-5 transition-transform duration-200 ${
-                      isIngredientsOpen ? "rotate-180" : ""
+                      isMaterialsOpen ? "rotate-180" : ""
                     }`}
                   />
                 </div>

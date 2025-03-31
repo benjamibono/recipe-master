@@ -16,9 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { Recipe } from "@/lib/supabase";
 
 const UNITS = [
   { value: "g", label: "grams" },
@@ -32,27 +33,18 @@ interface Ingredient {
   unit: (typeof UNITS)[number]["value"];
 }
 
-interface RecipeFormData {
-  name: string;
-  time: number;
-  ingredients: Ingredient[];
-  instructions: string[];
+interface EditRecipeDialogProps {
+  recipe: Recipe;
 }
 
-interface CreateRecipeDialogProps {
-  type?: "cooking" | "cleaning";
-}
-
-export function CreateRecipeDialog({
-  type = "cooking",
-}: CreateRecipeDialogProps) {
+export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<RecipeFormData>({
-    name: "",
-    time: 0,
-    ingredients: [],
-    instructions: [],
+  const [formData, setFormData] = useState({
+    name: recipe.name,
+    time: recipe.time,
+    ingredients: recipe.ingredients,
+    instructions: recipe.instructions,
   });
   const [newIngredient, setNewIngredient] = useState<Ingredient>({
     name: "",
@@ -106,19 +98,19 @@ export function CreateRecipeDialog({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("You must be logged in to create a recipe");
+        throw new Error("You must be logged in to edit a recipe");
       }
 
       // Validate form data
       if (!formData.name.trim()) {
         throw new Error("Recipe name is required");
       }
-      if (type === "cooking" && formData.time <= 0) {
+      if (recipe.type === "cooking" && formData.time <= 0) {
         throw new Error("Preparation time must be greater than 0");
       }
       if (formData.ingredients.length === 0) {
         throw new Error(
-          type === "cleaning"
+          recipe.type === "cleaning"
             ? "At least one material is required"
             : "At least one ingredient is required"
         );
@@ -127,39 +119,29 @@ export function CreateRecipeDialog({
         throw new Error("At least one instruction is required");
       }
 
-      // Insert recipe into database
-      const { error } = await supabase.from("recipes").insert({
-        user_id: user.id,
-        name: formData.name.trim(),
-        time: type === "cooking" ? formData.time : 0,
-        ingredients: formData.ingredients,
-        instructions: formData.instructions,
-        type: type,
-      });
+      // Update recipe in database
+      const { error } = await supabase
+        .from("recipes")
+        .update({
+          name: formData.name.trim(),
+          time: recipe.type === "cooking" ? formData.time : 0,
+          ingredients: formData.ingredients,
+          instructions: formData.instructions,
+        })
+        .eq("id", recipe.id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
-      toast.success(
-        `${
-          type === "cleaning" ? "Cleaning recipe" : "Recipe"
-        } created successfully`
-      );
-
-      // Reset form and close dialog
-      setFormData({
-        name: "",
-        time: 0,
-        ingredients: [],
-        instructions: [],
-      });
+      toast.success("Recipe updated successfully");
       setOpen(false);
 
-      // Hard refresh the page to show the new recipe
+      // Hard refresh the page to show the updated recipe
       window.location.reload();
     } catch (error) {
-      console.error("Error creating recipe:", error);
+      console.error("Error updating recipe:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to create recipe"
+        error instanceof Error ? error.message : "Failed to update recipe"
       );
     } finally {
       setLoading(false);
@@ -169,15 +151,13 @@ export function CreateRecipeDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" className="rounded-full fixed bottom-6 right-6">
-          <Plus className="h-6 w-6" />
+        <Button variant="outline" size="icon" className="h-10 w-10">
+          <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl sm:max-h-[90vh] overflow-y-auto top-0 sm:top-[50%] translate-y-0 sm:-translate-y-[50%] rounded-t-[10px] sm:rounded-[10px]">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            Create New {type === "cleaning" ? "Cleaning " : ""}Recipe
-          </DialogTitle>
+          <DialogTitle>Edit Recipe</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -192,7 +172,7 @@ export function CreateRecipeDialog({
             />
           </div>
 
-          {type === "cooking" && (
+          {recipe.type === "cooking" && (
             <div className="space-y-2">
               <Label htmlFor="time">Preparation Time (minutes)</Label>
               <Input
@@ -210,63 +190,76 @@ export function CreateRecipeDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label>{type === "cleaning" ? "Materials" : "Ingredients"}</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ingredient name"
-                value={newIngredient.name}
-                onChange={(e) =>
-                  setNewIngredient((prev) => ({
-                    ...prev,
-                    name: e.target.value,
-                  }))
-                }
-                className="flex-1"
-              />
-              <Input
-                type="number"
-                min="0"
-                placeholder="Amount"
-                className="w-24"
-                value={newIngredient.amount || ""}
-                onChange={(e) =>
-                  setNewIngredient((prev) => ({
-                    ...prev,
-                    amount: parseInt(e.target.value) || 0,
-                  }))
-                }
-              />
-              <Select
-                value={newIngredient.unit}
-                onValueChange={(value: (typeof UNITS)[number]["value"]) =>
-                  setNewIngredient((prev) => ({ ...prev, unit: value }))
-                }
+          <div className="space-y-4">
+            <Label>
+              {recipe.type === "cleaning" ? "Materials" : "Ingredients"}
+            </Label>
+            <div className="grid grid-cols-[1fr,auto,auto] gap-2 items-end">
+              <div className="space-y-2">
+                <Input
+                  placeholder="Name"
+                  value={newIngredient.name}
+                  onChange={(e) =>
+                    setNewIngredient((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Amount"
+                  value={newIngredient.amount || ""}
+                  onChange={(e) =>
+                    setNewIngredient((prev) => ({
+                      ...prev,
+                      amount: parseFloat(e.target.value) || 0,
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Select
+                  value={newIngredient.unit}
+                  onValueChange={(value) =>
+                    setNewIngredient((prev) => ({
+                      ...prev,
+                      unit: value as (typeof UNITS)[number]["value"],
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNITS.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddIngredient}
+                className="col-span-3"
               >
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNITS.map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button type="button" onClick={handleAddIngredient}>
-                Add
+                Add {recipe.type === "cleaning" ? "Material" : "Ingredient"}
               </Button>
             </div>
-            <div className="space-y-2">
+
+            <ul className="space-y-2">
               {formData.ingredients.map((ingredient, index) => (
-                <div
+                <li
                   key={index}
-                  className="flex items-center gap-2 bg-secondary p-2 rounded-md"
+                  className="flex items-center justify-between bg-secondary p-2 rounded"
                 >
                   <span>
-                    {ingredient.name} - {ingredient.amount}{" "}
-                    {UNITS.find((u) => u.value === ingredient.unit)?.label}
+                    {ingredient.amount} {ingredient.unit} {ingredient.name}
                   </span>
                   <Button
                     type="button"
@@ -276,31 +269,43 @@ export function CreateRecipeDialog({
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-4">
             <Label>Instructions</Label>
-            <div className="flex gap-2">
+            <div className="space-y-2">
               <Input
-                placeholder="Add instruction step"
+                placeholder="Add an instruction"
                 value={newInstruction}
                 onChange={(e) => setNewInstruction(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddInstruction();
+                  }
+                }}
               />
-              <Button type="button" onClick={handleAddInstruction}>
-                Add
+              <Button
+                type="button"
+                onClick={handleAddInstruction}
+                className="w-full"
+              >
+                Add Instruction
               </Button>
             </div>
-            <div className="space-y-2">
+
+            <ol className="space-y-2">
               {formData.instructions.map((instruction, index) => (
-                <div
+                <li
                   key={index}
-                  className="flex items-center gap-2 bg-secondary p-2 rounded-md"
+                  className="flex items-center justify-between bg-secondary p-2 rounded"
                 >
-                  <span>
-                    {index + 1}. {instruction}
+                  <span className="flex">
+                    <span className="font-semibold mr-4">{index + 1}.</span>
+                    <span>{instruction}</span>
                   </span>
                   <Button
                     type="button"
@@ -310,24 +315,14 @@ export function CreateRecipeDialog({
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Recipe"}
-            </Button>
-          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
         </form>
       </DialogContent>
     </Dialog>
