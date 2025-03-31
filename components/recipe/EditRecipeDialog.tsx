@@ -16,16 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, X, ImagePlus } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
-import { CldUploadWidget } from "next-cloudinary";
-import Image from "next/image";
-import type {
-  CloudinaryUploadWidgetResults,
-  CloudinaryUploadWidgetInfo,
-} from "next-cloudinary";
+import { ImageUpload } from "@/components/ImageUpload";
 
 const UNITS = [
   { value: "g", label: "grams" },
@@ -94,14 +89,48 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }));
   };
 
-  const handleImageUpload = (result: CloudinaryUploadWidgetResults) => {
-    const info = result.info as CloudinaryUploadWidgetInfo;
-    if (info?.secure_url) {
+  const handleImageSelect = async (file: File) => {
+    try {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Please select an image file");
+      }
+
+      // Generate a unique file name with timestamp
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}.${fileExt}`;
+      const filePath = `recipe-images/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("recipes")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("recipes").getPublicUrl(filePath);
+
+      // Ensure the URL is properly formatted
+      const imageUrl = new URL(publicUrl).toString();
+
       setFormData((prev) => ({
         ...prev,
-        image_url: info.secure_url,
+        image_url: imageUrl,
       }));
       toast.success("Image uploaded successfully");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to upload image"
+      );
     }
   };
 
@@ -138,7 +167,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
       }
 
       // Update recipe in database
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("recipes")
         .update({
           name: formData.name.trim(),
@@ -148,9 +177,18 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           image_url: formData.image_url,
         })
         .eq("id", recipe.id)
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error("Failed to update recipe - no data returned");
+      }
 
       toast.success("Recipe updated successfully");
       setOpen(false);
@@ -193,83 +231,13 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
 
           <div className="space-y-2">
             <Label>Recipe Image</Label>
-            <div className="flex items-center gap-4">
-              {formData.image_url ? (
-                <div className="relative w-32 h-32">
-                  <Image
-                    src={formData.image_url}
-                    alt="Recipe"
-                    fill
-                    className="object-cover rounded-md"
-                    sizes="128px"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                    onClick={() =>
-                      setFormData((prev) => ({ ...prev, image_url: undefined }))
-                    }
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <CldUploadWidget
-                  uploadPreset="recipe_images"
-                  onSuccess={handleImageUpload}
-                  options={{
-                    sources: ["camera", "local"],
-                    resourceType: "image",
-                    clientAllowedFormats: ["jpg", "jpeg", "png", "heic"],
-                    maxFiles: 1,
-                    maxFileSize: 10000000, // 10MB
-                    styles: {
-                      palette: {
-                        window: "#FFFFFF",
-                        windowBorder: "#90A0B3",
-                        tabIcon: "#0078FF",
-                        menuIcons: "#5A616A",
-                        textDark: "#000000",
-                        textLight: "#FFFFFF",
-                        link: "#0078FF",
-                        action: "#FF620C",
-                        inactiveTabIcon: "#0E2F5A",
-                        error: "#F44235",
-                        inProgress: "#0078FF",
-                        complete: "#20B832",
-                        sourceBg: "#E4EBF1",
-                      },
-                      frame: {
-                        background: "#FFFFFF",
-                      },
-                      fonts: {
-                        default: null,
-                        "'SF Pro', sans-serif": {
-                          url: "https://fonts.cdnfonts.com/css/sf-pro-display",
-                          active: true,
-                        },
-                      },
-                    },
-                  }}
-                >
-                  {({ open }) => (
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="flex items-center gap-2 w-full sm:w-auto"
-                        onClick={() => open()}
-                      >
-                        <ImagePlus className="h-4 w-4" />
-                        Choose Image
-                      </Button>
-                    </div>
-                  )}
-                </CldUploadWidget>
-              )}
-            </div>
+            <ImageUpload
+              currentImageUrl={formData.image_url}
+              onImageSelect={handleImageSelect}
+              onRemoveImage={() =>
+                setFormData((prev) => ({ ...prev, image_url: undefined }))
+              }
+            />
           </div>
 
           {recipe.type === "cooking" && (
