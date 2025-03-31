@@ -22,6 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ShareRecipeDialog } from "@/components/recipe/ShareRecipeDialog";
 
 export default function RecipeDetailPage() {
   const params = useParams();
@@ -30,8 +31,8 @@ export default function RecipeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
-  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [isIngredientsOpen, setIsIngredientsOpen] = useState(true);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(true);
 
   useEffect(() => {
     async function loadRecipe() {
@@ -120,6 +121,7 @@ export default function RecipeDetailPage() {
             Back
           </Button>
           <div className="flex items-center gap-2">
+            <ShareRecipeDialog recipe={recipe} />
             <EditRecipeDialog recipe={recipe} />
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
               <DialogTrigger asChild>

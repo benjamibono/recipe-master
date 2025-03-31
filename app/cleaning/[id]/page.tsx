@@ -30,8 +30,8 @@ export default function CleaningDetailPage() {
   const [loading, setLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [isMaterialsOpen, setIsMaterialsOpen] = useState(false);
-  const [isInstructionsOpen, setIsInstructionsOpen] = useState(false);
+  const [isMaterialsOpen, setIsMaterialsOpen] = useState(true);
+  const [isInstructionsOpen, setIsInstructionsOpen] = useState(true);
 
   useEffect(() => {
     async function loadRecipe() {

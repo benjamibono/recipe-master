@@ -1,7 +1,4 @@
 # Core Features
-- Add image to recipe (cloudinary)
-- Sort recipes by date/name 
-- Add search option
 - Add pagination
 
 # AI Features
@@ -10,9 +7,8 @@
 - Add AI to generate shopping list
 
 # Authentication & User Management
-- Correct message when registering*
-- Correct message when confirming email*
 
 
 # UI/UX Improvements
-- Add a share button so users can add the recipe to their own recipes
+- Add a share button so users can add the recipe to their own recipes (check it works)
+- Shared recipes should have creator name

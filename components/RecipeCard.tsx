@@ -12,9 +12,22 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
 
   return (
     <Link href={`${basePath}/${recipe.id}`}>
-      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer flex h-24">
+        <div className="p-4 flex-1">
+          <h3 className="text-lg font-semibold">{recipe.name}</h3>
+
+          <div className="flex flex-col justify-between flex-1">
+            {recipe.type === "cooking" && (
+              <div className="mt-2 flex items-center text-gray-600">
+                <Clock className="h-4 w-4 mr-2" />
+                <span>{recipe.time} minutes</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {recipe.image_url && (
-          <div className="relative h-48 w-full">
+          <div className="relative w-24 h-24 flex-shrink-0">
             <Image
               src={recipe.image_url}
               alt={recipe.name}
@@ -23,17 +36,6 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             />
           </div>
         )}
-
-        <div className="p-4">
-          <h3 className="text-xl font-semibold mb-2">{recipe.name}</h3>
-
-          {recipe.type === "cooking" && (
-            <div className="mt-4 flex items-center text-gray-600">
-              <Clock className="h-4 w-4 mr-2" />
-              <span>{recipe.time} minutes</span>
-            </div>
-          )}
-        </div>
       </div>
     </Link>
   );

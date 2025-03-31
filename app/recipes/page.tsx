@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { CreateRecipeDialog } from "@/components/recipe/CreateRecipeDialog";
 import { supabase } from "@/lib/supabase";
 import RecipeCard from "@/components/RecipeCard";
@@ -9,44 +9,113 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  SortControls,
+  type SortOption,
+} from "@/components/recipe/SortControls";
 
 export default function RecipesPage() {
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortOption, setSortOption] = useState<SortOption>({
+    field: "created_at",
+    ascending: false,
+  });
 
-  async function loadRecipes() {
+  const loadRecipes = useCallback(async () => {
     try {
+      console.log("Starting to load recipes...");
+
+      const authResponse = await supabase.auth.getUser();
+      console.log("Auth response:", {
+        user: authResponse.data.user ? "exists" : "null",
+        error: authResponse.error,
+      });
+
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = authResponse;
 
       if (!user) {
-        toast.error("Please log in to view your recipes");
+        console.log("No authenticated user found");
+        router.push("/auth/login");
         return;
       }
 
-      const { data, error } = await supabase
+      console.log("Building query for user:", user.id);
+      let query = supabase
         .from("recipes")
         .select("*")
-        .eq("user_id", user.id)
         .eq("type", "cooking")
-        .order("created_at", { ascending: false });
+        .eq("user_id", user.id);
 
-      if (error) throw error;
+      // Apply sorting
+      if (sortOption.field === "name") {
+        console.log(
+          "Applying name sort:",
+          sortOption.ascending ? "ascending" : "descending"
+        );
+        query = query.order("name", {
+          ascending: sortOption.ascending,
+          nullsFirst: false,
+          foreignTable: undefined,
+        });
+      } else {
+        console.log(
+          "Applying date sort:",
+          sortOption.ascending ? "ascending" : "descending"
+        );
+        query = query.order("created_at", {
+          ascending: sortOption.ascending,
+          nullsFirst: false,
+          foreignTable: undefined,
+        });
+      }
+
+      console.log("Executing query...");
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Supabase query error:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          fullError: JSON.stringify(error, null, 2),
+        });
+        toast.error(
+          `Failed to load recipes: ${error.message || "Unknown error"}`
+        );
+        return;
+      }
+
+      console.log(`Query successful, found ${data?.length || 0} recipes`);
       setRecipes(data || []);
     } catch (error) {
-      console.error("Error loading recipes:", error);
-      toast.error("Failed to load recipes");
+      console.error(
+        "Unexpected error in loadRecipes:",
+        error instanceof Error
+          ? {
+              name: error.name,
+              message: error.message,
+              stack: error.stack,
+            }
+          : error
+      );
+      toast.error("Failed to load recipes. Please try refreshing the page.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [sortOption, router]);
 
+  // Load recipes when sort option changes
   useEffect(() => {
     loadRecipes();
+  }, [loadRecipes]);
 
-    // Subscribe to realtime changes
+  // Realtime subscription effect
+  useEffect(() => {
     const channel = supabase
       .channel("recipe_changes")
       .on(
@@ -66,12 +135,15 @@ export default function RecipesPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadRecipes]);
 
   return (
     <div className="container py-8">
       <div className="flex flex-col gap-4 mb-6">
-        <h1 className="text-3xl font-bold">Your Cooking Recipes</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Your Cooking Recipes</h1>
+          <SortControls value={sortOption} onChange={setSortOption} />
+        </div>
         <Button
           variant="outline"
           className="flex items-center gap-2 sm:self-start"

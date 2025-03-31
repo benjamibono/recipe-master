@@ -83,13 +83,27 @@ export default function LoginPage() {
       }
 
       // Sign in with email
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: formData.password,
-      });
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password: formData.password,
+        });
 
       if (signInError) {
+        // Check if the error is due to email not being confirmed
+        if (signInError.message.toLowerCase().includes("email not confirmed")) {
+          throw new Error(
+            "Please confirm your email address before logging in. Check your inbox for the confirmation link."
+          );
+        }
         throw new Error("Invalid username/email or password");
+      }
+
+      // Additional check for email confirmation
+      if (!signInData.user?.email_confirmed_at) {
+        throw new Error(
+          "Please confirm your email address before logging in. Check your inbox for the confirmation link."
+        );
       }
 
       toast.success("Logged in successfully");
@@ -107,12 +121,6 @@ export default function LoginPage() {
     <div className="container max-w-md py-8">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
-        <p className="text-gray-500">
-          Don&apos;t have an account?{" "}
-          <Link href="/auth/register" className="text-primary hover:underline">
-            Sign up
-          </Link>
-        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -193,6 +201,25 @@ export default function LoginPage() {
           {loading ? "Logging in..." : "Log in"}
         </Button>
       </form>
+
+      <div className="mt-8 text-center space-y-4">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-500">
+              New to RecipeMaster?
+            </span>
+          </div>
+        </div>
+
+        <Link href="/auth/register">
+          <Button variant="outline" className="w-full">
+            Create an Account
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

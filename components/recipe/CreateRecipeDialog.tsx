@@ -16,10 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageUpload } from "@/components/ImageUpload";
+import { generateDummyRecipe } from "@/lib/dummyData";
 
 const UNITS = [
   { value: "g", label: "grams" },
@@ -214,6 +215,18 @@ export function CreateRecipeDialog({
     }
   };
 
+  const fillDummyData = () => {
+    const dummyData = generateDummyRecipe(type);
+    setFormData({
+      name: dummyData.name,
+      time: dummyData.time,
+      ingredients: dummyData.ingredients,
+      instructions: dummyData.instructions,
+      image_url: dummyData.image_url,
+    });
+    toast.success("Filled with dummy data");
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -228,16 +241,28 @@ export function CreateRecipeDialog({
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">Recipe Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="Enter recipe name"
-            />
+          <div className="flex justify-between items-center">
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="name">Recipe Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="Enter recipe name"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="ml-4 flex-shrink-0"
+              onClick={fillDummyData}
+              title="Fill with dummy data"
+            >
+              <Wand2 className="h-4 w-4" />
+            </Button>
           </div>
 
           <div className="space-y-2">

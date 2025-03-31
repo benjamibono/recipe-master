@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -14,7 +15,24 @@ export default function Home() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
+
+      if (session?.user) {
+        setIsAuthenticated(true);
+
+        // Fetch user's email from metadata or profile
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", session.user.id)
+          .single();
+
+        if (!error && profile) {
+          setUsername(profile.username);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUsername(null);
+      }
     };
 
     checkAuth();
@@ -30,7 +48,9 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-8">
-        Welcome to RecipeMaster
+        {isAuthenticated && username
+          ? `Welcome back, ${username}`
+          : "Welcome to RecipeMaster"}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">

@@ -101,30 +101,39 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
       const fileName = `${Date.now()}-${Math.random()
         .toString(36)
         .substring(2)}.${fileExt}`;
-      const filePath = `recipe-images/${fileName}`;
+
+      // Create the full path for the file
+      const filePath = `public/${fileName}`;
 
       // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from("recipes")
         .upload(filePath, file, {
           cacheControl: "3600",
           upsert: false,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Upload error details:", {
+          message: uploadError.message,
+        });
+        throw uploadError;
+      }
+
+      if (!uploadData) {
+        throw new Error("No upload data returned");
+      }
 
       // Get public URL
       const {
         data: { publicUrl },
       } = supabase.storage.from("recipes").getPublicUrl(filePath);
 
-      // Ensure the URL is properly formatted
-      const imageUrl = new URL(publicUrl).toString();
-
       setFormData((prev) => ({
         ...prev,
-        image_url: imageUrl,
+        image_url: publicUrl,
       }));
+
       toast.success("Image uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);
@@ -166,24 +175,45 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         throw new Error("At least one instruction is required");
       }
 
+      // Validate ingredients data structure
+      const validatedIngredients = formData.ingredients.map((ingredient) => ({
+        name: String(ingredient.name).trim(),
+        amount: Number(ingredient.amount),
+        unit: String(ingredient.unit),
+      }));
+
+      // Validate instructions
+      const validatedInstructions = formData.instructions.map((instruction) =>
+        String(instruction).trim()
+      );
+
+      // Prepare update data
+      const updateData = {
+        name: formData.name.trim(),
+        time: recipe.type === "cooking" ? Number(formData.time) : 0,
+        ingredients: validatedIngredients,
+        instructions: validatedInstructions,
+        image_url: formData.image_url || null,
+        updated_at: new Date().toISOString(),
+      };
+
       // Update recipe in database
       const { data, error } = await supabase
         .from("recipes")
-        .update({
-          name: formData.name.trim(),
-          time: recipe.type === "cooking" ? formData.time : 0,
-          ingredients: formData.ingredients,
-          instructions: formData.instructions,
-          image_url: formData.image_url,
-        })
+        .update(updateData)
         .eq("id", recipe.id)
         .eq("user_id", user.id)
         .select()
         .single();
 
       if (error) {
-        console.error("Supabase error:", error);
-        throw error;
+        console.error("Supabase error details:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        throw new Error(`Failed to update recipe: ${error.message}`);
       }
 
       if (!data) {
@@ -198,7 +228,9 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     } catch (error) {
       console.error("Error updating recipe:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to update recipe"
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while updating the recipe"
       );
     } finally {
       setLoading(false);
