@@ -109,126 +109,136 @@ export default function RecipeDetailPage() {
 
   return (
     <div className="container py-8">
-      <div className="flex justify-between items-center mb-6">
-        <Button
-          variant="ghost"
-          className="flex items-center gap-2"
-          onClick={() => router.push("/recipes")}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to recipes
-        </Button>
-
-        <div className="flex items-center gap-2">
-          <EditRecipeDialog recipe={recipe} />
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="destructive" className="flex items-center gap-2">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete Recipe</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to delete &quot;{recipe.name}&quot;?
-                  This action cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeleteDialogOpen(false)}
-                  disabled={deleting}
-                >
-                  Cancel
+      <div className="flex flex-col gap-8">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            className="flex items-center gap-2"
+            onClick={() => router.back()}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div className="flex items-center gap-2">
+            <EditRecipeDialog recipe={recipe} />
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" size="icon" className="h-10 w-10">
+                  <Trash2 className="h-4 w-4" />
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                >
-                  {deleting ? "Deleting..." : "Delete"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Recipe</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete this recipe? This action
+                    cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteDialogOpen(false)}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-      </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {recipe.image_url && (
-          <div className="relative h-64 w-full">
+          <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
             <Image
               src={recipe.image_url}
               alt={recipe.name}
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority
             />
           </div>
         )}
 
-        <div className="p-6">
+        <div>
           <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
-
-          <div className="flex items-center text-gray-600 mb-6">
-            <Clock className="h-5 w-5 mr-2" />
-            <span>{recipe.time} minutes</span>
-          </div>
-
-          <div className="space-y-6">
-            <Collapsible
-              open={isIngredientsOpen}
-              onOpenChange={setIsIngredientsOpen}
-            >
-              <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                  <h2 className="text-2xl font-semibold">Ingredients</h2>
-                  <ChevronDown
-                    className={`h-5 w-5 transition-transform duration-200 ${
-                      isIngredientsOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="transition-all">
-                <ul className="list-disc pl-6 mt-4 mb-6 space-y-2">
-                  {recipe.ingredients.map((ingredient, index) => (
-                    <li key={index}>
-                      {ingredient.amount} {ingredient.unit} {ingredient.name}
-                    </li>
-                  ))}
-                </ul>
-              </CollapsibleContent>
-            </Collapsible>
-
-            <Collapsible
-              open={isInstructionsOpen}
-              onOpenChange={setIsInstructionsOpen}
-            >
-              <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
-                  <h2 className="text-2xl font-semibold">Instructions</h2>
-                  <ChevronDown
-                    className={`h-5 w-5 transition-transform duration-200 ${
-                      isInstructionsOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="transition-all">
-                <ol className="space-y-4 mt-4">
-                  {recipe.instructions.map((instruction, index) => (
-                    <li key={index} className="flex">
-                      <span className="font-semibold mr-4">{index + 1}.</span>
-                      <span>{instruction}</span>
-                    </li>
-                  ))}
-                </ol>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
+          {recipe.type === "cooking" && (
+            <div className="flex items-center gap-2 text-gray-600 mb-6">
+              <Clock className="h-5 w-5" />
+              <span>{recipe.time} minutes</span>
+            </div>
+          )}
         </div>
+
+        <Collapsible
+          open={isIngredientsOpen}
+          onOpenChange={setIsIngredientsOpen}
+          className="space-y-2"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">
+              {recipe.type === "cleaning" ? "Materials" : "Ingredients"}
+            </h2>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-9 p-0">
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    isIngredientsOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="space-y-2">
+            {recipe.ingredients.map((ingredient, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between py-2 border-b last:border-b-0"
+              >
+                <span className="font-medium">{ingredient.name}</span>
+                <span>
+                  {ingredient.amount} {ingredient.unit}
+                </span>
+              </div>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+
+        <Collapsible
+          open={isInstructionsOpen}
+          onOpenChange={setIsInstructionsOpen}
+          className="space-y-2"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">Instructions</h2>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-9 p-0">
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    isInstructionsOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="space-y-4">
+            {recipe.instructions.map((instruction, index) => (
+              <div key={index} className="flex gap-4">
+                <span className="font-bold">{index + 1}.</span>
+                <p>{instruction}</p>
+              </div>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </div>
   );

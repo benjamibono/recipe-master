@@ -16,10 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Pencil, X } from "lucide-react";
+import { Pencil, X, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
+import { CldUploadWidget } from "next-cloudinary";
+import Image from "next/image";
+import type {
+  CloudinaryUploadWidgetResults,
+  CloudinaryUploadWidgetInfo,
+} from "next-cloudinary";
 
 const UNITS = [
   { value: "g", label: "grams" },
@@ -45,6 +51,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     time: recipe.time,
     ingredients: recipe.ingredients,
     instructions: recipe.instructions,
+    image_url: recipe.image_url,
   });
   const [newIngredient, setNewIngredient] = useState<Ingredient>({
     name: "",
@@ -87,6 +94,17 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }));
   };
 
+  const handleImageUpload = (result: CloudinaryUploadWidgetResults) => {
+    const info = result.info as CloudinaryUploadWidgetInfo;
+    if (info?.secure_url) {
+      setFormData((prev) => ({
+        ...prev,
+        image_url: info.secure_url,
+      }));
+      toast.success("Image uploaded successfully");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -127,6 +145,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           time: recipe.type === "cooking" ? formData.time : 0,
           ingredients: formData.ingredients,
           instructions: formData.instructions,
+          image_url: formData.image_url,
         })
         .eq("id", recipe.id)
         .eq("user_id", user.id);
@@ -170,6 +189,87 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
               }
               placeholder="Enter recipe name"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Recipe Image</Label>
+            <div className="flex items-center gap-4">
+              {formData.image_url ? (
+                <div className="relative w-32 h-32">
+                  <Image
+                    src={formData.image_url}
+                    alt="Recipe"
+                    fill
+                    className="object-cover rounded-md"
+                    sizes="128px"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, image_url: undefined }))
+                    }
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <CldUploadWidget
+                  uploadPreset="recipe_images"
+                  onSuccess={handleImageUpload}
+                  options={{
+                    sources: ["camera", "local"],
+                    resourceType: "image",
+                    clientAllowedFormats: ["jpg", "jpeg", "png", "heic"],
+                    maxFiles: 1,
+                    maxFileSize: 10000000, // 10MB
+                    styles: {
+                      palette: {
+                        window: "#FFFFFF",
+                        windowBorder: "#90A0B3",
+                        tabIcon: "#0078FF",
+                        menuIcons: "#5A616A",
+                        textDark: "#000000",
+                        textLight: "#FFFFFF",
+                        link: "#0078FF",
+                        action: "#FF620C",
+                        inactiveTabIcon: "#0E2F5A",
+                        error: "#F44235",
+                        inProgress: "#0078FF",
+                        complete: "#20B832",
+                        sourceBg: "#E4EBF1",
+                      },
+                      frame: {
+                        background: "#FFFFFF",
+                      },
+                      fonts: {
+                        default: null,
+                        "'SF Pro', sans-serif": {
+                          url: "https://fonts.cdnfonts.com/css/sf-pro-display",
+                          active: true,
+                        },
+                      },
+                    },
+                  }}
+                >
+                  {({ open }) => (
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex items-center gap-2 w-full sm:w-auto"
+                        onClick={() => open()}
+                      >
+                        <ImagePlus className="h-4 w-4" />
+                        Choose Image
+                      </Button>
+                    </div>
+                  )}
+                </CldUploadWidget>
+              )}
+            </div>
           </div>
 
           {recipe.type === "cooking" && (

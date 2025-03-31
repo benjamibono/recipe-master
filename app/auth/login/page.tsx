@@ -93,7 +93,7 @@ export default function LoginPage() {
       }
 
       toast.success("Logged in successfully");
-      router.push("/recipes");
+      router.push("/");
       router.refresh();
     } catch (error) {
       console.error("Login error:", error);

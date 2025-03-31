@@ -10,10 +10,9 @@
 - Add AI to generate shopping list
 
 # Authentication & User Management
-- Correct message when registering
-- Correct message when confirming email
-- Make a logout button
-- Add a forgot password button
+- Correct message when registering*
+- Correct message when confirming email*
+
 
 # UI/UX Improvements
 - Add a share button so users can add the recipe to their own recipes
