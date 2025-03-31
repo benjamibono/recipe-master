@@ -3,7 +3,6 @@
 - Sort recipes by date/name 
 - Add search option
 - Add pagination
-- Add username to sign up and login
 
 # AI Features
 - Add AI to calculate macronutrients

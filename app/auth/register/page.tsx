@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -23,149 +24,124 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      // Validate password match
+      if (!formData.username.trim()) {
+        throw new Error("Username is required");
+      }
+      if (!formData.email.trim()) {
+        throw new Error("Email is required");
+      }
+      if (!formData.password) {
+        throw new Error("Password is required");
+      }
       if (formData.password !== formData.confirmPassword) {
         throw new Error("Passwords do not match");
       }
 
-      // Validate password length
-      if (formData.password.length < 6) {
-        throw new Error("Password must be at least 6 characters long");
-      }
-
-      console.log("Attempting to sign up with:", { email: formData.email });
-      const { data: signUpData, error: signUpError } =
-        await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/login`,
+      // Sign up the user with username in metadata
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            username: formData.username,
           },
-        });
+        },
+      });
 
-      if (signUpError) {
-        console.error("Sign up error:", signUpError);
-        throw signUpError;
-      }
+      if (authError) throw authError;
 
-      console.log("Sign up successful:", signUpData);
-
-      if (signUpData.user) {
-        console.log("Creating profile for user:", signUpData.user.id);
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .insert({
-            id: signUpData.user.id,
-            email: signUpData.user.email,
-          })
-          .select();
-
-        if (profileError) {
-          console.error("Profile creation error:", profileError);
-          throw profileError;
-        }
-
+      if (authData.user) {
         toast.success(
           "Registration successful! Please check your email to verify your account."
         );
         router.push("/auth/login");
-      } else {
-        throw new Error("No user data returned from sign up");
       }
     } catch (error) {
-      console.error("Error during registration:", error);
-
-      // Handle specific Supabase errors
-      if (error instanceof Error) {
-        if (error.message.includes("unique constraint")) {
-          toast.error("This email is already registered");
-        } else {
-          toast.error(error.message);
-        }
-      } else {
-        toast.error("Registration failed. Please try again.");
-      }
+      console.error("Registration error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to register"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-md">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link
-              href="/auth/login"
-              className="text-blue-600 hover:text-blue-500"
-            >
-              Sign in
-            </Link>
-          </p>
+    <div className="container max-w-md py-8">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold mb-2">Create an Account</h1>
+        <p className="text-gray-500">
+          Already have an account?{" "}
+          <Link href="/auth/login" className="text-primary hover:underline">
+            Log in
+          </Link>
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="username">Username</Label>
+          <Input
+            id="username"
+            type="text"
+            value={formData.username}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, username: e.target.value }))
+            }
+            placeholder="Enter your username"
+            required
+          />
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email address</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, email: e.target.value }))
-                }
-                placeholder="Enter your email"
-                className="mt-1"
-              />
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, email: e.target.value }))
+            }
+            placeholder="Enter your email"
+            required
+          />
+        </div>
 
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, password: e.target.value }))
-                }
-                placeholder="Create a password (min. 6 characters)"
-                className="mt-1"
-              />
-            </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={formData.password}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, password: e.target.value }))
+            }
+            placeholder="Create a password"
+            required
+          />
+        </div>
 
-            <div>
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                required
-                minLength={6}
-                value={formData.confirmPassword}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    confirmPassword: e.target.value,
-                  }))
-                }
-                placeholder="Confirm your password"
-                className="mt-1"
-              />
-            </div>
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={formData.confirmPassword}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                confirmPassword: e.target.value,
+              }))
+            }
+            placeholder="Confirm your password"
+            required
+          />
+        </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Creating account..." : "Create account"}
-          </Button>
-        </form>
-      </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Creating account..." : "Create account"}
+        </Button>
+      </form>
     </div>
   );
 }
