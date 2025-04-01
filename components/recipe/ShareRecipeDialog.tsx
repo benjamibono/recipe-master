@@ -26,8 +26,10 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
       // Try to use the native share API if available
       if (navigator.share) {
         await navigator.share({
-          title: `${recipe.name} - RecipeMaster`,
-          text: `Check out this recipe for ${recipe.name} on RecipeMaster!`,
+          title: `${recipe.name} - Recipe Master`,
+          text: `Check out this recipe for ${recipe.name}${
+            recipe.servings ? ` (${recipe.servings} servings)` : ""
+          } on Recipe Master!`,
           url: shareUrl,
         });
       } else {
@@ -55,7 +57,7 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
           <DialogTitle>Share Recipe</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p>Share this recipe with other RecipeMaster users:</p>
+          <p>Share this recipe with other Recipe Master users:</p>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel

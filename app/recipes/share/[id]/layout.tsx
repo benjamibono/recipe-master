@@ -30,29 +30,35 @@ export async function generateMetadata(props: {
 
     if (!recipe) {
       return {
-        title: "Recipe Not Found - RecipeMaster",
+        title: "Recipe Not Found - Recipe Master",
       };
     }
 
     return {
-      title: `${recipe.name} - RecipeMaster`,
-      description: `Check out this recipe for ${recipe.name} on RecipeMaster!`,
+      title: `${recipe.name} - Recipe Master`,
+      description: `Check out this recipe for ${recipe.name}${
+        recipe.servings ? ` (${recipe.servings} servings)` : ""
+      } on Recipe Master!`,
       openGraph: {
-        title: `${recipe.name} - RecipeMaster`,
-        description: `Check out this recipe for ${recipe.name} on RecipeMaster!`,
+        title: `${recipe.name} - Recipe Master`,
+        description: `Check out this recipe for ${recipe.name}${
+          recipe.servings ? ` (${recipe.servings} servings)` : ""
+        } on Recipe Master!`,
         images: recipe.image_url ? [recipe.image_url] : undefined,
       },
       twitter: {
         card: "summary_large_image",
-        title: `${recipe.name} - RecipeMaster`,
-        description: `Check out this recipe for ${recipe.name} on RecipeMaster!`,
+        title: `${recipe.name} - Recipe Master`,
+        description: `Check out this recipe for ${recipe.name}${
+          recipe.servings ? ` (${recipe.servings} servings)` : ""
+        } on Recipe Master!`,
         images: recipe.image_url ? [recipe.image_url] : undefined,
       },
     };
   } catch (error) {
     console.error("Error generating metadata:", error);
     return {
-      title: "Shared Recipe - RecipeMaster",
+      title: "Shared Recipe - Recipe Master",
     };
   }
 }

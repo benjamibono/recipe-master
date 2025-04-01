@@ -1,9 +1,7 @@
 # Core Features
 - Add pagination
-- All AI features must happen in the background
 
 # AI Features
-- Add AI to calculate macronutrients (improve output)
 - Add AI to generate recipe
 - Add AI to generate shopping list
 

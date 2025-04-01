@@ -150,6 +150,7 @@ export default function ShareRecipePage() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         creator_name: creatorName,
+        servings: recipe.servings,
       };
 
       // Create a new recipe for the current user

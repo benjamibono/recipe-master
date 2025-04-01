@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recipe Master 🍽️
 
-## Getting Started
+A powerful, full-stack web application that helps you organize and manage both cooking and cleaning recipes in one place. Built with modern technologies and best practices.
 
-First, run the development server:
+![Recipe Master Screenshot](public/screenshot.png)
+
+## 🚀 Features
+
+### Authentication & User Management
+
+- **Secure User Authentication**: Email-based authentication using Supabase Auth
+- **User Profiles**: Personalized experience with user profiles and usernames
+- **Password Reset**: Secure password recovery workflow with email verification
+
+### Recipe Management
+
+- **Dual Recipe Categories**: Manage both cooking recipes and cleaning recipes
+- **CRUD Operations**: Create, read, update, and delete your recipes
+- **Rich Formatting**: Store detailed instructions, ingredients, and photos
+- **Real-time Updates**: Changes to recipes are reflected instantly using Supabase realtime subscriptions
+- **Recipe Sharing**: Share your favorite recipes with friends via unique links
+
+### AI-Powered Features
+
+- **Nutritional Analysis**: Automatically calculate macronutrients (calories, protein, carbs, fats) from your ingredients using OpenAI API
+- **Smart Recommendations**: Get personalized recipe suggestions based on your preferences
+
+### Search & Organization
+
+- **Advanced Sorting**: Sort recipes by name or creation date
+- **Smart Filtering**: Filter recipes by various attributes
+
+### Modern UI/UX
+
+- **Responsive Design**: Fully responsive interface that works on mobile, tablet, and desktop
+- **Dark/Light Mode**: Support for system theme preferences
+- **Interactive UI Components**: Smooth transitions and intuitive controls built with shadcn/ui
+- **Toast Notifications**: Informative feedback for user actions
+
+## 💻 Tech Stack
+
+### Frontend
+
+- **Next.js 15** with App Router for server components and optimized rendering
+- **React 19** for building interactive user interfaces
+- **TypeScript** for type-safe code
+- **TailwindCSS** for beautiful, responsive styling
+- **shadcn/ui** for accessible, customizable UI components
+- **Cloudinary** for image optimization and storage
+
+### Backend
+
+- **Next.js API Routes** for serverless functions
+- **Supabase** for authentication, database, and real-time subscriptions
+- **OpenAI API** for intelligent recipe analysis and suggestions
+
+### Infrastructure
+
+- **Vercel** for seamless deployment and hosting
+- **Supabase PostgreSQL** for data storage
+
+## 🌟 Unique Selling Points
+
+- **All-in-One Solution**: No need for separate apps to manage cooking and cleaning recipes
+- **AI Integration**: Nutritional analysis powered by OpenAI's latest models
+- **Real-time Collaboration**: Changes to recipes are instantly reflected across devices
+- **Modern Architecture**: Built with the latest web technologies for performance and maintainability
+- **Mobile-Friendly**: Use on any device with a responsive design
+
+## 📈 Future Plans
+
+- Advanced AI-generated recipes based on available ingredients
+- Shopping list generation from recipes
+- Meal planning calendar
+- Public recipe discovery and marketplace
+- Enhanced analytics for nutrition tracking
+- Mobile app using React Native
+
+## 🔧 Installation & Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-username/recipe-master.git
+
+# Install dependencies
+npm install
+
+# Set up environment variables (see .env.example)
+
+# Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📱 Usage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Register a new account or login
+2. Create your first recipe by clicking the "+" button
+3. Browse your recipes on the homepage
+4. Edit or delete recipes as needed
+5. Switch between cooking and cleaning recipe modes
+6. Share your favorite recipes with friends
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔒 Environment Variables
 
-## Learn More
+The following environment variables are required:
 
-To learn more about Next.js, take a look at the following resources:
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+- `OPENAI_API_KEY`: Your OpenAI API key for nutrition analysis
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 👨‍💻 About the Developer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This project was built by a passionate full-stack developer with a focus on creating intuitive, high-performance web applications that solve real problems. The codebase demonstrates expertise in modern React patterns, API integrations, authentication flows, and responsive design.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built with ❤️ using Next.js, React, TypeScript, and Supabase
