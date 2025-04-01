@@ -33,7 +33,12 @@ export default function RecipeDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(true);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(true);
+  const [isMacrosOpen, setIsMacrosOpen] = useState(true);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [macros, setMacros] = useState<string | null>(null);
+  const [loadingMacros, setLoadingMacros] = useState(false);
+  const [currentServings, setCurrentServings] = useState<number>(0);
+  const [originalServings, setOriginalServings] = useState<number>(0);
 
   useEffect(() => {
     async function getCurrentUsername() {
@@ -83,6 +88,48 @@ export default function RecipeDetailPage() {
         }
 
         setRecipe(data);
+        setCurrentServings(data.servings);
+        setOriginalServings(data.servings);
+
+        // Use stored macros if available
+        if (data.type === "cooking" && data.ingredients.length > 0) {
+          if (data.macros_data) {
+            setMacros(data.macros_data);
+          } else {
+            // Only fetch macros if they don't exist in the database
+            setLoadingMacros(true);
+            try {
+              const response = await fetch("/api/analyze-macros", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ ingredients: data.ingredients }),
+              });
+
+              if (!response.ok) throw new Error("Failed to fetch macros");
+
+              const { macros } = await response.json();
+              setMacros(macros);
+
+              // Store the macros in the database as JSONB
+              const { error: updateError } = await supabase
+                .from("recipes")
+                .update({ macros_data: macros })
+                .eq("id", data.id);
+
+              if (updateError) {
+                console.error("Error storing macros:", updateError);
+                toast.error("Failed to store nutritional information");
+              }
+            } catch (error) {
+              console.error("Error fetching macros:", error);
+              toast.error("Failed to load nutritional information");
+            } finally {
+              setLoadingMacros(false);
+            }
+          }
+        }
       } catch (error) {
         console.error("Error loading recipe:", error);
         toast.error("Failed to load recipe");
@@ -115,6 +162,11 @@ export default function RecipeDetailPage() {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const calculateAdjustedQuantity = (original: number) => {
+    if (!originalServings) return original;
+    return (original * currentServings) / originalServings;
   };
 
   if (loading) {
@@ -180,7 +232,7 @@ export default function RecipeDetailPage() {
         </div>
 
         {recipe.image_url && (
-          <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
+          <div className="relative w-full h-[200px] md:h-[400px] rounded-lg overflow-hidden">
             <Image
               src={recipe.image_url}
               alt={recipe.name}
@@ -203,6 +255,29 @@ export default function RecipeDetailPage() {
               <span>{recipe.time} minutes</span>
             </div>
           )}
+        </div>
+
+        <div className="flex items-center gap-4 mb-4">
+          <span>Servings:</span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentServings((prev) => Math.max(1, prev - 1))
+              }
+            >
+              -
+            </Button>
+            <span>{currentServings}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentServings((prev) => prev + 1)}
+            >
+              +
+            </Button>
+          </div>
         </div>
 
         <Collapsible
@@ -232,7 +307,8 @@ export default function RecipeDetailPage() {
               >
                 <span className="font-medium">{ingredient.name}</span>
                 <span>
-                  {ingredient.amount} {ingredient.unit}
+                  {calculateAdjustedQuantity(ingredient.amount)}{" "}
+                  {ingredient.unit}
                 </span>
               </div>
             ))}
@@ -271,6 +347,42 @@ export default function RecipeDetailPage() {
                   <p>{instruction}</p>
                 </div>
               ))
+            )}
+          </CollapsibleContent>
+        </Collapsible>
+
+        <Collapsible
+          open={isMacrosOpen}
+          onOpenChange={setIsMacrosOpen}
+          className="space-y-2"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-semibold">Nutritional Information</h2>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-9 p-0">
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform duration-200 ${
+                    isMacrosOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+          <CollapsibleContent className="space-y-4">
+            {loadingMacros ? (
+              <div className="text-center py-4">
+                <p className="text-gray-500">
+                  Analyzing nutritional information...
+                </p>
+              </div>
+            ) : macros ? (
+              <div className="whitespace-pre-wrap">{macros}</div>
+            ) : (
+              <div className="text-center py-4">
+                <p className="text-gray-500">
+                  No nutritional information available
+                </p>
+              </div>
             )}
           </CollapsibleContent>
         </Collapsible>

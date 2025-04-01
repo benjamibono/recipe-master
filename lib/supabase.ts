@@ -17,6 +17,7 @@ export type Recipe = {
   user_id: string;
   name: string;
   time: number;
+  servings: number;
   ingredients: {
     name: string;
     amount: number;
@@ -28,6 +29,7 @@ export type Recipe = {
   created_at: string;
   updated_at: string;
   creator_name?: string;
+  macros_data?: string;
 };
 
 export type Profile = {

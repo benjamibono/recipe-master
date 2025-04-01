@@ -1,6 +1,7 @@
 interface DummyRecipeData {
   name: string;
   time: number;
+  servings: number;
   ingredients: {
     name: string;
     amount: number;
@@ -23,6 +24,7 @@ export function generateDummyRecipe(
     return {
       name: "Quick House Cleaning",
       time: 30,
+      servings: 1,
       ingredients: [
         { name: "All-purpose cleaner", amount: 1, unit: "u" },
         { name: "Microfiber cloth", amount: 2, unit: "u" },
@@ -42,6 +44,7 @@ export function generateDummyRecipe(
   return {
     name: "Delicious Pasta Dish",
     time: 25,
+    servings: 4,
     ingredients: [
       { name: "Pasta", amount: 500, unit: "g" },
       { name: "Olive oil", amount: 30, unit: "ml" },

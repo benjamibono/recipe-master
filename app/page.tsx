@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [usernameLoading, setUsernameLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function Home() {
         setIsAuthenticated(false);
         setUsername(null);
       }
+      setUsernameLoading(false);
     };
 
     checkAuth();
@@ -48,7 +50,7 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-8">
-        {isAuthenticated && username
+        {!usernameLoading && isAuthenticated && username
           ? `Welcome back, ${username}`
           : "Welcome to RecipeMaster"}
       </h1>

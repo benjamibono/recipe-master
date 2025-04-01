@@ -19,6 +19,7 @@ export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [usernameLoading, setUsernameLoading] = useState(true);
   const [sortOption, setSortOption] = useState<SortOption>({
     field: "created_at",
     ascending: false,
@@ -40,6 +41,7 @@ export default function RecipesPage() {
           setCurrentUsername(profile.username);
         }
       }
+      setUsernameLoading(false);
     }
     getCurrentUsername();
   }, []);
@@ -162,7 +164,11 @@ export default function RecipesPage() {
     <div className="container py-8">
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Your Cooking Recipes</h1>
+          {!usernameLoading && currentUsername && (
+            <h1 className="text-base font-bold">
+              {currentUsername}&apos;s Recipes
+            </h1>
+          )}
           <SortControls value={sortOption} onChange={setSortOption} />
         </div>
         <Button
@@ -192,7 +198,7 @@ export default function RecipesPage() {
           ))}
         </div>
       )}
-      <CreateRecipeDialog />
+      <CreateRecipeDialog onSuccess={loadRecipes} />
     </div>
   );
 }

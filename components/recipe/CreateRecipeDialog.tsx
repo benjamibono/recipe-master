@@ -37,6 +37,7 @@ interface Ingredient {
 interface RecipeFormData {
   name: string;
   time: number;
+  servings: number;
   ingredients: Ingredient[];
   instructions: string[];
   image_url?: string;
@@ -44,16 +45,19 @@ interface RecipeFormData {
 
 interface CreateRecipeDialogProps {
   type?: "cooking" | "cleaning";
+  onSuccess?: () => void;
 }
 
 export function CreateRecipeDialog({
   type = "cooking",
+  onSuccess,
 }: CreateRecipeDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<RecipeFormData>({
     name: "",
     time: 0,
+    servings: 1,
     ingredients: [],
     instructions: [],
   });
@@ -103,65 +107,63 @@ export function CreateRecipeDialog({
     setLoading(true);
 
     try {
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("You must be logged in to create a recipe");
+        toast.error("Please log in to create a recipe");
+        return;
       }
 
-      // Validate form data
-      if (!formData.name.trim()) {
-        throw new Error("Recipe name is required");
-      }
-      if (type === "cooking" && formData.time <= 0) {
-        throw new Error("Preparation time must be greater than 0");
-      }
-      if (formData.ingredients.length === 0) {
-        throw new Error(
-          type === "cleaning"
-            ? "At least one material is required"
-            : "At least one ingredient is required"
-        );
+      // Get macros analysis if it's a cooking recipe
+      let macros_data = null;
+      if (type === "cooking" && formData.ingredients.length > 0) {
+        try {
+          const response = await fetch("/api/analyze-macros", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ingredients: formData.ingredients }),
+          });
+
+          if (!response.ok) throw new Error("Failed to analyze macros");
+          const data = await response.json();
+          macros_data = data.macros;
+        } catch (error) {
+          console.error("Error analyzing macros:", error);
+          toast.error("Failed to analyze nutritional information");
+        }
       }
 
-      // Insert recipe into database
       const { error } = await supabase.from("recipes").insert({
-        user_id: user.id,
-        name: formData.name.trim(),
-        time: type === "cooking" ? formData.time : 0,
+        name: formData.name,
+        time: formData.time,
+        servings: formData.servings,
         ingredients: formData.ingredients,
         instructions: formData.instructions,
-        type: type,
         image_url: formData.image_url,
+        type,
+        user_id: user.id,
+        macros_data,
       });
 
       if (error) throw error;
 
-      toast.success(
-        `${
-          type === "cleaning" ? "Cleaning recipe" : "Recipe"
-        } created successfully`
-      );
-
-      // Reset form and close dialog
+      toast.success("Recipe created successfully");
+      setOpen(false);
       setFormData({
         name: "",
         time: 0,
+        servings: 1,
         ingredients: [],
         instructions: [],
       });
-      setOpen(false);
-
-      // Hard refresh the page to show the new recipe
-      window.location.reload();
+      onSuccess?.();
     } catch (error) {
       console.error("Error creating recipe:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to create recipe"
-      );
+      toast.error("Failed to create recipe");
     } finally {
       setLoading(false);
     }
@@ -217,6 +219,7 @@ export function CreateRecipeDialog({
     setFormData({
       name: dummyData.name,
       time: dummyData.time,
+      servings: dummyData.servings,
       ingredients: dummyData.ingredients,
       instructions: dummyData.instructions,
       image_url: dummyData.image_url,
@@ -231,13 +234,13 @@ export function CreateRecipeDialog({
           <Plus className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle>
             Create New {type === "cleaning" ? "Cleaning " : ""}Recipe
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div className="space-y-2 flex-1">
               <Label htmlFor="name">Recipe Name</Label>
@@ -294,6 +297,39 @@ export function CreateRecipeDialog({
           )}
 
           <div className="space-y-2">
+            <Label htmlFor="servings">Number of Servings</Label>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    servings: Math.max(1, prev.servings - 1),
+                  }))
+                }
+              >
+                -
+              </Button>
+              <span className="w-8 text-center">{formData.servings}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    servings: prev.servings + 1,
+                  }))
+                }
+              >
+                +
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label>{type === "cleaning" ? "Materials" : "Ingredients"}</Label>
             <div className="space-y-2">
               <div className="flex gap-2">
@@ -336,7 +372,7 @@ export function CreateRecipeDialog({
                     setNewIngredient((prev) => ({ ...prev, unit: value }))
                   }
                 >
-                  <SelectTrigger className="w-24 h-10">
+                  <SelectTrigger className="w-24 h-10 flex items-center justify-between">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

@@ -1,5 +1,6 @@
 # Core Features
 - Add pagination
+- Ration calculator
 
 # AI Features
 - Add AI to calculate macronutrients
@@ -8,6 +9,7 @@
 
 # Authentication & User Management
 - Make the rest of emails better looking
+- recipes table DB policies
 
 
 # UI/UX Improvements

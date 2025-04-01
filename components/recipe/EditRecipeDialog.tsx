@@ -44,6 +44,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   const [formData, setFormData] = useState({
     name: recipe.name,
     time: recipe.time,
+    servings: recipe.servings,
     ingredients: recipe.ingredients,
     instructions: recipe.instructions,
     image_url: recipe.image_url,
@@ -148,87 +149,58 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     setLoading(true);
 
     try {
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) {
-        throw new Error("You must be logged in to edit a recipe");
+        toast.error("Please log in to edit a recipe");
+        return;
       }
 
-      // Validate form data
-      if (!formData.name.trim()) {
-        throw new Error("Recipe name is required");
+      // Get macros analysis if it's a cooking recipe
+      let macros_data = recipe.macros_data;
+      if (recipe.type === "cooking" && formData.ingredients.length > 0) {
+        try {
+          const response = await fetch("/api/analyze-macros", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ingredients: formData.ingredients }),
+          });
+
+          if (!response.ok) throw new Error("Failed to analyze macros");
+          const data = await response.json();
+          macros_data = data.macros;
+        } catch (error) {
+          console.error("Error analyzing macros:", error);
+          toast.error("Failed to analyze nutritional information");
+        }
       }
-      if (recipe.type === "cooking" && formData.time <= 0) {
-        throw new Error("Preparation time must be greater than 0");
-      }
-      if (formData.ingredients.length === 0) {
-        throw new Error(
-          recipe.type === "cleaning"
-            ? "At least one material is required"
-            : "At least one ingredient is required"
-        );
-      }
 
-      // Validate ingredients data structure
-      const validatedIngredients = formData.ingredients.map((ingredient) => ({
-        name: String(ingredient.name).trim(),
-        amount: Number(ingredient.amount),
-        unit: String(ingredient.unit),
-      }));
-
-      // Validate instructions
-      const validatedInstructions = formData.instructions.map((instruction) =>
-        String(instruction).trim()
-      );
-
-      // Prepare update data
-      const updateData = {
-        name: formData.name.trim(),
-        time: recipe.type === "cooking" ? Number(formData.time) : 0,
-        ingredients: validatedIngredients,
-        instructions: validatedInstructions,
-        image_url: formData.image_url || null,
-        updated_at: new Date().toISOString(),
-      };
-
-      // Update recipe in database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("recipes")
-        .update(updateData)
+        .update({
+          name: formData.name,
+          time: formData.time,
+          servings: formData.servings,
+          ingredients: formData.ingredients,
+          instructions: formData.instructions,
+          image_url: formData.image_url,
+          macros_data,
+        })
         .eq("id", recipe.id)
-        .eq("user_id", user.id)
-        .select()
-        .single();
+        .eq("user_id", user.id);
 
-      if (error) {
-        console.error("Supabase error details:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
-        throw new Error(`Failed to update recipe: ${error.message}`);
-      }
-
-      if (!data) {
-        throw new Error("Failed to update recipe - no data returned");
-      }
+      if (error) throw error;
 
       toast.success("Recipe updated successfully");
       setOpen(false);
-
-      // Hard refresh the page to show the updated recipe
       window.location.reload();
     } catch (error) {
       console.error("Error updating recipe:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred while updating the recipe"
-      );
+      toast.error("Failed to update recipe");
     } finally {
       setLoading(false);
     }
@@ -245,7 +217,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle>Edit Recipe</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4">
           <div className="space-y-2">
             <Label htmlFor="name">Recipe Name</Label>
             <Input
@@ -288,6 +260,39 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="servings">Number of Servings</Label>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    servings: Math.max(1, prev.servings - 1),
+                  }))
+                }
+              >
+                -
+              </Button>
+              <span className="w-8 text-center">{formData.servings}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    servings: prev.servings + 1,
+                  }))
+                }
+              >
+                +
+              </Button>
+            </div>
+          </div>
 
           <div className="space-y-4">
             <Label>
@@ -337,7 +342,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                     }))
                   }
                 >
-                  <SelectTrigger className="w-24 h-10">
+                  <SelectTrigger className="w-24 h-10 flex items-center justify-between">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

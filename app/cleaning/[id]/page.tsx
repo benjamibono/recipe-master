@@ -178,7 +178,7 @@ export default function CleaningDetailPage() {
         </div>
 
         {recipe.image_url && (
-          <div className="relative w-full h-[400px] rounded-lg overflow-hidden">
+          <div className="relative w-full h-[200px] md:h-[400px] rounded-lg overflow-hidden">
             <Image
               src={recipe.image_url}
               alt={recipe.name}
