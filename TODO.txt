@@ -10,5 +10,4 @@
 
 
 # UI/UX Improvements
-- Add a share button so users can add the recipe to their own recipes (check it works)
 - Shared recipes should have creator name

@@ -81,27 +81,44 @@ export default function ShareRecipePage() {
         const randomString = Math.random().toString(36).substring(2, 15);
         const newFileName = `${timestamp}-${randomString}.${fileExt}`;
 
-        // If it's a Supabase storage URL, copy the file to a new location
-        if (recipe.image_url.includes("supabase")) {
+        // If it's a Supabase storage URL, try to determine the correct path
+        if (recipe.image_url?.includes("supabase")) {
           const originalPath = recipe.image_url.split("/").pop();
           if (originalPath) {
-            // Copy the file to a new location in storage
-            const { error: copyError } = await supabase.storage
-              .from("recipes")
-              .copy(`public/${originalPath}`, `public/${newFileName}`);
+            // Try different possible file paths
+            const possiblePaths = [
+              `public/${originalPath}`,
+              `recipe-images/${originalPath}`,
+            ];
 
-            if (copyError) {
-              console.error("Error copying image:", copyError);
-              // If copy fails, we'll use the original URL
-            } else {
-              // Get the public URL for the new file
-              const {
-                data: { publicUrl },
-              } = supabase.storage
-                .from("recipes")
-                .getPublicUrl(`public/${newFileName}`);
+            let copied = false;
 
-              newImageUrl = publicUrl;
+            for (const path of possiblePaths) {
+              try {
+                // Attempt to copy the file from this path
+                const { error: copyError } = await supabase.storage
+                  .from("recipes")
+                  .copy(path, `public/${newFileName}`);
+
+                if (!copyError) {
+                  // Get the public URL for the new file
+                  const {
+                    data: { publicUrl },
+                  } = supabase.storage
+                    .from("recipes")
+                    .getPublicUrl(`public/${newFileName}`);
+
+                  newImageUrl = publicUrl;
+                  copied = true;
+                  break; // Exit the loop if successful
+                }
+              } catch (error) {
+                console.error(`Error copying from ${path}:`, error);
+              }
+            }
+
+            if (!copied) {
+              console.log("Could not copy image, using original URL");
             }
           }
         }
