@@ -241,11 +241,11 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle>Edit Recipe</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name">Recipe Name</Label>
             <Input
@@ -255,6 +255,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                 setFormData((prev) => ({ ...prev, name: e.target.value }))
               }
               placeholder="Enter recipe name"
+              className="h-10"
             />
           </div>
 
@@ -283,6 +284,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                     time: parseInt(e.target.value) || 0,
                   }))
                 }
+                className="h-10"
               />
             </div>
           )}
@@ -291,8 +293,8 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             <Label>
               {recipe.type === "cleaning" ? "Materials" : "Ingredients"}
             </Label>
-            <div className="grid grid-cols-[1fr,auto,auto] gap-2 items-end">
-              <div className="space-y-2">
+            <div className="space-y-2">
+              <div className="flex gap-2">
                 <Input
                   placeholder="Name"
                   value={newIngredient.name}
@@ -302,9 +304,17 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                       name: e.target.value,
                     }))
                   }
+                  className="flex-1 h-10"
                 />
+                <Button
+                  type="button"
+                  onClick={handleAddIngredient}
+                  className="h-10"
+                >
+                  Add {recipe.type === "cleaning" ? "Material" : "Ingredient"}
+                </Button>
               </div>
-              <div className="space-y-2">
+              <div className="flex gap-2">
                 <Input
                   type="number"
                   min="0"
@@ -316,9 +326,8 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                       amount: parseFloat(e.target.value) || 0,
                     }))
                   }
+                  className="w-32 h-10"
                 />
-              </div>
-              <div className="space-y-2">
                 <Select
                   value={newIngredient.unit}
                   onValueChange={(value) =>
@@ -328,7 +337,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                     }))
                   }
                 >
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-24 h-10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -340,22 +349,15 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <Button
-                type="button"
-                onClick={handleAddIngredient}
-                className="col-span-3"
-              >
-                Add {recipe.type === "cleaning" ? "Material" : "Ingredient"}
-              </Button>
             </div>
 
             <ul className="space-y-2">
               {formData.ingredients.map((ingredient, index) => (
                 <li
                   key={index}
-                  className="flex items-center justify-between bg-secondary p-2 rounded"
+                  className="flex items-center justify-between bg-secondary p-3 rounded"
                 >
-                  <span>
+                  <span className="flex-1">
                     {ingredient.amount} {ingredient.unit} {ingredient.name}
                   </span>
                   <Button
@@ -363,6 +365,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemoveIngredient(index)}
+                    className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -384,11 +387,12 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                     handleAddInstruction();
                   }
                 }}
+                className="h-10"
               />
               <Button
                 type="button"
                 onClick={handleAddInstruction}
-                className="w-full"
+                className="w-full h-10"
               >
                 Add Instruction
               </Button>
@@ -398,9 +402,9 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
               {formData.instructions.map((instruction, index) => (
                 <li
                   key={index}
-                  className="flex items-center justify-between bg-secondary p-2 rounded"
+                  className="flex items-center justify-between bg-secondary p-3 rounded"
                 >
-                  <span className="flex">
+                  <span className="flex flex-1">
                     <span className="font-semibold mr-4">{index + 1}.</span>
                     <span>{instruction}</span>
                   </span>
@@ -409,6 +413,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemoveInstruction(index)}
+                    className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -417,7 +422,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             </ol>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full h-10" disabled={loading}>
             {loading ? "Saving..." : "Save Changes"}
           </Button>
         </form>

@@ -11,9 +11,6 @@
 
 
 # UI/UX Improvements
-- Shared recipes should have creator name
-- Delete the take photo button, bc click on select image opens all options already
-- In mobile, amount placeholder should erase the 0 when clicked bc if not its hard to write the amount
 
 
 MAKE A README FOR THE PROJECT

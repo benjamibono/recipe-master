@@ -231,14 +231,14 @@ export function CreateRecipeDialog({
           <Plus className="h-6 w-6" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl sm:max-h-[90vh] overflow-y-auto top-0 sm:top-[50%] translate-y-0 sm:-translate-y-[50%] rounded-t-[10px] sm:rounded-[10px]">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle>
             Create New {type === "cleaning" ? "Cleaning " : ""}Recipe
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex justify-between items-center">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div className="space-y-2 flex-1">
               <Label htmlFor="name">Recipe Name</Label>
               <Input
@@ -248,13 +248,14 @@ export function CreateRecipeDialog({
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder="Enter recipe name"
+                className="h-10"
               />
             </div>
             <Button
               type="button"
               variant="outline"
               size="icon"
-              className="ml-4 flex-shrink-0"
+              className="h-10 w-10 sm:ml-4 flex-shrink-0"
               onClick={fillDummyData}
               title="Fill with dummy data"
             >
@@ -287,65 +288,74 @@ export function CreateRecipeDialog({
                     time: parseInt(e.target.value) || 0,
                   }))
                 }
+                className="h-10"
               />
             </div>
           )}
 
           <div className="space-y-2">
             <Label>{type === "cleaning" ? "Materials" : "Ingredients"}</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Ingredient name"
-                value={newIngredient.name}
-                onChange={(e) =>
-                  setNewIngredient((prev) => ({
-                    ...prev,
-                    name: e.target.value,
-                  }))
-                }
-                className="flex-1"
-              />
-              <Input
-                type="number"
-                min="0"
-                placeholder="Amount"
-                className="w-24"
-                value={newIngredient.amount || ""}
-                onChange={(e) =>
-                  setNewIngredient((prev) => ({
-                    ...prev,
-                    amount: parseInt(e.target.value) || 0,
-                  }))
-                }
-              />
-              <Select
-                value={newIngredient.unit}
-                onValueChange={(value: (typeof UNITS)[number]["value"]) =>
-                  setNewIngredient((prev) => ({ ...prev, unit: value }))
-                }
-              >
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {UNITS.map((unit) => (
-                    <SelectItem key={unit.value} value={unit.value}>
-                      {unit.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button type="button" onClick={handleAddIngredient}>
-                Add
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ingredient name"
+                  value={newIngredient.name}
+                  onChange={(e) =>
+                    setNewIngredient((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                  className="flex-1 h-10"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddIngredient}
+                  className="h-10"
+                >
+                  Add
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Amount"
+                  className="w-32 h-10"
+                  value={newIngredient.amount || ""}
+                  onChange={(e) =>
+                    setNewIngredient((prev) => ({
+                      ...prev,
+                      amount: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                />
+                <Select
+                  value={newIngredient.unit}
+                  onValueChange={(value: (typeof UNITS)[number]["value"]) =>
+                    setNewIngredient((prev) => ({ ...prev, unit: value }))
+                  }
+                >
+                  <SelectTrigger className="w-24 h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {UNITS.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               {formData.ingredients.map((ingredient, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 bg-secondary p-2 rounded-md"
+                  className="flex items-center gap-2 bg-secondary p-3 rounded-md"
                 >
-                  <span>
+                  <span className="flex-1">
                     {ingredient.name} - {ingredient.amount}{" "}
                     {UNITS.find((u) => u.value === ingredient.unit)?.label}
                   </span>
@@ -354,6 +364,7 @@ export function CreateRecipeDialog({
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemoveIngredient(index)}
+                    className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -369,8 +380,13 @@ export function CreateRecipeDialog({
                 placeholder="Add instruction step"
                 value={newInstruction}
                 onChange={(e) => setNewInstruction(e.target.value)}
+                className="h-10"
               />
-              <Button type="button" onClick={handleAddInstruction}>
+              <Button
+                type="button"
+                onClick={handleAddInstruction}
+                className="h-10"
+              >
                 Add
               </Button>
             </div>
@@ -378,9 +394,9 @@ export function CreateRecipeDialog({
               {formData.instructions.map((instruction, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 bg-secondary p-2 rounded-md"
+                  className="flex items-center gap-2 bg-secondary p-3 rounded-md"
                 >
-                  <span>
+                  <span className="flex-1">
                     {index + 1}. {instruction}
                   </span>
                   <Button
@@ -388,6 +404,7 @@ export function CreateRecipeDialog({
                     variant="ghost"
                     size="icon"
                     onClick={() => handleRemoveInstruction(index)}
+                    className="h-8 w-8"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -396,16 +413,17 @@ export function CreateRecipeDialog({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 border-t">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
+              className="h-10"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="h-10">
               {loading ? "Creating..." : "Create Recipe"}
             </Button>
           </div>
