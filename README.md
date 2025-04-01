@@ -3,7 +3,8 @@
 A powerful, full-stack web application that helps you organize and manage both cooking and cleaning recipes in one place. Built with modern technologies and best practices.
 
 <div style="display: flex; justify-content: center;">
-<img src="public/recipemaster.webp" alt="Recipe Master Screenshot" width="100%">
+<img src="public/recipemaster.webp" alt="Recipe Master Screenshot" width="79%">
+<img src="public/recipemaster.gif" alt="Recipe Master Demo GIF" width="20%">
 </div>
 
 ## 🚀 Features
