@@ -1,10 +1,7 @@
 # Core Features
-- When sharing a recipe, the serving info doesn't work
-- Add recipes from explore page to your recipes
 
 
 # AI Features
-- Add AI to generate recipe on Magic Wand
 
 
 # Authentication & User Management

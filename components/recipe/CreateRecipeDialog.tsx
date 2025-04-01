@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X, Wand2 } from "lucide-react";
+import { Plus, X, Wand2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -53,6 +53,7 @@ export function CreateRecipeDialog({
 }: CreateRecipeDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [formData, setFormData] = useState<RecipeFormData>({
     name: "",
     time: 0,
@@ -176,8 +177,18 @@ export function CreateRecipeDialog({
         body: JSON.stringify({ ingredients }),
       });
 
-      if (!response.ok) throw new Error("Failed to analyze macros");
       const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast.error(
+            `${data.error} The nutritional information will be analyzed automatically once the cooldown period is over.`
+          );
+        } else {
+          throw new Error(data.error || "Failed to analyze macros");
+        }
+        return;
+      }
 
       // Update the recipe with the macros data once available
       const { error: updateError } = await supabase
@@ -190,6 +201,11 @@ export function CreateRecipeDialog({
       }
     } catch (error) {
       console.error("Error analyzing macros in background:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to analyze nutritional information"
+      );
     }
   };
 
@@ -238,6 +254,46 @@ export function CreateRecipeDialog({
     }
   };
 
+  const handleGenerateRecipe = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Please enter a recipe name first");
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const response = await fetch("/api/generate-recipe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ recipeName: formData.name }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate recipe");
+      }
+
+      const generatedRecipe = await response.json();
+
+      // Update form data with generated recipe
+      setFormData((prev) => ({
+        ...prev,
+        time: generatedRecipe.time,
+        servings: generatedRecipe.servings,
+        ingredients: generatedRecipe.ingredients,
+        instructions: generatedRecipe.instructions,
+      }));
+
+      toast.success("Recipe generated successfully!");
+    } catch (error) {
+      console.error("Error generating recipe:", error);
+      toast.error("Failed to generate recipe");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -255,26 +311,33 @@ export function CreateRecipeDialog({
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div className="space-y-2 flex-1">
               <Label htmlFor="name">Recipe Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Enter recipe name"
-                className="h-10"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Enter recipe name"
+                  className="h-10"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 flex-shrink-0"
+                  onClick={handleGenerateRecipe}
+                  disabled={generating || !formData.name.trim()}
+                  title="Generate recipe with AI"
+                >
+                  {generating ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-10 w-10 sm:ml-4 flex-shrink-0"
-              onClick={() => {}}
-              title="Coming soon"
-            >
-              <Wand2 className="h-4 w-4" />
-            </Button>
           </div>
 
           <div className="space-y-2">

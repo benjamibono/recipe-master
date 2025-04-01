@@ -261,22 +261,14 @@ export default function ShoppingPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {recipes.map((recipe) => (
-            <div
+            <RecipeCard
               key={recipe.id}
-              className={`relative ${isSelectionMode ? "cursor-pointer" : ""}`}
-              onClick={() => toggleRecipeSelection(recipe.id)}
-            >
-              {isSelectionMode && (
-                <div className="absolute top-2 right-2 z-10">
-                  {selectedRecipes.has(recipe.id) ? (
-                    <CheckSquare className="h-6 w-6 text-primary" />
-                  ) : (
-                    <Square className="h-6 w-6 text-gray-400" />
-                  )}
-                </div>
-              )}
-              <RecipeCard recipe={recipe} currentUsername={currentUsername} />
-            </div>
+              recipe={recipe}
+              currentUsername={currentUsername}
+              isSelectionMode={isSelectionMode}
+              isSelected={selectedRecipes.has(recipe.id)}
+              onSelect={toggleRecipeSelection}
+            />
           ))}
         </div>
       )}

@@ -1,8 +1,28 @@
 import { NextResponse } from "next/server";
 import { analyzeRecipeMacros } from "@/lib/openai";
+import { RateLimiter } from "limiter";
+
+// Create a rate limiter that allows 10 requests per minute
+const limiter = new RateLimiter({
+  tokensPerInterval: 10,
+  interval: "minute",
+});
 
 export async function POST(request: Request) {
   try {
+    // Check rate limit
+    const hasToken = await limiter.tryRemoveTokens(1);
+    if (!hasToken) {
+      return NextResponse.json(
+        {
+          error:
+            "You've reached the rate limit. Please wait 5 minutes before trying again.",
+          cooldown: 300000, // 5 minutes in milliseconds
+        },
+        { status: 429 }
+      );
+    }
+
     const { ingredients } = await request.json();
 
     if (!ingredients || !Array.isArray(ingredients)) {
@@ -13,9 +33,10 @@ export async function POST(request: Request) {
     }
 
     const macros = await analyzeRecipeMacros(ingredients);
+
     return NextResponse.json({ macros });
   } catch (error) {
-    console.error("Error in analyze-macros route:", error);
+    console.error("Error analyzing macros:", error);
     return NextResponse.json(
       { error: "Failed to analyze macros" },
       { status: 500 }

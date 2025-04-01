@@ -93,8 +93,8 @@ export default function RecipeDetailPage() {
 
         // Load macros separately in the background if this is a cooking recipe
         if (data.type === "cooking" && data.ingredients.length > 0) {
-          // If macros are already stored, use them immediately
-          if (data.macros_data) {
+          // If macros are already stored and valid, use them immediately
+          if (data.macros_data && data.macros_data.includes(":")) {
             setMacros(data.macros_data);
           } else {
             // Set loading state and fetch macros in the background
@@ -124,9 +124,17 @@ export default function RecipeDetailPage() {
         body: JSON.stringify({ ingredients: recipeData.ingredients }),
       });
 
-      if (!response.ok) throw new Error("Failed to fetch macros");
+      if (!response.ok) {
+        throw new Error(`Failed to fetch macros: ${response.statusText}`);
+      }
 
       const { macros } = await response.json();
+
+      // Validate the macros data format
+      if (!macros || typeof macros !== "string" || !macros.includes(":")) {
+        throw new Error("Invalid macros data format");
+      }
+
       setMacros(macros);
 
       // Store the macros in the database as JSONB
@@ -137,11 +145,14 @@ export default function RecipeDetailPage() {
 
       if (updateError) {
         console.error("Error storing macros:", updateError);
-        toast.error("Failed to store nutritional information");
+        // Don't show error toast here as the user can still see the macros
       }
     } catch (error) {
       console.error("Error fetching macros:", error);
-      toast.error("Failed to load nutritional information");
+      // Only show error toast if we don't have any macros data
+      if (!recipeData.macros_data) {
+        toast.error("Failed to load nutritional information");
+      }
     } finally {
       setLoadingMacros(false);
     }
@@ -493,15 +504,31 @@ export default function RecipeDetailPage() {
               <h2 className="text-2xl font-semibold">
                 Nutritional Information
               </h2>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-9 p-0">
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 ${
-                      isMacrosOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </Button>
-              </CollapsibleTrigger>
+              <div className="flex items-center gap-2">
+                {recipe.type === "cooking" && !loadingMacros && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (recipe) {
+                        setLoadingMacros(true);
+                        fetchNutritionalInfo(recipe);
+                      }
+                    }}
+                  >
+                    Refresh
+                  </Button>
+                )}
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-9 p-0">
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        isMacrosOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
             </div>
             <CollapsibleContent className="space-y-4">
               {loadingMacros ? (
@@ -516,7 +543,7 @@ export default function RecipeDetailPage() {
                     This might take a moment as AI analyzes your ingredients
                   </p>
                 </div>
-              ) : macros ? (
+              ) : macros && macros.includes(":") ? (
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">
