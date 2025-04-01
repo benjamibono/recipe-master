@@ -171,9 +171,6 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             : "At least one ingredient is required"
         );
       }
-      if (formData.instructions.length === 0) {
-        throw new Error("At least one instruction is required");
-      }
 
       // Validate ingredients data structure
       const validatedIngredients = formData.ingredients.map((ingredient) => ({
@@ -279,7 +276,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                 id="time"
                 type="number"
                 min="0"
-                value={formData.time}
+                value={formData.time === 0 ? "" : formData.time}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,

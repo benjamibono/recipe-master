@@ -18,10 +18,31 @@ export default function RecipesPage() {
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>({
     field: "created_at",
     ascending: false,
   });
+
+  useEffect(() => {
+    async function getCurrentUsername() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          setCurrentUsername(profile.username);
+        }
+      }
+    }
+    getCurrentUsername();
+  }, []);
 
   const loadRecipes = useCallback(async () => {
     try {
@@ -163,7 +184,11 @@ export default function RecipesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {recipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              currentUsername={currentUsername}
+            />
           ))}
         </div>
       )}

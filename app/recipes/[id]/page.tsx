@@ -33,6 +33,27 @@ export default function RecipeDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(true);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(true);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function getCurrentUsername() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          setCurrentUsername(profile.username);
+        }
+      }
+    }
+    getCurrentUsername();
+  }, []);
 
   useEffect(() => {
     async function loadRecipe() {
@@ -173,6 +194,9 @@ export default function RecipeDetailPage() {
 
         <div>
           <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
+          {recipe.creator_name && recipe.creator_name !== currentUsername && (
+            <p className="text-gray-600 mb-2">by {recipe.creator_name}</p>
+          )}
           {recipe.type === "cooking" && (
             <div className="flex items-center gap-2 text-gray-600 mb-6">
               <Clock className="h-5 w-5" />
@@ -233,12 +257,21 @@ export default function RecipeDetailPage() {
             </CollapsibleTrigger>
           </div>
           <CollapsibleContent className="space-y-4">
-            {recipe.instructions.map((instruction, index) => (
-              <div key={index} className="flex gap-4">
-                <span className="font-bold">{index + 1}.</span>
-                <p>{instruction}</p>
+            {recipe.instructions.length === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-gray-500">No instructions available</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Click the edit button to add instructions
+                </p>
               </div>
-            ))}
+            ) : (
+              recipe.instructions.map((instruction, index) => (
+                <div key={index} className="flex gap-4">
+                  <span className="font-bold">{index + 1}.</span>
+                  <p>{instruction}</p>
+                </div>
+              ))
+            )}
           </CollapsibleContent>
         </Collapsible>
       </div>

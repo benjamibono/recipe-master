@@ -27,6 +27,7 @@ export type Recipe = {
   image_url?: string;
   created_at: string;
   updated_at: string;
+  creator_name?: string;
 };
 
 export type Profile = {

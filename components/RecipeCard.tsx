@@ -5,9 +5,13 @@ import { Clock } from "lucide-react";
 
 interface RecipeCardProps {
   recipe: Recipe;
+  currentUsername: string | null;
 }
 
-export default function RecipeCard({ recipe }: RecipeCardProps) {
+export default function RecipeCard({
+  recipe,
+  currentUsername,
+}: RecipeCardProps) {
   const basePath = recipe.type === "cleaning" ? "/cleaning" : "/recipes";
 
   return (
@@ -26,16 +30,23 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
           </div>
         </div>
 
-        {recipe.image_url && (
-          <div className="relative w-24 h-24 flex-shrink-0">
-            <Image
-              src={recipe.image_url}
-              alt={recipe.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-        )}
+        <div className="flex items-end">
+          {recipe.creator_name && recipe.creator_name !== currentUsername && (
+            <p className="text-xs text-gray-500 pr-2 pb-2">
+              by {recipe.creator_name}
+            </p>
+          )}
+          {recipe.image_url && (
+            <div className="relative w-24 h-24 flex-shrink-0">
+              <Image
+                src={recipe.image_url}
+                alt={recipe.name}
+                fill
+                className="object-cover"
+              />
+            </div>
+          )}
+        </div>
       </div>
     </Link>
   );

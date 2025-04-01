@@ -7,7 +7,22 @@
 - Add AI to generate shopping list
 
 # Authentication & User Management
+- Make the rest of emails better looking
 
 
 # UI/UX Improvements
 - Shared recipes should have creator name
+- Delete the take photo button, bc click on select image opens all options already
+- In mobile, amount placeholder should erase the 0 when clicked bc if not its hard to write the amount
+
+
+MAKE A README FOR THE PROJECT
+- Explain the project
+- Explain the tech stack
+- Explain the features
+- Explain the future plans
+- Explain how to run the project
+- Explain how to install the project
+- Explain how to use the project
+- Add photos / videos
+- Add it to my portfolio

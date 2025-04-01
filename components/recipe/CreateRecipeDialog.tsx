@@ -126,9 +126,6 @@ export function CreateRecipeDialog({
             : "At least one ingredient is required"
         );
       }
-      if (formData.instructions.length === 0) {
-        throw new Error("At least one instruction is required");
-      }
 
       // Insert recipe into database
       const { error } = await supabase.from("recipes").insert({
@@ -283,7 +280,7 @@ export function CreateRecipeDialog({
                 id="time"
                 type="number"
                 min="0"
-                value={formData.time}
+                value={formData.time === 0 ? "" : formData.time}
                 onChange={(e) =>
                   setFormData((prev) => ({
                     ...prev,
