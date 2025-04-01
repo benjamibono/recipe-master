@@ -116,41 +116,27 @@ export function CreateRecipeDialog({
         return;
       }
 
-      // Get macros analysis if it's a cooking recipe
-      let macros_data = null;
-      if (type === "cooking" && formData.ingredients.length > 0) {
-        try {
-          const response = await fetch("/api/analyze-macros", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ingredients: formData.ingredients }),
-          });
-
-          if (!response.ok) throw new Error("Failed to analyze macros");
-          const data = await response.json();
-          macros_data = data.macros;
-        } catch (error) {
-          console.error("Error analyzing macros:", error);
-          toast.error("Failed to analyze nutritional information");
-        }
-      }
-
-      const { error } = await supabase.from("recipes").insert({
-        name: formData.name,
-        time: formData.time,
-        servings: formData.servings,
-        ingredients: formData.ingredients,
-        instructions: formData.instructions,
-        image_url: formData.image_url,
-        type,
-        user_id: user.id,
-        macros_data,
-      });
+      // Create recipe immediately without waiting for macros analysis
+      const { data: recipe, error } = await supabase
+        .from("recipes")
+        .insert({
+          name: formData.name,
+          time: formData.time,
+          servings: formData.servings,
+          ingredients: formData.ingredients,
+          instructions: formData.instructions,
+          image_url: formData.image_url,
+          type,
+          user_id: user.id,
+          // Initially save without macros data
+          macros_data: null,
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
 
+      // Show success message and close dialog
       toast.success("Recipe created successfully");
       setOpen(false);
       setFormData({
@@ -160,12 +146,51 @@ export function CreateRecipeDialog({
         ingredients: [],
         instructions: [],
       });
+
+      // Call onSuccess callback to navigate away immediately
       onSuccess?.();
+
+      // Perform AI analysis in the background for cooking recipes with ingredients
+      if (type === "cooking" && formData.ingredients.length > 0 && recipe?.id) {
+        // No need to await this - it happens in the background
+        fetchNutritionalInfoInBackground(formData.ingredients, recipe.id);
+      }
     } catch (error) {
       console.error("Error creating recipe:", error);
       toast.error("Failed to create recipe");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Separate function to fetch nutritional information in the background
+  const fetchNutritionalInfoInBackground = async (
+    ingredients: Ingredient[],
+    recipeId: number
+  ) => {
+    try {
+      const response = await fetch("/api/analyze-macros", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ingredients }),
+      });
+
+      if (!response.ok) throw new Error("Failed to analyze macros");
+      const data = await response.json();
+
+      // Update the recipe with the macros data once available
+      const { error: updateError } = await supabase
+        .from("recipes")
+        .update({ macros_data: data.macros })
+        .eq("id", recipeId);
+
+      if (updateError) {
+        console.error("Error storing macros:", updateError);
+      }
+    } catch (error) {
+      console.error("Error analyzing macros in background:", error);
     }
   };
 

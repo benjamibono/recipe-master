@@ -91,43 +91,15 @@ export default function RecipeDetailPage() {
         setCurrentServings(data.servings);
         setOriginalServings(data.servings);
 
-        // Use stored macros if available
+        // Load macros separately in the background if this is a cooking recipe
         if (data.type === "cooking" && data.ingredients.length > 0) {
+          // If macros are already stored, use them immediately
           if (data.macros_data) {
             setMacros(data.macros_data);
           } else {
-            // Only fetch macros if they don't exist in the database
+            // Set loading state and fetch macros in the background
             setLoadingMacros(true);
-            try {
-              const response = await fetch("/api/analyze-macros", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ ingredients: data.ingredients }),
-              });
-
-              if (!response.ok) throw new Error("Failed to fetch macros");
-
-              const { macros } = await response.json();
-              setMacros(macros);
-
-              // Store the macros in the database as JSONB
-              const { error: updateError } = await supabase
-                .from("recipes")
-                .update({ macros_data: macros })
-                .eq("id", data.id);
-
-              if (updateError) {
-                console.error("Error storing macros:", updateError);
-                toast.error("Failed to store nutritional information");
-              }
-            } catch (error) {
-              console.error("Error fetching macros:", error);
-              toast.error("Failed to load nutritional information");
-            } finally {
-              setLoadingMacros(false);
-            }
+            fetchNutritionalInfo(data);
           }
         }
       } catch (error) {
@@ -140,6 +112,40 @@ export default function RecipeDetailPage() {
 
     loadRecipe();
   }, [params.id, router]);
+
+  // Separate function to fetch nutritional information asynchronously
+  const fetchNutritionalInfo = async (recipeData: Recipe) => {
+    try {
+      const response = await fetch("/api/analyze-macros", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ingredients: recipeData.ingredients }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch macros");
+
+      const { macros } = await response.json();
+      setMacros(macros);
+
+      // Store the macros in the database as JSONB
+      const { error: updateError } = await supabase
+        .from("recipes")
+        .update({ macros_data: macros })
+        .eq("id", recipeData.id);
+
+      if (updateError) {
+        console.error("Error storing macros:", updateError);
+        toast.error("Failed to store nutritional information");
+      }
+    } catch (error) {
+      console.error("Error fetching macros:", error);
+      toast.error("Failed to load nutritional information");
+    } finally {
+      setLoadingMacros(false);
+    }
+  };
 
   const handleDelete = async () => {
     if (!recipe) return;
@@ -172,7 +178,35 @@ export default function RecipeDetailPage() {
   if (loading) {
     return (
       <div className="container py-8">
-        <div className="text-center">Loading recipe...</div>
+        <div className="flex flex-col gap-8">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+          </div>
+          <div className="animate-pulse">
+            <div className="h-[200px] md:h-[400px] bg-gray-200 rounded-lg w-full mb-8"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div className="space-y-2 mb-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded w-full"></div>
+              ))}
+            </div>
+            <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded w-full"></div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -374,9 +408,73 @@ export default function RecipeDetailPage() {
                 <p className="text-gray-500">
                   Analyzing nutritional information...
                 </p>
+                <div className="mt-2 flex justify-center">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600"></div>
+                </div>
+                <p className="text-sm text-gray-400 mt-2">
+                  This might take a moment as AI analyzes your ingredients
+                </p>
               </div>
             ) : macros ? (
-              <div className="whitespace-pre-wrap">{macros}</div>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">
+                    Total
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {macros.split("\n").map((line, index) => {
+                      const [label, value] = line
+                        .split(":")
+                        .map((part) => part.trim());
+                      return (
+                        <div
+                          key={index}
+                          className="bg-gray-50 rounded-lg p-4 text-center"
+                        >
+                          <div className="text-sm text-gray-600 mb-1">
+                            {label}
+                          </div>
+                          <div className="text-xl font-semibold text-gray-900">
+                            {value}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">
+                    Per Serving
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {macros.split("\n").map((line, index) => {
+                      const [label, value] = line
+                        .split(":")
+                        .map((part) => part.trim());
+                      const numericValue = parseFloat(value.replace(/,/g, ""));
+                      const perServingValue =
+                        (numericValue / originalServings) * currentServings;
+                      return (
+                        <div
+                          key={index}
+                          className="bg-gray-50 rounded-lg p-4 text-center"
+                        >
+                          <div className="text-sm text-gray-600 mb-1">
+                            {label}
+                          </div>
+                          <div className="text-xl font-semibold text-gray-900">
+                            {label === "Energy value"
+                              ? Math.round(perServingValue).toLocaleString()
+                              : perServingValue.toFixed(1)}{" "}
+                            {value.split(" ")[1]}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="text-center py-4">
                 <p className="text-gray-500">
