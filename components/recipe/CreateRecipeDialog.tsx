@@ -20,7 +20,6 @@ import { Plus, X, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageUpload } from "@/components/ImageUpload";
-import { generateDummyRecipe } from "@/lib/dummyData";
 
 const UNITS = [
   { value: "g", label: "grams" },
@@ -239,19 +238,6 @@ export function CreateRecipeDialog({
     }
   };
 
-  const fillDummyData = () => {
-    const dummyData = generateDummyRecipe(type);
-    setFormData({
-      name: dummyData.name,
-      time: dummyData.time,
-      servings: dummyData.servings,
-      ingredients: dummyData.ingredients,
-      instructions: dummyData.instructions,
-      image_url: dummyData.image_url,
-    });
-    toast.success("Filled with dummy data");
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -284,8 +270,8 @@ export function CreateRecipeDialog({
               variant="outline"
               size="icon"
               className="h-10 w-10 sm:ml-4 flex-shrink-0"
-              onClick={fillDummyData}
-              title="Fill with dummy data"
+              onClick={() => {}}
+              title="Coming soon"
             >
               <Wand2 className="h-4 w-4" />
             </Button>

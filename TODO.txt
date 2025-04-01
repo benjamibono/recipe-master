@@ -10,15 +10,3 @@
 
 
 # UI/UX Improvements
-
-
-MAKE A README FOR THE PROJECT
-- Explain the project
-- Explain the tech stack
-- Explain the features
-- Explain the future plans
-- Explain how to run the project
-- Explain how to install the project
-- Explain how to use the project
-- Add photos / videos
-- Add it to my portfolio

@@ -23,6 +23,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ShareRecipeDialog } from "@/components/recipe/ShareRecipeDialog";
+import NutritionPieChart from "@/components/recipe/NutritionPieChart";
 
 export default function RecipeDetailPage() {
   const params = useParams();
@@ -441,6 +442,13 @@ export default function RecipeDetailPage() {
                       );
                     })}
                   </div>
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">
+                    Nutritional Distribution
+                  </h3>
+                  <NutritionPieChart macros={macros} />
                 </div>
 
                 <div>
