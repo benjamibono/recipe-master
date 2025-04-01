@@ -1,11 +1,11 @@
 # Core Features
-- Add pagination
 - When sharing a recipe, the serving info doesn't work
+- Add recipes from explore page to your recipes
 
 
 # AI Features
 - Add AI to generate recipe on Magic Wand
-- Add AI to generate shopping list On a new page similar to Explore Recipes but with your recipes
+
 
 # Authentication & User Management
 - Make the rest of emails better looking

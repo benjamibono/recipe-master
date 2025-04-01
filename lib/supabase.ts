@@ -24,7 +24,7 @@ export type Recipe = {
     unit: string;
   }[];
   instructions: string[];
-  type: "cooking" | "cleaning";
+  type: "cooking" | "cleaning" | "shopping";
   image_url?: string;
   created_at: string;
   updated_at: string;

@@ -78,7 +78,6 @@ export default function RecipeDetailPage() {
           .from("recipes")
           .select("*")
           .eq("id", params.id)
-          .eq("user_id", user.id)
           .single();
 
         if (error) throw error;
@@ -230,39 +229,120 @@ export default function RecipeDetailPage() {
           </Button>
           <div className="flex items-center gap-2">
             <ShareRecipeDialog recipe={recipe} />
-            <EditRecipeDialog recipe={recipe} />
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="destructive" size="icon" className="h-10 w-10">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Delete Recipe</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to delete this recipe? This action
-                    cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setDeleteDialogOpen(false)}
-                    disabled={deleting}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={deleting}
-                  >
-                    {deleting ? "Deleting..." : "Delete"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            {recipe.creator_name === currentUsername ? (
+              <>
+                <EditRecipeDialog recipe={recipe} />
+                <Dialog
+                  open={deleteDialogOpen}
+                  onOpenChange={setDeleteDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="h-10 w-10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Recipe</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to delete this recipe? This action
+                        cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setDeleteDialogOpen(false)}
+                        disabled={deleting}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={deleting}
+                      >
+                        {deleting ? "Deleting..." : "Delete"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                onClick={async () => {
+                  try {
+                    const {
+                      data: { user },
+                    } = await supabase.auth.getUser();
+
+                    if (!user) {
+                      toast.error("Please log in to copy this recipe");
+                      router.push("/auth/login");
+                      return;
+                    }
+
+                    // Get the creator's name
+                    const { data: creatorProfile } = await supabase
+                      .from("profiles")
+                      .select("username")
+                      .eq("id", recipe.user_id)
+                      .single();
+
+                    const creatorName = creatorProfile?.username || "Unknown";
+
+                    // Create a new recipe for the current user
+                    const { data: newRecipe, error } = await supabase
+                      .from("recipes")
+                      .insert({
+                        name: recipe.name,
+                        type: recipe.type,
+                        time: recipe.time,
+                        servings: recipe.servings,
+                        ingredients: recipe.ingredients,
+                        instructions: recipe.instructions,
+                        image_url: recipe.image_url,
+                        user_id: user.id,
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        creator_name: creatorName,
+                      })
+                      .select()
+                      .single();
+
+                    if (error) throw error;
+
+                    toast.success("Recipe copied to your collection!");
+                    router.push(`/recipes/${newRecipe.id}`);
+                  } catch (error) {
+                    console.error("Error copying recipe:", error);
+                    toast.error("Failed to copy recipe");
+                  }
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -292,28 +372,30 @@ export default function RecipeDetailPage() {
           )}
         </div>
 
-        <div className="flex items-center gap-4 mb-4">
-          <span>Servings:</span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setCurrentServings((prev) => Math.max(1, prev - 1))
-              }
-            >
-              -
-            </Button>
-            <span>{currentServings}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentServings((prev) => prev + 1)}
-            >
-              +
-            </Button>
+        {recipe.type !== "shopping" && (
+          <div className="flex items-center gap-4 mb-4">
+            <span>Servings:</span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentServings((prev) => Math.max(1, prev - 1))
+                }
+              >
+                -
+              </Button>
+              <span>{currentServings}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentServings((prev) => prev + 1)}
+              >
+                +
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
 
         <Collapsible
           open={isIngredientsOpen}
@@ -322,7 +404,11 @@ export default function RecipeDetailPage() {
         >
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">
-              {recipe.type === "cleaning" ? "Materials" : "Ingredients"}
+              {recipe.type === "cleaning"
+                ? "Materials"
+                : recipe.type === "shopping"
+                ? "Items"
+                : "Ingredients"}
             </h2>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-9 p-0">
@@ -341,10 +427,12 @@ export default function RecipeDetailPage() {
                 className="flex items-center justify-between py-2 border-b last:border-b-0"
               >
                 <span className="font-medium">{ingredient.name}</span>
-                <span>
-                  {calculateAdjustedQuantity(ingredient.amount)}{" "}
-                  {ingredient.unit}
-                </span>
+                {recipe.type !== "shopping" && (
+                  <span>
+                    {calculateAdjustedQuantity(ingredient.amount)}{" "}
+                    {ingredient.unit}
+                  </span>
+                )}
               </div>
             ))}
           </CollapsibleContent>
@@ -356,7 +444,9 @@ export default function RecipeDetailPage() {
           className="space-y-2"
         >
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">Instructions</h2>
+            <h2 className="text-2xl font-semibold">
+              {recipe.type === "shopping" ? "Notes" : "Instructions"}
+            </h2>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-9 p-0">
                 <ChevronDown
@@ -370,15 +460,22 @@ export default function RecipeDetailPage() {
           <CollapsibleContent className="space-y-4">
             {recipe.instructions.length === 0 ? (
               <div className="text-center py-4">
-                <p className="text-gray-500">No instructions available</p>
+                <p className="text-gray-500">
+                  {recipe.type === "shopping"
+                    ? "No notes available"
+                    : "No instructions available"}
+                </p>
                 <p className="text-sm text-gray-400 mt-1">
-                  Click the edit button to add instructions
+                  Click the edit button to add{" "}
+                  {recipe.type === "shopping" ? "notes" : "instructions"}
                 </p>
               </div>
             ) : (
               recipe.instructions.map((instruction, index) => (
                 <div key={index} className="flex gap-4">
-                  <span className="font-bold">{index + 1}.</span>
+                  {recipe.type !== "shopping" && (
+                    <span className="font-bold">{index + 1}.</span>
+                  )}
                   <p>{instruction}</p>
                 </div>
               ))
@@ -386,112 +483,118 @@ export default function RecipeDetailPage() {
           </CollapsibleContent>
         </Collapsible>
 
-        <Collapsible
-          open={isMacrosOpen}
-          onOpenChange={setIsMacrosOpen}
-          className="space-y-2"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">Nutritional Information</h2>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-9 p-0">
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    isMacrosOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent className="space-y-4">
-            {loadingMacros ? (
-              <div className="text-center py-4">
-                <p className="text-gray-500">
-                  Analyzing nutritional information...
-                </p>
-                <div className="mt-2 flex justify-center">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600"></div>
+        {recipe.type === "cooking" && (
+          <Collapsible
+            open={isMacrosOpen}
+            onOpenChange={setIsMacrosOpen}
+            className="space-y-2"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold">
+                Nutritional Information
+              </h2>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-9 p-0">
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform duration-200 ${
+                      isMacrosOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <CollapsibleContent className="space-y-4">
+              {loadingMacros ? (
+                <div className="text-center py-4">
+                  <p className="text-gray-500">
+                    Analyzing nutritional information...
+                  </p>
+                  <div className="mt-2 flex justify-center">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600"></div>
+                  </div>
+                  <p className="text-sm text-gray-400 mt-2">
+                    This might take a moment as AI analyzes your ingredients
+                  </p>
                 </div>
-                <p className="text-sm text-gray-400 mt-2">
-                  This might take a moment as AI analyzes your ingredients
-                </p>
-              </div>
-            ) : macros ? (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">
-                    Total
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {macros.split("\n").map((line, index) => {
-                      const [label, value] = line
-                        .split(":")
-                        .map((part) => part.trim());
-                      return (
-                        <div
-                          key={index}
-                          className="bg-gray-50 rounded-lg p-4 text-center"
-                        >
-                          <div className="text-sm text-gray-600 mb-1">
-                            {label}
+              ) : macros ? (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">
+                      Total
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {macros.split("\n").map((line, index) => {
+                        const [label, value] = line
+                          .split(":")
+                          .map((part) => part.trim());
+                        return (
+                          <div
+                            key={index}
+                            className="bg-gray-50 rounded-lg p-4 text-center"
+                          >
+                            <div className="text-sm text-gray-600 mb-1">
+                              {label}
+                            </div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {value}
+                            </div>
                           </div>
-                          <div className="text-xl font-semibold text-gray-900">
-                            {value}
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-8">
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">
+                      Nutritional Distribution
+                    </h3>
+                    <NutritionPieChart macros={macros} />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">
+                      Per Serving
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {macros.split("\n").map((line, index) => {
+                        const [label, value] = line
+                          .split(":")
+                          .map((part) => part.trim());
+                        const numericValue = parseFloat(
+                          value.replace(/,/g, "")
+                        );
+                        const perServingValue =
+                          (numericValue / originalServings) * currentServings;
+                        return (
+                          <div
+                            key={index}
+                            className="bg-gray-50 rounded-lg p-4 text-center"
+                          >
+                            <div className="text-sm text-gray-600 mb-1">
+                              {label}
+                            </div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {label === "Energy value"
+                                ? Math.round(perServingValue).toLocaleString()
+                                : perServingValue.toFixed(1)}{" "}
+                              {value.split(" ")[1]}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-
-                <div className="mt-8">
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">
-                    Nutritional Distribution
-                  </h3>
-                  <NutritionPieChart macros={macros} />
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-gray-500">
+                    No nutritional information available
+                  </p>
                 </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">
-                    Per Serving
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {macros.split("\n").map((line, index) => {
-                      const [label, value] = line
-                        .split(":")
-                        .map((part) => part.trim());
-                      const numericValue = parseFloat(value.replace(/,/g, ""));
-                      const perServingValue =
-                        (numericValue / originalServings) * currentServings;
-                      return (
-                        <div
-                          key={index}
-                          className="bg-gray-50 rounded-lg p-4 text-center"
-                        >
-                          <div className="text-sm text-gray-600 mb-1">
-                            {label}
-                          </div>
-                          <div className="text-xl font-semibold text-gray-900">
-                            {label === "Energy value"
-                              ? Math.round(perServingValue).toLocaleString()
-                              : perServingValue.toFixed(1)}{" "}
-                            {value.split(" ")[1]}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-gray-500">
-                  No nutritional information available
-                </p>
-              </div>
-            )}
-          </CollapsibleContent>
-        </Collapsible>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </div>
     </div>
   );

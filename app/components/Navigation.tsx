@@ -74,6 +74,17 @@ export default function Navigation() {
               >
                 Explore
               </Link>
+              <Link
+                href="/shopping"
+                className={cn(
+                  "text-sm transition-colors hover:text-primary",
+                  isActive("/shopping")
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                )}
+              >
+                Shopping
+              </Link>
             </div>
           </div>
           <div className="flex items-center gap-4">
