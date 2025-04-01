@@ -1,15 +1,14 @@
 # Core Features
 - Add pagination
-- Ration calculator
+- All AI features must happen in the background
 
 # AI Features
-- Add AI to calculate macronutrients
+- Add AI to calculate macronutrients (improve output)
 - Add AI to generate recipe
 - Add AI to generate shopping list
 
 # Authentication & User Management
 - Make the rest of emails better looking
-- recipes table DB policies
 
 
 # UI/UX Improvements
