@@ -5,7 +5,6 @@
 - Make a bug report section
 
 # AI Features
-- Make the AI create a photo when creating a recipe
 - Make AI audio fill the instructions
 - Make AI audio fill the ingredients
 

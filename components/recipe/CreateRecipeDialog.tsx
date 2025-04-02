@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,10 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X, Wand2, Loader2, Bot } from "lucide-react";
+import { Plus, X, Wand2, Loader2, Bot, Mic, MicOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageUpload } from "@/components/ImageUpload";
+import { generateTextFromAudio } from "@/lib/audio-text";
 
 const UNITS = [
   { value: "g", label: "grams" },
@@ -70,6 +71,9 @@ export function CreateRecipeDialog({
   });
   const [newInstruction, setNewInstruction] = useState("");
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     async function getCurrentUsername() {
@@ -436,6 +440,108 @@ export function CreateRecipeDialog({
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+        try {
+          const { recipeData } = await generateTextFromAudio(audioBlob);
+
+          if (recipeData) {
+            // Update form data with the parsed recipe information
+            setFormData((prev) => ({
+              ...prev,
+              // Only update name if it exists and current name is empty
+              name: recipeData.name && !prev.name ? recipeData.name : prev.name,
+              // Only update time if it exists and is a valid number
+              time:
+                recipeData.time && recipeData.time > 0
+                  ? recipeData.time
+                  : prev.time,
+              // Only update servings if it exists and is a valid number
+              servings:
+                recipeData.servings && recipeData.servings > 0
+                  ? recipeData.servings
+                  : prev.servings,
+              // Add new ingredients to existing ones
+              ingredients: [
+                ...prev.ingredients,
+                ...(recipeData.ingredients || [])
+                  .filter(
+                    (ing) =>
+                      // Only add ingredients that don't already exist
+                      !prev.ingredients.some(
+                        (existing) =>
+                          existing.name.toLowerCase() === ing.name.toLowerCase()
+                      )
+                  )
+                  .map((ing) => ({
+                    name: ing.name,
+                    amount: ing.amount,
+                    unit: (ing.unit === "g" ||
+                    ing.unit === "ml" ||
+                    ing.unit === "u"
+                      ? ing.unit
+                      : "u") as "g" | "ml" | "u",
+                  })),
+              ],
+              // Add new instructions to existing ones
+              instructions: [
+                ...prev.instructions,
+                ...(recipeData.instructions || []).filter(
+                  (instruction) =>
+                    // Only add instructions that don't already exist
+                    !prev.instructions.some(
+                      (existing) =>
+                        existing.toLowerCase() === instruction.toLowerCase()
+                    )
+                ),
+              ],
+            }));
+
+            toast.success("Recipe information updated from audio");
+          } else {
+            toast.warning(
+              "No recipe information could be extracted from the audio"
+            );
+          }
+        } catch (error) {
+          console.error("Error processing audio:", error);
+          toast.error("Failed to process audio input");
+        }
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      toast.error("Failed to access microphone");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream
+        .getTracks()
+        .forEach((track) => track.stop());
+      setIsRecording(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -578,6 +684,19 @@ export function CreateRecipeDialog({
                 }
               >
                 +
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={isRecording ? stopRecording : startRecording}
+              >
+                {isRecording ? (
+                  <MicOff className="h-4 w-4 text-red-500" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
