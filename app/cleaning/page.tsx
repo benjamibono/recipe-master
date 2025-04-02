@@ -198,7 +198,7 @@ export default function CleaningPage() {
           ))}
         </div>
       )}
-      <CreateRecipeDialog type="cleaning" />
+      <CreateRecipeDialog type="cleaning" onSuccess={loadRecipes} />
     </div>
   );
 }

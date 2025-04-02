@@ -20,6 +20,7 @@ export default function ShoppingPage() {
   const [selectedRecipes, setSelectedRecipes] = useState<Set<string>>(
     new Set()
   );
+  const [showCopyTooltip, setShowCopyTooltip] = useState(false);
 
   useEffect(() => {
     async function getCurrentUsername() {
@@ -129,6 +130,15 @@ export default function ShoppingPage() {
     };
   }, [loadRecipes]);
 
+  // Add this effect to handle the copy button tooltip
+  useEffect(() => {
+    if (selectedRecipes.size > 0) {
+      setShowCopyTooltip(true);
+      const timer = setTimeout(() => setShowCopyTooltip(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedRecipes.size]);
+
   const toggleSelectionMode = () => {
     setIsSelectionMode(!isSelectionMode);
     if (!isSelectionMode) {
@@ -216,20 +226,25 @@ export default function ShoppingPage() {
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex justify-between items-center">
           {!usernameLoading && currentUsername && (
-            <h1 className="text-base font-bold">
-              {currentUsername}&apos;s Recipes
-            </h1>
+            <h1 className="text-base font-bold">Shopping List</h1>
           )}
           <div className="flex items-center gap-2">
             {selectedRecipes.size > 0 && (
-              <Button
-                variant="outline"
-                className="flex items-center gap-2"
-                onClick={copySelectedIngredients}
-              >
-                <Copy className="h-4 w-4" />
-                Copy Ingredients
-              </Button>
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2"
+                  onClick={copySelectedIngredients}
+                >
+                  <Copy className="h-4 w-4" />
+                  Copy
+                </Button>
+                {showCopyTooltip && (
+                  <p className="absolute -top-6 left-1/2 -translate-x-1/2 text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 whitespace-nowrap">
+                    Click to copy ingredients to clipboard
+                  </p>
+                )}
+              </div>
             )}
             <Button
               variant={isSelectionMode ? "default" : "outline"}
@@ -238,13 +253,12 @@ export default function ShoppingPage() {
             >
               {isSelectionMode ? (
                 <>
-                  <CheckSquare className="h-4 w-4" />
-                  Selection Mode ({selectedRecipes.size} selected)
+                  <CheckSquare className="h-4 w-4" />({selectedRecipes.size})
                 </>
               ) : (
                 <>
                   <Square className="h-4 w-4" />
-                  Selection Mode
+                  Select
                 </>
               )}
             </Button>

@@ -22,12 +22,14 @@ import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
 import { ImageUpload } from "@/components/ImageUpload";
 
+// Available units for ingredients/materials
 const UNITS = [
   { value: "g", label: "grams" },
   { value: "ml", label: "milliliters" },
   { value: "u", label: "units" },
 ] as const;
 
+// Type definition for ingredient/material entries
 interface Ingredient {
   name: string;
   amount: number;
@@ -39,8 +41,10 @@ interface EditRecipeDialogProps {
 }
 
 export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
+  // State management for dialog and form
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Initialize form data with current recipe values
   const [formData, setFormData] = useState({
     name: recipe.name,
     time: recipe.time,
@@ -48,14 +52,18 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     ingredients: recipe.ingredients,
     instructions: recipe.instructions,
     image_url: recipe.image_url,
+    macros_data: recipe.macros_data,
   });
+  // State for new ingredient/material entry
   const [newIngredient, setNewIngredient] = useState<Ingredient>({
     name: "",
     amount: 0,
     unit: "g",
   });
+  // State for new instruction entry
   const [newInstruction, setNewInstruction] = useState("");
 
+  // Add a new ingredient/material to the recipe
   const handleAddIngredient = () => {
     if (newIngredient.name && newIngredient.amount > 0) {
       setFormData((prev) => ({
@@ -66,6 +74,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }
   };
 
+  // Remove an ingredient/material from the recipe
   const handleRemoveIngredient = (index: number) => {
     setFormData((prev) => ({
       ...prev,
@@ -73,6 +82,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }));
   };
 
+  // Add a new instruction step to the recipe
   const handleAddInstruction = () => {
     if (newInstruction.trim()) {
       setFormData((prev) => ({
@@ -83,6 +93,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }
   };
 
+  // Remove an instruction step from the recipe
   const handleRemoveInstruction = (index: number) => {
     setFormData((prev) => ({
       ...prev,
@@ -90,6 +101,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }));
   };
 
+  // Handle image upload to Supabase storage
   const handleImageSelect = async (file: File) => {
     try {
       // Validate file type
@@ -125,7 +137,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         throw new Error("No upload data returned");
       }
 
-      // Get public URL
+      // Get public URL for the uploaded image
       const {
         data: { publicUrl },
       } = supabase.storage.from("recipes").getPublicUrl(filePath);
@@ -144,11 +156,13 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }
   };
 
+  // Handle form submission and recipe update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Check if user is authenticated
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -158,27 +172,52 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         return;
       }
 
-      // Get macros analysis if it's a cooking recipe
+      // Get user's username for creator_name
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile) {
+        throw new Error("User profile not found");
+      }
+
+      // Get macros analysis for cooking recipes
       let macros_data = recipe.macros_data;
       if (recipe.type === "cooking" && formData.ingredients.length > 0) {
-        try {
-          const response = await fetch("/api/analyze-macros", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ ingredients: formData.ingredients }),
-          });
+        // Check if ingredients have changed by comparing their string representations
+        const originalIngredients = JSON.stringify(recipe.ingredients);
+        const newIngredients = JSON.stringify(formData.ingredients);
 
-          if (!response.ok) throw new Error("Failed to analyze macros");
-          const data = await response.json();
-          macros_data = data.macros;
-        } catch (error) {
-          console.error("Error analyzing macros:", error);
-          toast.error("Failed to analyze nutritional information");
+        if (originalIngredients !== newIngredients) {
+          try {
+            const response = await fetch("/api/analyze-macros", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ ingredients: formData.ingredients }),
+            });
+
+            if (!response.ok) throw new Error("Failed to analyze macros");
+            const data = await response.json();
+            macros_data = data.macros;
+          } catch (error) {
+            console.error("Error analyzing macros:", error);
+            toast.error("Failed to analyze nutritional information");
+          }
         }
       }
 
+      // Check if significant changes were made
+      const hasSignificantChanges =
+        formData.name !== recipe.name ||
+        JSON.stringify(formData.ingredients) !==
+          JSON.stringify(recipe.ingredients) ||
+        formData.image_url !== recipe.image_url;
+
+      // Update recipe in Supabase database
       const { error } = await supabase
         .from("recipes")
         .update({
@@ -189,6 +228,8 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           instructions: formData.instructions,
           image_url: formData.image_url,
           macros_data,
+          // Only update creator_name if significant changes were made
+          ...(hasSignificantChanges && { creator_name: profile.username }),
         })
         .eq("id", recipe.id)
         .eq("user_id", user.id);

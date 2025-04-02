@@ -40,6 +40,8 @@ export default function RecipeDetailPage() {
   const [loadingMacros, setLoadingMacros] = useState(false);
   const [currentServings, setCurrentServings] = useState<number>(0);
   const [originalServings, setOriginalServings] = useState<number>(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showCopyHelper, setShowCopyHelper] = useState(false);
 
   useEffect(() => {
     async function getCurrentUsername() {
@@ -59,6 +61,18 @@ export default function RecipeDetailPage() {
       }
     }
     getCurrentUsername();
+  }, []);
+
+  useEffect(() => {
+    async function getCurrentUserId() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    }
+    getCurrentUserId();
   }, []);
 
   useEffect(() => {
@@ -112,6 +126,18 @@ export default function RecipeDetailPage() {
 
     loadRecipe();
   }, [params.id, router]);
+
+  // Add effect to show copy helper when recipe is loaded
+  useEffect(() => {
+    if (recipe && currentUsername && recipe.creator_name !== currentUsername) {
+      const showTimer = setTimeout(() => setShowCopyHelper(true), 500);
+      const hideTimer = setTimeout(() => setShowCopyHelper(false), 7000);
+      return () => {
+        clearTimeout(showTimer);
+        clearTimeout(hideTimer);
+      };
+    }
+  }, [recipe, currentUsername]);
 
   // Separate function to fetch nutritional information asynchronously
   const fetchNutritionalInfo = async (recipeData: Recipe) => {
@@ -183,7 +209,7 @@ export default function RecipeDetailPage() {
 
   const calculateAdjustedQuantity = (original: number) => {
     if (!originalServings) return original;
-    return (original * currentServings) / originalServings;
+    return Math.round((original * currentServings) / originalServings);
   };
 
   if (loading) {
@@ -240,7 +266,7 @@ export default function RecipeDetailPage() {
           </Button>
           <div className="flex items-center gap-2">
             <ShareRecipeDialog recipe={recipe} />
-            {recipe.creator_name === currentUsername ? (
+            {recipe.user_id === currentUserId ? (
               <>
                 <EditRecipeDialog recipe={recipe} />
                 <Dialog
@@ -284,75 +310,81 @@ export default function RecipeDetailPage() {
                 </Dialog>
               </>
             ) : (
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10"
-                onClick={async () => {
-                  try {
-                    const {
-                      data: { user },
-                    } = await supabase.auth.getUser();
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10"
+                  onClick={async () => {
+                    try {
+                      const {
+                        data: { user },
+                      } = await supabase.auth.getUser();
 
-                    if (!user) {
-                      toast.error("Please log in to copy this recipe");
-                      router.push("/auth/login");
-                      return;
+                      if (!user) {
+                        toast.error("Please log in to copy this recipe");
+                        router.push("/auth/login");
+                        return;
+                      }
+
+                      // Create a new recipe for the current user
+                      const { data: newRecipe, error } = await supabase
+                        .from("recipes")
+                        .insert({
+                          name: recipe.name,
+                          type: recipe.type,
+                          time: recipe.time,
+                          servings: recipe.servings,
+                          ingredients: recipe.ingredients,
+                          instructions: recipe.instructions,
+                          image_url: recipe.image_url,
+                          user_id: user.id,
+                          created_at: new Date().toISOString(),
+                          updated_at: new Date().toISOString(),
+                          creator_name: recipe.creator_name,
+                          macros_data: recipe.macros_data,
+                        })
+                        .select()
+                        .single();
+
+                      if (error) throw error;
+
+                      toast.success("Recipe copied to your collection!");
+                      router.push(`/recipes/${newRecipe.id}`);
+                    } catch (error) {
+                      console.error("Error copying recipe:", error);
+                      toast.error("Failed to copy recipe");
                     }
-
-                    // Get the creator's name
-                    const { data: creatorProfile } = await supabase
-                      .from("profiles")
-                      .select("username")
-                      .eq("id", recipe.user_id)
-                      .single();
-
-                    const creatorName = creatorProfile?.username || "Unknown";
-
-                    // Create a new recipe for the current user
-                    const { data: newRecipe, error } = await supabase
-                      .from("recipes")
-                      .insert({
-                        name: recipe.name,
-                        type: recipe.type,
-                        time: recipe.time,
-                        servings: recipe.servings,
-                        ingredients: recipe.ingredients,
-                        instructions: recipe.instructions,
-                        image_url: recipe.image_url,
-                        user_id: user.id,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                        creator_name: creatorName,
-                      })
-                      .select()
-                      .single();
-
-                    if (error) throw error;
-
-                    toast.success("Recipe copied to your collection!");
-                    router.push(`/recipes/${newRecipe.id}`);
-                  } catch (error) {
-                    console.error("Error copying recipe:", error);
-                    toast.error("Failed to copy recipe");
-                  }
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  }}
                 >
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </Button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect
+                      x="9"
+                      y="9"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </Button>
+                {showCopyHelper && (
+                  <p className="absolute -top-6 right-0 pr-4 text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 whitespace-nowrap transition-opacity duration-300">
+                    Click to share or copy this recipe to your collection
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -371,42 +403,50 @@ export default function RecipeDetailPage() {
         )}
 
         <div>
-          <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
-          {recipe.creator_name && recipe.creator_name !== currentUsername && (
-            <p className="text-gray-600 mb-2">by {recipe.creator_name}</p>
-          )}
-          {recipe.type === "cooking" && (
-            <div className="flex items-center gap-2 text-gray-600 mb-6">
-              <Clock className="h-5 w-5" />
-              <span>{recipe.time} minutes</span>
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
+              {recipe.creator_name &&
+                recipe.creator_name !== currentUsername && (
+                  <p className="text-gray-600 mb-2">by {recipe.creator_name}</p>
+                )}
+              {recipe.type === "cooking" && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Clock className="h-5 w-5" />
+                  <span>{recipe.time} minutes</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {recipe.type !== "shopping" && (
-          <div className="flex items-center gap-4 mb-4">
-            <span>Servings:</span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setCurrentServings((prev) => Math.max(1, prev - 1))
-                }
-              >
-                -
-              </Button>
-              <span>{currentServings}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentServings((prev) => prev + 1)}
-              >
-                +
-              </Button>
-            </div>
+            {recipe.type !== "shopping" && (
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-sm text-gray-600">Servings</span>
+                <div className="flex items-center gap-1 md:gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 md:h-9 md:w-9"
+                    onClick={() =>
+                      setCurrentServings((prev) => Math.max(1, prev - 1))
+                    }
+                  >
+                    -
+                  </Button>
+                  <span className="min-w-[1.5rem] md:min-w-[2rem] text-center">
+                    {currentServings}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 md:h-9 md:w-9"
+                    onClick={() => setCurrentServings((prev) => prev + 1)}
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         <Collapsible
           open={isIngredientsOpen}
@@ -547,39 +587,6 @@ export default function RecipeDetailPage() {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">
-                      Total
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {macros.split("\n").map((line, index) => {
-                        const [label, value] = line
-                          .split(":")
-                          .map((part) => part.trim());
-                        return (
-                          <div
-                            key={index}
-                            className="bg-gray-50 rounded-lg p-4 text-center"
-                          >
-                            <div className="text-sm text-gray-600 mb-1">
-                              {label}
-                            </div>
-                            <div className="text-xl font-semibold text-gray-900">
-                              {value}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="mt-8">
-                    <h3 className="text-sm font-medium text-gray-500 mb-3">
-                      Nutritional Distribution
-                    </h3>
-                    <NutritionPieChart macros={macros} />
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 mb-3">
                       Per Serving
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -605,6 +612,39 @@ export default function RecipeDetailPage() {
                                 ? Math.round(perServingValue).toLocaleString()
                                 : perServingValue.toFixed(1)}{" "}
                               {value.split(" ")[1]}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="mt-8">
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">
+                      Nutritional Distribution
+                    </h3>
+                    <NutritionPieChart macros={macros} />
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">
+                      Recipe Total • {recipe.servings} servings
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {macros.split("\n").map((line, index) => {
+                        const [label, value] = line
+                          .split(":")
+                          .map((part) => part.trim());
+                        return (
+                          <div
+                            key={index}
+                            className="bg-gray-50 rounded-lg p-4 text-center"
+                          >
+                            <div className="text-sm text-gray-600 mb-1">
+                              {label}
+                            </div>
+                            <div className="text-xl font-semibold text-gray-900">
+                              {value}
                             </div>
                           </div>
                         );

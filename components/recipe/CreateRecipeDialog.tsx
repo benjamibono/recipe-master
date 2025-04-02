@@ -54,6 +54,7 @@ export function CreateRecipeDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [isNameFocused, setIsNameFocused] = useState(false);
   const [formData, setFormData] = useState<RecipeFormData>({
     name: "",
     time: 0,
@@ -104,6 +105,18 @@ export function CreateRecipeDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Add validation
+    if (!formData.name.trim()) {
+      toast.error("Please enter a recipe name");
+      return;
+    }
+
+    if (formData.ingredients.length === 0) {
+      toast.error("Please add at least one ingredient");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -297,8 +310,11 @@ export function CreateRecipeDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" className="rounded-full fixed bottom-6 right-6">
-          <Plus className="h-6 w-6" />
+        <Button
+          size="lg"
+          className="rounded-full fixed bottom-6 right-6 h-14 w-14"
+        >
+          <Plus className="h-8 w-8" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
@@ -311,31 +327,43 @@ export function CreateRecipeDialog({
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div className="space-y-2 flex-1">
               <Label htmlFor="name">Recipe Name</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Enter recipe name"
-                  className="h-10"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 flex-shrink-0"
-                  onClick={handleGenerateRecipe}
-                  disabled={generating || !formData.name.trim()}
-                  title="Generate recipe with AI"
-                >
-                  {generating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Wand2 className="h-4 w-4" />
-                  )}
-                </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    onFocus={() => setIsNameFocused(true)}
+                    onBlur={() => setIsNameFocused(false)}
+                    placeholder="Enter recipe name"
+                    className="h-10"
+                    autoComplete="off"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 flex-shrink-0"
+                    onClick={handleGenerateRecipe}
+                    disabled={generating || !formData.name.trim()}
+                  >
+                    {generating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {isNameFocused && (
+                  <p className="text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2">
+                    Clicking the wand icon will generate an AI recipe
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -533,7 +561,15 @@ export function CreateRecipeDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="h-10">
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                !formData.name.trim() ||
+                formData.ingredients.length === 0
+              }
+              className="h-10"
+            >
               {loading ? "Creating..." : "Create Recipe"}
             </Button>
           </div>

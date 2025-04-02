@@ -68,20 +68,6 @@ export default function ShareRecipePage() {
         throw new Error("You must be logged in to add this recipe");
       }
 
-      // Get the creator's information (username if available, or email)
-      let creatorName = "";
-      if (recipe.user_id) {
-        const { data: creatorProfile } = await supabase
-          .from("profiles")
-          .select("username, email")
-          .eq("id", recipe.user_id)
-          .single();
-
-        if (creatorProfile) {
-          creatorName = creatorProfile.username || creatorProfile.email;
-        }
-      }
-
       let newImageUrl = recipe.image_url;
 
       // If there's an image URL, create a new unique path
@@ -149,8 +135,9 @@ export default function ShareRecipePage() {
         user_id: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        creator_name: creatorName,
+        creator_name: recipe.creator_name,
         servings: recipe.servings,
+        macros_data: recipe.macros_data,
       };
 
       // Create a new recipe for the current user

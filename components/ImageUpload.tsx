@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Image as ImageIcon } from "lucide-react";
 import {
@@ -22,10 +22,22 @@ export function ImageUpload({
   onRemoveImage,
 }: ImageUploadProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // 768px is a common breakpoint for mobile
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -119,29 +131,31 @@ export function ImageUpload({
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" className="w-full sm:w-auto">
-              Choose Image
+              {isMobile ? "Click to Add Image" : "Choose Image"}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add Image</DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-2 gap-4">
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4"
-                onClick={startCamera}
-              >
-                <Camera className="h-8 w-8" />
-                <span>Take Photo</span>
-              </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {!isMobile && (
+                <Button
+                  variant="outline"
+                  className="flex flex-col items-center gap-2 h-auto py-4"
+                  onClick={startCamera}
+                >
+                  <Camera className="h-8 w-8" />
+                  <span>Take Photo</span>
+                </Button>
+              )}
               <Button
                 variant="outline"
                 className="flex flex-col items-center gap-2 h-auto py-4"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <ImageIcon className="h-8 w-8" />
-                <span>Choose from Library</span>
+                <span>{isMobile ? "Select Method" : "Choose from Library"}</span>
               </Button>
             </div>
 
