@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { CreateRecipeDialog } from "@/components/recipe/CreateRecipeDialog";
 import { supabase } from "@/lib/supabase";
 import RecipeCard from "@/components/RecipeCard";
 import { Recipe } from "@/lib/supabase";
@@ -286,7 +285,6 @@ export default function ShoppingPage() {
           ))}
         </div>
       )}
-      <CreateRecipeDialog type="cooking" onSuccess={loadRecipes} />
     </div>
   );
 }

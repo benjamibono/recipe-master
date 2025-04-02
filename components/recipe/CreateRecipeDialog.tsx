@@ -292,6 +292,7 @@ export function CreateRecipeDialog({
       // Update form data with generated recipe
       setFormData((prev) => ({
         ...prev,
+        name: generatedRecipe.name,
         time: generatedRecipe.time,
         servings: generatedRecipe.servings,
         ingredients: generatedRecipe.ingredients,

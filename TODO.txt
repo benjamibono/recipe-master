@@ -8,10 +8,8 @@
 - Make the AI create a photo when creating a recipe
 - Make AI audio fill the instructions
 - Make AI audio fill the ingredients
-- When using the wand, change the name to recipe name instead of the prompt
 
 # Authentication & User Management
 
 
 # UI/UX Improvements
-- Change copied ingredients format

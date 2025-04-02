@@ -43,7 +43,8 @@ export async function generateRecipeFromName(
     1. The unit field must be exactly one of: "g", "ml", or "u"
     2. All numbers must be valid numbers (not strings)
     3. The response must be valid JSON that can be parsed
-    4. Do not include any text before or after the JSON object`;
+    4. Do not include any text before or after the JSON object
+    5. Spices and herbs unit fields must be "g"`;
 
     const response = await openai.responses.create({
       model: process.env.NEXT_PUBLIC_OPENAI_MODEL || "gpt-4o-mini-2024-07-18",

@@ -155,7 +155,7 @@ export function ImageUpload({
                 onClick={() => fileInputRef.current?.click()}
               >
                 <ImageIcon className="h-8 w-8" />
-                <span>{isMobile ? "Select Method" : "Choose from Library"}</span>
+                <span>{isMobile ? "Select Method " : "Choose from Library"}</span>
               </Button>
             </div>
 
