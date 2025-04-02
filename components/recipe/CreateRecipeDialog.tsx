@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X, Wand2, Loader2 } from "lucide-react";
+import { Plus, X, Wand2, Loader2, Bot } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -54,6 +54,7 @@ export function CreateRecipeDialog({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const [isNameFocused, setIsNameFocused] = useState(false);
   const [formData, setFormData] = useState<RecipeFormData>({
     name: "",
@@ -68,6 +69,27 @@ export function CreateRecipeDialog({
     unit: "g",
   });
   const [newInstruction, setNewInstruction] = useState("");
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function getCurrentUsername() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          setCurrentUsername(profile.username);
+        }
+      }
+    }
+    getCurrentUsername();
+  }, []);
 
   const handleAddIngredient = () => {
     if (newIngredient.name && newIngredient.amount > 0) {
@@ -308,6 +330,112 @@ export function CreateRecipeDialog({
     }
   };
 
+  const handleGenerateImage = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Please enter a recipe name first");
+      return;
+    }
+
+    if (formData.ingredients.length === 0) {
+      toast.error("Please add at least one ingredient first");
+      return;
+    }
+
+    setGeneratingImage(true);
+    try {
+      console.log("Calling generate-recipe-image API...");
+      const response = await fetch("/api/generate-recipe-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          recipeName: formData.name,
+          ingredients: formData.ingredients,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate image");
+      }
+
+      console.log("API response received, parsing JSON...");
+      const imageData = await response.json();
+      console.log("Generated image URL:", imageData.url);
+
+      // Generate a unique file name with timestamp
+      const timestamp = Date.now();
+      const randomString = Math.random().toString(36).substring(2);
+      const fileName = `recipe-images/${timestamp}-${randomString}.jpg`;
+      const filePath = fileName;
+
+      console.log("Downloading image through proxy...");
+      // Download the image through our proxy
+      const proxyResponse = await fetch("/api/proxy-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl: imageData.url,
+        }),
+      });
+
+      if (!proxyResponse.ok) {
+        console.error(
+          "Proxy download failed:",
+          proxyResponse.status,
+          proxyResponse.statusText
+        );
+        throw new Error("Failed to download generated image");
+      }
+
+      console.log("Converting image to blob...");
+      const blob = await proxyResponse.blob();
+      console.log("Blob created:", blob.size, "bytes");
+
+      console.log("Uploading to Supabase storage...");
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("recipes")
+        .upload(filePath, blob, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: "image/png",
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw new Error("Failed to upload image to storage");
+      }
+
+      console.log("Getting public URL...");
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("recipes").getPublicUrl(filePath);
+
+      console.log("Setting image URL in form:", publicUrl);
+      // Update form data with the new image URL
+      setFormData((prev) => ({
+        ...prev,
+        image_url: publicUrl,
+      }));
+
+      toast.success("Recipe image generated successfully!");
+    } catch (error) {
+      console.error("Error in handleGenerateImage:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate recipe image"
+      );
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -371,13 +499,35 @@ export function CreateRecipeDialog({
 
           <div className="space-y-2">
             <Label>Recipe Image</Label>
-            <ImageUpload
-              currentImageUrl={formData.image_url}
-              onImageSelect={handleImageSelect}
-              onRemoveImage={() =>
-                setFormData((prev) => ({ ...prev, image_url: undefined }))
-              }
-            />
+            <div className="flex gap-2">
+              <ImageUpload
+                currentImageUrl={formData.image_url}
+                onImageSelect={handleImageSelect}
+                onRemoveImage={() =>
+                  setFormData((prev) => ({ ...prev, image_url: undefined }))
+                }
+              />
+              {currentUsername === "benjamibono" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="w-10 flex-shrink-0"
+                  onClick={handleGenerateImage}
+                  disabled={
+                    generatingImage ||
+                    !formData.name.trim() ||
+                    formData.ingredients.length === 0
+                  }
+                >
+                  {generatingImage ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Bot className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
 
           {type === "cooking" && (
