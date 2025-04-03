@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,39 +9,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, X, Wand2, Loader2, Bot, Mic, MicOff } from "lucide-react";
+import { Plus, Wand2, Loader2, Bot, Mic, MicOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { ImageUpload } from "@/components/ImageUpload";
-import { generateTextFromAudio } from "@/lib/audio-text";
-
-const UNITS = [
-  { value: "g", label: "grams" },
-  { value: "ml", label: "milliliters" },
-  { value: "u", label: "units" },
-] as const;
-
-interface Ingredient {
-  name: string;
-  amount: number;
-  unit: (typeof UNITS)[number]["value"];
-}
-
-interface RecipeFormData {
-  name: string;
-  time: number;
-  servings: number;
-  ingredients: Ingredient[];
-  instructions: string[];
-  image_url?: string;
-}
+import { RecipeFormIngredients } from "./RecipeFormIngredients";
+import { RecipeFormInstructions } from "./RecipeFormInstructions";
+import { useRecipeForm } from "@/lib/hooks/useRecipeForm";
+import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
+import { uploadFile } from "@/lib/storage-utils";
 
 interface CreateRecipeDialogProps {
   type?: "cooking" | "cleaning";
@@ -52,29 +28,38 @@ export function CreateRecipeDialog({
   type = "cooking",
   onSuccess,
 }: CreateRecipeDialogProps) {
+  // Dialog state
   const [open, setOpen] = useState(false);
+
+  // UI state
+  const [isNameFocused, setIsNameFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
-  const [isNameFocused, setIsNameFocused] = useState(false);
-  const [formData, setFormData] = useState<RecipeFormData>({
-    name: "",
-    time: 0,
-    servings: 1,
-    ingredients: [],
-    instructions: [],
-  });
-  const [newIngredient, setNewIngredient] = useState<Ingredient>({
-    name: "",
-    amount: 0,
-    unit: "g",
-  });
-  const [newInstruction, setNewInstruction] = useState("");
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
 
+  // Form state using custom hook
+  const {
+    state: formData,
+    setName,
+    setTime,
+    setServings,
+    addIngredient,
+    removeIngredient,
+    addInstruction,
+    removeInstruction,
+    setImage,
+    mergeRecipe,
+    mergeAudioData,
+    reset,
+  } = useRecipeForm();
+
+  // Audio recording state using custom hook
+  const { isRecording, startRecording, stopRecording } = useAudioRecorder();
+
+  // Current user state
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+
+  // Fetch current username
   useEffect(() => {
     async function getCurrentUsername() {
       const {
@@ -95,51 +80,13 @@ export function CreateRecipeDialog({
     getCurrentUsername();
   }, []);
 
-  const handleAddIngredient = () => {
-    if (newIngredient.name && newIngredient.amount > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        ingredients: [...prev.ingredients, newIngredient],
-      }));
-      setNewIngredient({ name: "", amount: 0, unit: "g" });
-    }
-  };
-
-  const handleRemoveIngredient = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      ingredients: prev.ingredients.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleAddInstruction = () => {
-    if (newInstruction.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        instructions: [...prev.instructions, newInstruction],
-      }));
-      setNewInstruction("");
-    }
-  };
-
-  const handleRemoveInstruction = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      instructions: prev.instructions.filter((_, i) => i !== index),
-    }));
-  };
-
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Add validation
-    if (!formData.name.trim()) {
-      toast.error("Please enter a recipe name");
-      return;
-    }
-
-    if (formData.ingredients.length === 0) {
-      toast.error("Please add at least one ingredient");
+    // Skip validation as it's handled by the form hook
+    if (!formData.isValid) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -155,7 +102,7 @@ export function CreateRecipeDialog({
         return;
       }
 
-      // Create recipe immediately without waiting for macros analysis
+      // Create recipe
       const { data: recipe, error } = await supabase
         .from("recipes")
         .insert({
@@ -167,7 +114,6 @@ export function CreateRecipeDialog({
           image_url: formData.image_url,
           type,
           user_id: user.id,
-          // Initially save without macros data
           macros_data: null,
         })
         .select("id")
@@ -178,20 +124,13 @@ export function CreateRecipeDialog({
       // Show success message and close dialog
       toast.success("Recipe created successfully");
       setOpen(false);
-      setFormData({
-        name: "",
-        time: 0,
-        servings: 1,
-        ingredients: [],
-        instructions: [],
-      });
+      reset(); // Reset form state
 
-      // Call onSuccess callback to navigate away immediately
+      // Call onSuccess callback
       onSuccess?.();
 
-      // Perform AI analysis in the background for cooking recipes with ingredients
+      // Analyze macros in background for cooking recipes
       if (type === "cooking" && formData.ingredients.length > 0 && recipe?.id) {
-        // No need to await this - it happens in the background
         fetchNutritionalInfoInBackground(formData.ingredients, recipe.id);
       }
     } catch (error) {
@@ -202,9 +141,9 @@ export function CreateRecipeDialog({
     }
   };
 
-  // Separate function to fetch nutritional information in the background
+  // Analyze macros in background
   const fetchNutritionalInfoInBackground = async (
-    ingredients: Ingredient[],
+    ingredients: typeof formData.ingredients,
     recipeId: number
   ) => {
     try {
@@ -229,7 +168,7 @@ export function CreateRecipeDialog({
         return;
       }
 
-      // Update the recipe with the macros data once available
+      // Update the recipe with the macros data
       const { error: updateError } = await supabase
         .from("recipes")
         .update({ macros_data: data.macros })
@@ -240,14 +179,10 @@ export function CreateRecipeDialog({
       }
     } catch (error) {
       console.error("Error analyzing macros in background:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to analyze nutritional information"
-      );
     }
   };
 
+  // Handle image upload
   const handleImageSelect = async (file: File) => {
     try {
       // Validate file type
@@ -255,36 +190,12 @@ export function CreateRecipeDialog({
         throw new Error("Please select an image file");
       }
 
-      // Generate a unique file name with timestamp
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2)}.${fileExt}`;
-      const filePath = `recipe-images/${fileName}`;
+      const imageUrl = await uploadFile(file);
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("recipes")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("recipes").getPublicUrl(filePath);
-
-      // Ensure the URL is properly formatted
-      const imageUrl = new URL(publicUrl).toString();
-
-      setFormData((prev) => ({
-        ...prev,
-        image_url: imageUrl,
-      }));
-      toast.success("Image uploaded successfully");
+      if (imageUrl) {
+        setImage(imageUrl);
+        toast.success("Image uploaded successfully");
+      }
     } catch (error) {
       console.error("Upload error:", error);
       toast.error(
@@ -293,6 +204,7 @@ export function CreateRecipeDialog({
     }
   };
 
+  // Generate recipe using AI
   const handleGenerateRecipe = async () => {
     if (!formData.name.trim()) {
       toast.error("Please enter a recipe name first");
@@ -301,30 +213,20 @@ export function CreateRecipeDialog({
 
     setGenerating(true);
     try {
-      const response = await fetch("/api/generate-recipe", {
+      const response = await fetch("/api/recipes/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ recipeName: formData.name }),
+        body: JSON.stringify({ name: formData.name }),
       });
 
       if (!response.ok) {
         throw new Error("Failed to generate recipe");
       }
 
-      const generatedRecipe = await response.json();
-
-      // Update form data with generated recipe
-      setFormData((prev) => ({
-        ...prev,
-        name: generatedRecipe.name,
-        time: generatedRecipe.time,
-        servings: generatedRecipe.servings,
-        ingredients: generatedRecipe.ingredients,
-        instructions: generatedRecipe.instructions,
-      }));
-
+      const recipe = await response.json();
+      mergeRecipe(recipe);
       toast.success("Recipe generated successfully!");
     } catch (error) {
       console.error("Error generating recipe:", error);
@@ -334,6 +236,7 @@ export function CreateRecipeDialog({
     }
   };
 
+  // Generate recipe image using AI
   const handleGenerateImage = async () => {
     if (!formData.name.trim()) {
       toast.error("Please enter a recipe name first");
@@ -347,7 +250,6 @@ export function CreateRecipeDialog({
 
     setGeneratingImage(true);
     try {
-      console.log("Calling generate-recipe-image API...");
       const response = await fetch("/api/generate-recipe-image", {
         method: "POST",
         headers: {
@@ -364,18 +266,9 @@ export function CreateRecipeDialog({
         throw new Error(errorData.error || "Failed to generate image");
       }
 
-      console.log("API response received, parsing JSON...");
       const imageData = await response.json();
-      console.log("Generated image URL:", imageData.url);
 
-      // Generate a unique file name with timestamp
-      const timestamp = Date.now();
-      const randomString = Math.random().toString(36).substring(2);
-      const fileName = `recipe-images/${timestamp}-${randomString}.jpg`;
-      const filePath = fileName;
-
-      console.log("Downloading image through proxy...");
-      // Download the image through our proxy
+      // Download image through proxy
       const proxyResponse = await fetch("/api/proxy-image", {
         method: "POST",
         headers: {
@@ -387,47 +280,20 @@ export function CreateRecipeDialog({
       });
 
       if (!proxyResponse.ok) {
-        console.error(
-          "Proxy download failed:",
-          proxyResponse.status,
-          proxyResponse.statusText
-        );
         throw new Error("Failed to download generated image");
       }
 
-      console.log("Converting image to blob...");
       const blob = await proxyResponse.blob();
-      console.log("Blob created:", blob.size, "bytes");
 
-      console.log("Uploading to Supabase storage...");
       // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("recipes")
-        .upload(filePath, blob, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: "image/png",
-        });
+      const imageUrl = await uploadFile(blob, {
+        contentType: "image/png",
+      });
 
-      if (uploadError) {
-        console.error("Upload error:", uploadError);
-        throw new Error("Failed to upload image to storage");
+      if (imageUrl) {
+        setImage(imageUrl);
+        toast.success("Recipe image generated successfully!");
       }
-
-      console.log("Getting public URL...");
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("recipes").getPublicUrl(filePath);
-
-      console.log("Setting image URL in form:", publicUrl);
-      // Update form data with the new image URL
-      setFormData((prev) => ({
-        ...prev,
-        image_url: publicUrl,
-      }));
-
-      toast.success("Recipe image generated successfully!");
     } catch (error) {
       console.error("Error in handleGenerateImage:", error);
       toast.error(
@@ -440,142 +306,26 @@ export function CreateRecipeDialog({
     }
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
-      // Specify the MIME type explicitly, with fallbacks for different browsers
-      let mimeType = "audio/webm";
-      const types = ["audio/webm", "audio/mp4", "audio/ogg", "audio/wav"];
-
-      // Find the first supported MIME type
-      for (const type of types) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
-          break;
-        }
+  // Handle audio recording
+  const handleToggleRecording = async () => {
+    if (isRecording) {
+      const recipeData = await stopRecording();
+      if (recipeData) {
+        mergeAudioData(recipeData);
       }
-
-      // Configure the MediaRecorder with the supported format
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType,
-        audioBitsPerSecond: 128000,
-      });
-
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: mimeType, // Use the same MIME type we recorded with
-        });
-
-        try {
-          const { recipeData } = await generateTextFromAudio(audioBlob);
-
-          if (recipeData) {
-            // Update form data with the parsed recipe information
-            setFormData((prev) => ({
-              ...prev,
-              // Only update name if it exists and current name is empty
-              name: recipeData.name && !prev.name ? recipeData.name : prev.name,
-              // Only update time if it exists and is a valid number
-              time:
-                recipeData.time && recipeData.time > 0
-                  ? recipeData.time
-                  : prev.time,
-              // Only update servings if it exists and is a valid number
-              servings:
-                recipeData.servings && recipeData.servings > 0
-                  ? recipeData.servings
-                  : prev.servings,
-              // Add new ingredients to existing ones
-              ingredients: [
-                ...prev.ingredients,
-                ...(recipeData.ingredients || [])
-                  .filter(
-                    (ing) =>
-                      // Only add ingredients that don't already exist
-                      !prev.ingredients.some(
-                        (existing) =>
-                          existing.name.toLowerCase() === ing.name.toLowerCase()
-                      )
-                  )
-                  .map((ing) => ({
-                    name: ing.name,
-                    amount: ing.amount,
-                    unit: (ing.unit === "g" ||
-                    ing.unit === "ml" ||
-                    ing.unit === "u"
-                      ? ing.unit
-                      : "u") as "g" | "ml" | "u",
-                  })),
-              ],
-              // Add new instructions to existing ones
-              instructions: [
-                ...prev.instructions,
-                ...(recipeData.instructions || []).filter(
-                  (instruction) =>
-                    // Only add instructions that don't already exist
-                    !prev.instructions.some(
-                      (existing) =>
-                        existing.toLowerCase() === instruction.toLowerCase()
-                    )
-                ),
-              ],
-            }));
-
-            toast.success("Recipe information updated from audio");
-          } else {
-            toast.warning(
-              "No recipe information could be extracted from the audio"
-            );
-          }
-        } catch (error) {
-          console.error("Error processing audio:", error);
-          toast.error("Failed to process audio input");
-        }
-      };
-
-      mediaRecorder.start(1000); // Record in 1-second chunks
-      setIsRecording(true);
-    } catch (error) {
-      console.error("Error accessing microphone:", error);
-      if ((error as Error).name === "NotAllowedError") {
-        toast.error(
-          "Microphone permission was denied. Please enable it in your browser settings."
-        );
-      } else if ((error as Error).name === "NotFoundError") {
-        toast.error("No microphone found on your device.");
-      } else {
-        toast.error("Failed to access microphone");
-      }
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      try {
-        mediaRecorderRef.current.stop();
-        mediaRecorderRef.current.stream.getTracks().forEach((track) => {
-          track.stop();
-        });
-      } catch (error) {
-        console.error("Error stopping recording:", error);
-      } finally {
-        setIsRecording(false);
-      }
+    } else {
+      await startRecording();
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (!newOpen) reset(); // Reset form when dialog is closed
+        setOpen(newOpen);
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           size="lg"
@@ -599,12 +349,7 @@ export function CreateRecipeDialog({
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
+                    onChange={(e) => setName(e.target.value)}
                     onFocus={() => setIsNameFocused(true)}
                     onBlur={() => setIsNameFocused(false)}
                     placeholder="Enter recipe name"
@@ -641,9 +386,7 @@ export function CreateRecipeDialog({
               <ImageUpload
                 currentImageUrl={formData.image_url}
                 onImageSelect={handleImageSelect}
-                onRemoveImage={() =>
-                  setFormData((prev) => ({ ...prev, image_url: undefined }))
-                }
+                onRemoveImage={() => setImage(undefined)}
               />
               {currentUsername === "benjamibono" && (
                 <Button
@@ -676,12 +419,7 @@ export function CreateRecipeDialog({
                 type="number"
                 min="0"
                 value={formData.time === 0 ? "" : formData.time}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    time: parseInt(e.target.value) || 0,
-                  }))
-                }
+                onChange={(e) => setTime(parseInt(e.target.value) || 0)}
                 className="h-10"
               />
             </div>
@@ -694,12 +432,8 @@ export function CreateRecipeDialog({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    servings: Math.max(1, prev.servings - 1),
-                  }))
-                }
+                onClick={() => setServings(formData.servings - 1)}
+                disabled={formData.servings <= 1}
               >
                 -
               </Button>
@@ -708,12 +442,7 @@ export function CreateRecipeDialog({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    servings: prev.servings + 1,
-                  }))
-                }
+                onClick={() => setServings(formData.servings + 1)}
               >
                 +
               </Button>
@@ -722,7 +451,7 @@ export function CreateRecipeDialog({
                 variant="outline"
                 size="icon"
                 className="h-8 w-8"
-                onClick={isRecording ? stopRecording : startRecording}
+                onClick={handleToggleRecording}
               >
                 {isRecording ? (
                   <MicOff className="h-4 w-4 text-red-500" />
@@ -733,125 +462,18 @@ export function CreateRecipeDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>{type === "cleaning" ? "Materials" : "Ingredients"}</Label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ingredient name"
-                  value={newIngredient.name}
-                  onChange={(e) =>
-                    setNewIngredient((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  className="flex-1 h-10"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddIngredient}
-                  className="h-10"
-                >
-                  Add
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  placeholder="Amount"
-                  className="w-32 h-10"
-                  value={newIngredient.amount || ""}
-                  onChange={(e) =>
-                    setNewIngredient((prev) => ({
-                      ...prev,
-                      amount: parseInt(e.target.value) || 0,
-                    }))
-                  }
-                />
-                <Select
-                  value={newIngredient.unit}
-                  onValueChange={(value: (typeof UNITS)[number]["value"]) =>
-                    setNewIngredient((prev) => ({ ...prev, unit: value }))
-                  }
-                >
-                  <SelectTrigger className="w-24 h-10 flex items-center justify-between">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNITS.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {formData.ingredients.map((ingredient, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 bg-secondary p-3 rounded-md"
-                >
-                  <span className="flex-1">
-                    {ingredient.name} - {ingredient.amount}{" "}
-                    {UNITS.find((u) => u.value === ingredient.unit)?.label}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveIngredient(index)}
-                    className="h-8 w-8"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <RecipeFormIngredients
+            ingredients={formData.ingredients}
+            type={type}
+            onAddIngredient={addIngredient}
+            onRemoveIngredient={removeIngredient}
+          />
 
-          <div className="space-y-2">
-            <Label>Instructions</Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add instruction step"
-                value={newInstruction}
-                onChange={(e) => setNewInstruction(e.target.value)}
-                className="h-10"
-              />
-              <Button
-                type="button"
-                onClick={handleAddInstruction}
-                className="h-10"
-              >
-                Add
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {formData.instructions.map((instruction, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 bg-secondary p-3 rounded-md"
-                >
-                  <span className="flex-1">
-                    {index + 1}. {instruction}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveInstruction(index)}
-                    className="h-8 w-8"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+          <RecipeFormInstructions
+            instructions={formData.instructions}
+            onAddInstruction={addInstruction}
+            onRemoveInstruction={removeInstruction}
+          />
 
           <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 border-t">
             <Button
@@ -865,11 +487,7 @@ export function CreateRecipeDialog({
             </Button>
             <Button
               type="submit"
-              disabled={
-                loading ||
-                !formData.name.trim() ||
-                formData.ingredients.length === 0
-              }
+              disabled={loading || !formData.isValid}
               className="h-10"
             >
               {loading ? "Creating..." : "Create Recipe"}

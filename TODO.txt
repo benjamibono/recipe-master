@@ -6,7 +6,7 @@
 - Make a shopping cart section
 - Make ingredients and instructions orderable
 - Make a in process animation while processing audio
-- Failed to process audio on Iphone
+- Feeling lazy? Make a button to auto fill the recipe form with the transcribed or pasted text
 
 
 # AI Features
