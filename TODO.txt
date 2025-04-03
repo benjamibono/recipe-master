@@ -5,8 +5,7 @@
 - Make a bug report section
 - Make a shopping cart section
 - Make ingredients and instructions orderable
-- Make a in process animation while processing audio
-- Feeling lazy? Make a button to auto fill the recipe form with the transcribed or pasted text
+- Make AI generated recipes store in DB to be reused
 
 
 # AI Features
@@ -19,3 +18,4 @@
 
 # UI/UX Improvements
 - Make a real logo
+- Parse-recipe is in lowercase, make it look better

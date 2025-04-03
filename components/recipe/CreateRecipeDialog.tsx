@@ -24,12 +24,18 @@ interface CreateRecipeDialogProps {
   onSuccess?: () => void;
 }
 
+const MAX_LAZY_TEXT_LENGTH = 4000;
+
 export function CreateRecipeDialog({
   type = "cooking",
   onSuccess,
 }: CreateRecipeDialogProps) {
   // Dialog state
   const [open, setOpen] = useState(false);
+  const [lazyDialogOpen, setLazyDialogOpen] = useState(false);
+  const [lazyText, setLazyText] = useState("");
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [isTextTooLong, setIsTextTooLong] = useState(false);
 
   // UI state
   const [isNameFocused, setIsNameFocused] = useState(false);
@@ -309,12 +315,66 @@ export function CreateRecipeDialog({
   // Handle audio recording
   const handleToggleRecording = async () => {
     if (isRecording) {
-      const recipeData = await stopRecording();
-      if (recipeData) {
-        mergeAudioData(recipeData);
+      setIsProcessingAudio(true);
+      try {
+        const recipeData = await stopRecording();
+        if (recipeData) {
+          mergeAudioData(recipeData);
+          setLazyDialogOpen(false);
+          toast.success("Audio recorded and processed successfully!");
+        }
+      } catch (error) {
+        console.error("Error processing audio:", error);
+        toast.error("Failed to process audio");
+      } finally {
+        setIsProcessingAudio(false);
       }
     } else {
       await startRecording();
+      toast.info("Recording started...");
+    }
+  };
+
+  // Add this function inside CreateRecipeDialog component
+  const handleLazyTextSubmit = async () => {
+    if (!lazyText.trim()) {
+      toast.error("Please enter some text first");
+      return;
+    }
+
+    if (lazyText.length > MAX_LAZY_TEXT_LENGTH) {
+      toast.error(
+        `Text exceeds maximum length of ${MAX_LAZY_TEXT_LENGTH} characters`
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/parse-recipe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ transcription: lazyText }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to parse recipe");
+      }
+
+      const recipeData = await response.json();
+
+      // Use the existing mergeRecipe function to update the form
+      mergeRecipe(recipeData);
+
+      // Close the lazy dialog
+      setLazyDialogOpen(false);
+      setLazyText("");
+
+      toast.success("Recipe parsed successfully!");
+    } catch (error) {
+      console.error("Error parsing recipe:", error);
+      toast.error("Failed to parse recipe text");
     }
   };
 
@@ -322,7 +382,6 @@ export function CreateRecipeDialog({
     <Dialog
       open={open}
       onOpenChange={(newOpen) => {
-        if (!newOpen) reset(); // Reset form when dialog is closed
         setOpen(newOpen);
       }}
     >
@@ -427,37 +486,34 @@ export function CreateRecipeDialog({
 
           <div className="space-y-2">
             <Label htmlFor="servings">Number of Servings</Label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setServings(formData.servings - 1)}
+                  disabled={formData.servings <= 1}
+                >
+                  -
+                </Button>
+                <span className="w-8 text-center">{formData.servings}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setServings(formData.servings + 1)}
+                >
+                  +
+                </Button>
+              </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setServings(formData.servings - 1)}
-                disabled={formData.servings <= 1}
+                onClick={() => setLazyDialogOpen(true)}
               >
-                -
-              </Button>
-              <span className="w-8 text-center">{formData.servings}</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setServings(formData.servings + 1)}
-              >
-                +
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleToggleRecording}
-              >
-                {isRecording ? (
-                  <MicOff className="h-4 w-4 text-red-500" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
+                Feeling Lazy?
               </Button>
             </div>
           </div>
@@ -479,7 +535,10 @@ export function CreateRecipeDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                reset();
+                setOpen(false);
+              }}
               disabled={loading}
               className="h-10"
             >
@@ -495,6 +554,67 @@ export function CreateRecipeDialog({
           </div>
         </form>
       </DialogContent>
+
+      <Dialog open={lazyDialogOpen} onOpenChange={setLazyDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Quick Recipe Input</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="lazy-text">Describe your recipe</Label>
+              <Input
+                id="lazy-text"
+                value={lazyText}
+                onChange={(e) => {
+                  const newText = e.target.value;
+                  setLazyText(newText);
+                  setIsTextTooLong(newText.length > MAX_LAZY_TEXT_LENGTH);
+                }}
+                placeholder="Type or speak your recipe..."
+              />
+              <div
+                className={`text-xs ${
+                  isTextTooLong ? "text-red-500" : "text-muted-foreground"
+                }`}
+              >
+                {lazyText.length}/{MAX_LAZY_TEXT_LENGTH} characters
+              </div>
+            </div>
+            <div className="flex justify-between items-center">
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={handleLazyTextSubmit}
+                disabled={isTextTooLong}
+              >
+                Create
+              </Button>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  Or record your recipe with audio
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleToggleRecording}
+                  disabled={isProcessingAudio}
+                >
+                  {isProcessingAudio ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isRecording ? (
+                    <MicOff className="h-4 w-4 text-red-500" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
