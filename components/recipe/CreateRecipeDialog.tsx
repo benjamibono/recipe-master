@@ -443,7 +443,25 @@ export function CreateRecipeDialog({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      // Specify the MIME type explicitly, with fallbacks for different browsers
+      let mimeType = "audio/webm";
+      const types = ["audio/webm", "audio/mp4", "audio/ogg", "audio/wav"];
+
+      // Find the first supported MIME type
+      for (const type of types) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
+        }
+      }
+
+      // Configure the MediaRecorder with the supported format
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: mimeType,
+        audioBitsPerSecond: 128000,
+      });
+
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -455,8 +473,9 @@ export function CreateRecipeDialog({
 
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
+          type: mimeType, // Use the same MIME type we recorded with
         });
+
         try {
           const { recipeData } = await generateTextFromAudio(audioBlob);
 
@@ -524,21 +543,34 @@ export function CreateRecipeDialog({
         }
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Record in 1-second chunks
       setIsRecording(true);
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      toast.error("Failed to access microphone");
+      if ((error as Error).name === "NotAllowedError") {
+        toast.error(
+          "Microphone permission was denied. Please enable it in your browser settings."
+        );
+      } else if ((error as Error).name === "NotFoundError") {
+        toast.error("No microphone found on your device.");
+      } else {
+        toast.error("Failed to access microphone");
+      }
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream
-        .getTracks()
-        .forEach((track) => track.stop());
-      setIsRecording(false);
+      try {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current.stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      } catch (error) {
+        console.error("Error stopping recording:", error);
+      } finally {
+        setIsRecording(false);
+      }
     }
   };
 

@@ -3,12 +3,19 @@
 - Tips and Tricks section
 - Simplify code logic
 - Make a bug report section
+- Make a shopping cart section
+- Make ingredients and instructions orderable
+- Make a in process animation while processing audio
+- Failed to process audio on Iphone
+
 
 # AI Features
-- Make AI audio fill the instructions
-- Make AI audio fill the ingredients
+- Parse ingredients list with ai
+- Make an input for raw text to parse into recipe form
 
 # Authentication & User Management
 
 
+
 # UI/UX Improvements
+- Make a real logo

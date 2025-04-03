@@ -17,8 +17,12 @@ export async function POST(request: Request) {
       );
     }
 
+    // Create a more specific file name with the correct extension based on the mime type
+    const fileExtension = audioFile.type.split("/")[1] || "webm";
+    const fileName = `audio.${fileExtension}`;
+
     const response = await openai.audio.transcriptions.create({
-      file: new File([audioFile], "audio.webm", { type: "audio/webm" }),
+      file: new File([audioFile], fileName, { type: audioFile.type }),
       model: "whisper-1",
       prompt: `You are a recipe assistant. Please transcribe the following audio with a focus on recipe-related information. 
       Pay special attention to:
