@@ -1,16 +1,14 @@
 # Core Features
 - Internalization (i18n)
 - Tips and Tricks section
-- Simplify code logic
 - Make a bug report section
 - Make a shopping cart section
-- Make ingredients and instructions orderable
 - Make AI generated recipes store in DB to be reused
 
 
 # AI Features
 - Parse ingredients list with ai
-- Make an input for raw text to parse into recipe form
+
 
 # Authentication & User Management
 

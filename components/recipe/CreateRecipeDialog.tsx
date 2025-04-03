@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,10 +9,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Wand2, Loader2, Bot, Mic, MicOff } from "lucide-react";
+import {
+  Plus,
+  Wand2,
+  Loader2,
+  Bot,
+  Mic,
+  MicOff,
+  ImageIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { ImageUpload } from "@/components/ImageUpload";
+import Image from "next/image";
 import { RecipeFormIngredients } from "./RecipeFormIngredients";
 import { RecipeFormInstructions } from "./RecipeFormInstructions";
 import { useRecipeForm } from "@/lib/hooks/useRecipeForm";
@@ -30,6 +38,7 @@ export function CreateRecipeDialog({
   type = "cooking",
   onSuccess,
 }: CreateRecipeDialogProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // Dialog state
   const [open, setOpen] = useState(false);
   const [lazyDialogOpen, setLazyDialogOpen] = useState(false);
@@ -57,6 +66,8 @@ export function CreateRecipeDialog({
     mergeRecipe,
     mergeAudioData,
     reset,
+    setInstructions,
+    setIngredients,
   } = useRecipeForm();
 
   // Audio recording state using custom hook
@@ -189,24 +200,27 @@ export function CreateRecipeDialog({
   };
 
   // Handle image upload
-  const handleImageSelect = async (file: File) => {
-    try {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Please select an image file");
-      }
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        // Validate file type
+        if (!file.type.startsWith("image/")) {
+          throw new Error("Please select an image file");
+        }
 
-      const imageUrl = await uploadFile(file);
+        const imageUrl = await uploadFile(file);
 
-      if (imageUrl) {
-        setImage(imageUrl);
-        toast.success("Image uploaded successfully");
+        if (imageUrl) {
+          setImage(imageUrl);
+          toast.success("Image uploaded successfully");
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Failed to upload image"
+        );
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to upload image"
-      );
     }
   };
 
@@ -439,61 +453,33 @@ export function CreateRecipeDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Recipe Image</Label>
-            <div className="flex gap-2">
-              <ImageUpload
-                currentImageUrl={formData.image_url}
-                onImageSelect={handleImageSelect}
-                onRemoveImage={() => setImage(undefined)}
-              />
-              {currentUsername === "benjamibono" && (
+          <div className="flex justify-between gap-4">
+            {type === "cooking" && (
+              <div>
+                <Label htmlFor="time">Prep Time (mins)</Label>
+                <div className="h-10 mt-2">
+                  <Input
+                    id="time"
+                    type="number"
+                    min="0"
+                    value={formData.time === 0 ? "" : formData.time}
+                    onChange={(e) => setTime(parseInt(e.target.value) || 0)}
+                    className="h-10 w-24"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="servings">Servings</Label>
+              <div className="h-10 mt-2 flex items-center">
                 <Button
                   type="button"
                   variant="outline"
-                  size="icon"
-                  className="w-10 flex-shrink-0"
-                  onClick={handleGenerateImage}
-                  disabled={
-                    generatingImage ||
-                    !formData.name.trim() ||
-                    formData.ingredients.length === 0
+                  className="h-10 w-10"
+                  onClick={() =>
+                    setServings(Math.max(1, formData.servings - 1))
                   }
-                >
-                  {generatingImage ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Bot className="h-4 w-4" />
-                  )}
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {type === "cooking" && (
-            <div className="space-y-2">
-              <Label htmlFor="time">Preparation Time (minutes)</Label>
-              <Input
-                id="time"
-                type="number"
-                min="0"
-                value={formData.time === 0 ? "" : formData.time}
-                onChange={(e) => setTime(parseInt(e.target.value) || 0)}
-                className="h-10"
-              />
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="servings">Number of Servings</Label>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setServings(formData.servings - 1)}
-                  disabled={formData.servings <= 1}
                 >
                   -
                 </Button>
@@ -501,20 +487,75 @@ export function CreateRecipeDialog({
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  className="h-10 w-10"
                   onClick={() => setServings(formData.servings + 1)}
                 >
                   +
                 </Button>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setLazyDialogOpen(true)}
-              >
-                Feeling Lazy?
-              </Button>
+            </div>
+
+            <div>
+              <Label>Image</Label>
+              <div className="h-10 mt-2 flex gap-2">
+                {formData.image_url ? (
+                  <div className="relative w-10 h-10">
+                    <Image
+                      src={formData.image_url}
+                      alt="Recipe"
+                      fill
+                      className="object-cover rounded-md"
+                      sizes="40px"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-4 w-4 rounded-full"
+                      onClick={() => setImage(undefined)}
+                    >
+                      <span className="sr-only">Remove image</span>×
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                {currentUsername === "benjamibono" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="w-10 flex-shrink-0"
+                    onClick={handleGenerateImage}
+                    disabled={
+                      generatingImage ||
+                      !formData.name.trim() ||
+                      formData.ingredients.length === 0
+                    }
+                  >
+                    {generatingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Bot className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -523,34 +564,46 @@ export function CreateRecipeDialog({
             type={type}
             onAddIngredient={addIngredient}
             onRemoveIngredient={removeIngredient}
+            onReorderIngredients={setIngredients}
           />
 
           <RecipeFormInstructions
             instructions={formData.instructions}
             onAddInstruction={addInstruction}
             onRemoveInstruction={removeInstruction}
+            onReorderInstructions={setInstructions}
           />
 
-          <div className="flex justify-end gap-2 sticky bottom-0 bg-background pt-4 border-t">
+          <div className="flex justify-between gap-2 sticky bottom-0 bg-background pt-4 border-t">
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                reset();
-                setOpen(false);
-              }}
-              disabled={loading}
+              onClick={() => setLazyDialogOpen(true)}
               className="h-10"
             >
-              Cancel
+              Lazy?
             </Button>
-            <Button
-              type="submit"
-              disabled={loading || !formData.isValid}
-              className="h-10"
-            >
-              {loading ? "Creating..." : "Create Recipe"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  reset();
+                  setOpen(false);
+                }}
+                disabled={loading}
+                className="h-10"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || !formData.isValid}
+                className="h-10"
+              >
+                {loading ? "Creating..." : "Create Recipe"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

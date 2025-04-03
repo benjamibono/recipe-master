@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,7 +8,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableItem } from "@/components/recipe/SortableItem";
 
 export const UNITS = [
   { value: "g", label: "grams" },
@@ -28,6 +42,7 @@ interface RecipeFormIngredientsProps {
   type: "cooking" | "cleaning";
   onAddIngredient: (ingredient: Ingredient) => void;
   onRemoveIngredient: (index: number) => void;
+  onReorderIngredients: (newIngredients: Ingredient[]) => void;
 }
 
 export function RecipeFormIngredients({
@@ -35,12 +50,20 @@ export function RecipeFormIngredients({
   type,
   onAddIngredient,
   onRemoveIngredient,
+  onReorderIngredients,
 }: RecipeFormIngredientsProps) {
   const [newIngredient, setNewIngredient] = useState<Ingredient>({
     name: "",
     amount: 0,
     unit: "g",
   });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleAddIngredient = () => {
     if (newIngredient.name && newIngredient.amount > 0) {
@@ -49,53 +72,63 @@ export function RecipeFormIngredients({
     }
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id !== over.id) {
+      const oldIndex = ingredients.findIndex(
+        (_, index) => `ingredient-${index}` === active.id
+      );
+      const newIndex = ingredients.findIndex(
+        (_, index) => `ingredient-${index}` === over?.id
+      );
+
+      const newIngredients = [...ingredients];
+      const [movedItem] = newIngredients.splice(oldIndex, 1);
+      newIngredients.splice(newIndex, 0, movedItem);
+
+      onReorderIngredients(newIngredients);
+    }
+  };
+
   return (
-    <div className="space-y-2">
-      <Label>{type === "cleaning" ? "Materials" : "Ingredients"}</Label>
-      <div className="space-y-2">
-        <div className="flex gap-2">
-          <Input
-            placeholder="Ingredient name"
-            value={newIngredient.name}
-            onChange={(e) =>
-              setNewIngredient((prev) => ({
-                ...prev,
-                name: e.target.value,
-              }))
-            }
-            className="flex-1 h-10"
-          />
-          <Button
-            type="button"
-            onClick={handleAddIngredient}
-            className="h-10"
-            disabled={!newIngredient.name || newIngredient.amount <= 0}
-          >
-            Add
-          </Button>
-        </div>
-        <div className="flex gap-2">
-          <Input
-            type="number"
-            min="0"
-            placeholder="Amount"
-            className="w-32 h-10"
-            value={newIngredient.amount || ""}
-            onChange={(e) =>
-              setNewIngredient((prev) => ({
-                ...prev,
-                amount: parseInt(e.target.value) || 0,
-              }))
-            }
-          />
+    <div className="space-y-4">
+      <div>
+        <Input
+          type="text"
+          placeholder="Ingredient"
+          value={newIngredient.name}
+          onChange={(e) =>
+            setNewIngredient((prev) => ({
+              ...prev,
+              name: e.target.value,
+            }))
+          }
+          className="w-full h-10"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          placeholder="Amount"
+          value={newIngredient.amount || ""}
+          onChange={(e) =>
+            setNewIngredient((prev) => ({
+              ...prev,
+              amount: parseFloat(e.target.value) || 0,
+            }))
+          }
+          className="h-10 flex-1"
+        />
+        {type === "cooking" && (
           <Select
             value={newIngredient.unit}
             onValueChange={(value: (typeof UNITS)[number]["value"]) =>
               setNewIngredient((prev) => ({ ...prev, unit: value }))
             }
           >
-            <SelectTrigger className="w-24 h-10 flex items-center justify-between">
-              <SelectValue />
+            <SelectTrigger className="h-10 flex-1">
+              <SelectValue placeholder="Unit" />
             </SelectTrigger>
             <SelectContent>
               {UNITS.map((unit) => (
@@ -105,30 +138,56 @@ export function RecipeFormIngredients({
               ))}
             </SelectContent>
           </Select>
-        </div>
+        )}
+        <Button
+          type="button"
+          onClick={handleAddIngredient}
+          disabled={!newIngredient.name.trim()}
+          className="h-10 flex-1 bg-black hover:bg-black/90"
+        >
+          Add
+        </Button>
       </div>
-      <div className="space-y-2">
-        {ingredients.map((ingredient, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-2 bg-secondary p-3 rounded-md"
-          >
-            <span className="flex-1">
-              {ingredient.name} - {ingredient.amount}{" "}
-              {UNITS.find((u) => u.value === ingredient.unit)?.label}
-            </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => onRemoveIngredient(index)}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={ingredients.map((_, index) => `ingredient-${index}`)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-2">
+            {ingredients.map((ingredient, index) => (
+              <SortableItem
+                key={`ingredient-${index}`}
+                id={`ingredient-${index}`}
+              >
+                <div className="flex items-center justify-between gap-2 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{ingredient.name}</span>
+                    {type === "cooking" && (
+                      <span className="text-muted-foreground">
+                        {ingredient.amount} {ingredient.unit}
+                      </span>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemoveIngredient(index)}
+                    className="h-8 w-8"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </SortableItem>
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }

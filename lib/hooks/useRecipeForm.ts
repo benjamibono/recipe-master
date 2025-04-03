@@ -24,7 +24,9 @@ type RecipeFormAction =
   | { type: "SET_IMAGE"; payload: string | undefined }
   | { type: "MERGE_RECIPE"; payload: Partial<RecipeFormState> }
   | { type: "MERGE_AUDIO_DATA"; payload: RecipeAudioData }
-  | { type: "RESET" };
+  | { type: "RESET" }
+  | { type: "SET_INGREDIENTS"; payload: Ingredient[] }
+  | { type: "SET_INSTRUCTIONS"; payload: string[] };
 
 function validateForm(state: Omit<RecipeFormState, "isValid">): boolean {
   return Boolean(state.name.trim() && state.ingredients.length > 0);
@@ -126,6 +128,16 @@ function recipeFormReducer(
       break;
     case "RESET":
       return getInitialState();
+    case "SET_INGREDIENTS":
+      return {
+        ...state,
+        ingredients: action.payload,
+      };
+    case "SET_INSTRUCTIONS":
+      return {
+        ...state,
+        instructions: action.payload,
+      };
     default:
       return state;
   }
@@ -203,6 +215,14 @@ export function useRecipeForm() {
     dispatch({ type: "RESET" });
   }, []);
 
+  const setIngredients = (newIngredients: Ingredient[]) => {
+    dispatch({ type: "SET_INGREDIENTS", payload: newIngredients });
+  };
+
+  const setInstructions = (newInstructions: string[]) => {
+    dispatch({ type: "SET_INSTRUCTIONS", payload: newInstructions });
+  };
+
   return {
     state,
     setName,
@@ -216,5 +236,7 @@ export function useRecipeForm() {
     mergeRecipe,
     mergeAudioData,
     reset,
+    setIngredients,
+    setInstructions,
   };
 }

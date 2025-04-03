@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,97 +9,40 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Pencil, X } from "lucide-react";
+import { Pencil, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
-import { ImageUpload } from "@/components/ImageUpload";
-
-// Available units for ingredients/materials
-const UNITS = [
-  { value: "g", label: "grams" },
-  { value: "ml", label: "milliliters" },
-  { value: "u", label: "units" },
-] as const;
-
-// Type definition for ingredient/material entries
-interface Ingredient {
-  name: string;
-  amount: number;
-  unit: (typeof UNITS)[number]["value"];
-}
+import {
+  RecipeFormIngredients,
+  Ingredient,
+  UNITS,
+} from "./RecipeFormIngredients";
+import { RecipeFormInstructions } from "./RecipeFormInstructions";
+import Image from "next/image";
 
 interface EditRecipeDialogProps {
   recipe: Recipe;
 }
 
 export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // State management for dialog and form
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  // Initialize form data with current recipe values
+  // Initialize form data with current recipe values and ensure ingredients have valid units
   const [formData, setFormData] = useState({
     name: recipe.name,
     time: recipe.time,
     servings: recipe.servings,
-    ingredients: recipe.ingredients,
+    ingredients: recipe.ingredients.map((ing) => ({
+      ...ing,
+      unit: ing.unit as (typeof UNITS)[number]["value"],
+    })) as Ingredient[],
     instructions: recipe.instructions,
     image_url: recipe.image_url,
     macros_data: recipe.macros_data,
   });
-  // State for new ingredient/material entry
-  const [newIngredient, setNewIngredient] = useState<Ingredient>({
-    name: "",
-    amount: 0,
-    unit: "g",
-  });
-  // State for new instruction entry
-  const [newInstruction, setNewInstruction] = useState("");
-
-  // Add a new ingredient/material to the recipe
-  const handleAddIngredient = () => {
-    if (newIngredient.name && newIngredient.amount > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        ingredients: [...prev.ingredients, newIngredient],
-      }));
-      setNewIngredient({ name: "", amount: 0, unit: "g" });
-    }
-  };
-
-  // Remove an ingredient/material from the recipe
-  const handleRemoveIngredient = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      ingredients: prev.ingredients.filter((_, i) => i !== index),
-    }));
-  };
-
-  // Add a new instruction step to the recipe
-  const handleAddInstruction = () => {
-    if (newInstruction.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        instructions: [...prev.instructions, newInstruction],
-      }));
-      setNewInstruction("");
-    }
-  };
-
-  // Remove an instruction step from the recipe
-  const handleRemoveInstruction = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      instructions: prev.instructions.filter((_, i) => i !== index),
-    }));
-  };
 
   // Handle image upload to Supabase storage
   const handleImageSelect = async (file: File) => {
@@ -153,6 +96,13 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
       toast.error(
         error instanceof Error ? error.message : "Failed to upload image"
       );
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleImageSelect(file);
     }
   };
 
@@ -259,79 +209,122 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           <DialogTitle>Edit Recipe</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4">
-          <div className="space-y-2">
+          <div>
             <Label htmlFor="name">Recipe Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-              placeholder="Enter recipe name"
-              className="h-10"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Recipe Image</Label>
-            <ImageUpload
-              currentImageUrl={formData.image_url}
-              onImageSelect={handleImageSelect}
-              onRemoveImage={() =>
-                setFormData((prev) => ({ ...prev, image_url: undefined }))
-              }
-            />
-          </div>
-
-          {recipe.type === "cooking" && (
-            <div className="space-y-2">
-              <Label htmlFor="time">Preparation Time (minutes)</Label>
+            <div className="mt-2">
               <Input
-                id="time"
-                type="number"
-                min="0"
-                value={formData.time === 0 ? "" : formData.time}
+                id="name"
+                value={formData.name}
                 onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    time: parseInt(e.target.value) || 0,
-                  }))
+                  setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
+                placeholder="Enter recipe name"
                 className="h-10"
               />
             </div>
-          )}
+          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="servings">Number of Servings</Label>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    servings: Math.max(1, prev.servings - 1),
-                  }))
-                }
-              >
-                -
-              </Button>
-              <span className="w-8 text-center">{formData.servings}</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    servings: prev.servings + 1,
-                  }))
-                }
-              >
-                +
-              </Button>
+          <div className="flex justify-between gap-4">
+            {recipe.type === "cooking" && (
+              <div>
+                <Label htmlFor="time">Prep Time (mins)</Label>
+                <div className="h-10 mt-2">
+                  <Input
+                    id="time"
+                    type="number"
+                    min="0"
+                    value={formData.time === 0 ? "" : formData.time}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        time: parseInt(e.target.value) || 0,
+                      }))
+                    }
+                    className="h-10 w-24"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="servings">Servings</Label>
+              <div className="h-10 mt-2 flex items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-10"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      servings: Math.max(1, prev.servings - 1),
+                    }))
+                  }
+                >
+                  -
+                </Button>
+                <span className="w-8 text-center">{formData.servings}</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-10"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      servings: prev.servings + 1,
+                    }))
+                  }
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <Label>Image</Label>
+              <div className="h-10 mt-2">
+                {formData.image_url ? (
+                  <div className="relative w-10 h-10">
+                    <Image
+                      src={formData.image_url}
+                      alt="Recipe"
+                      fill
+                      className="object-cover rounded-md"
+                      sizes="40px"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-4 w-4 rounded-full"
+                      onClick={() =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          image_url: undefined,
+                        }))
+                      }
+                    >
+                      <span className="sr-only">Remove image</span>×
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+              </div>
             </div>
           </div>
 
@@ -339,133 +332,53 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             <Label>
               {recipe.type === "cleaning" ? "Materials" : "Ingredients"}
             </Label>
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Name"
-                  value={newIngredient.name}
-                  onChange={(e) =>
-                    setNewIngredient((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  className="flex-1 h-10"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddIngredient}
-                  className="h-10"
-                >
-                  Add {recipe.type === "cleaning" ? "Material" : "Ingredient"}
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  min="0"
-                  placeholder="Amount"
-                  value={newIngredient.amount || ""}
-                  onChange={(e) =>
-                    setNewIngredient((prev) => ({
-                      ...prev,
-                      amount: parseFloat(e.target.value) || 0,
-                    }))
-                  }
-                  className="w-32 h-10"
-                />
-                <Select
-                  value={newIngredient.unit}
-                  onValueChange={(value) =>
-                    setNewIngredient((prev) => ({
-                      ...prev,
-                      unit: value as (typeof UNITS)[number]["value"],
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-24 h-10 flex items-center justify-between">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {UNITS.map((unit) => (
-                      <SelectItem key={unit.value} value={unit.value}>
-                        {unit.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <ul className="space-y-2">
-              {formData.ingredients.map((ingredient, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between bg-secondary p-3 rounded"
-                >
-                  <span className="flex-1">
-                    {ingredient.amount} {ingredient.unit} {ingredient.name}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveIngredient(index)}
-                    className="h-8 w-8"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </li>
-              ))}
-            </ul>
+            <RecipeFormIngredients
+              ingredients={formData.ingredients}
+              type={recipe.type === "shopping" ? "cooking" : recipe.type}
+              onAddIngredient={(ingredient) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  ingredients: [...prev.ingredients, ingredient],
+                }))
+              }
+              onRemoveIngredient={(index) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  ingredients: prev.ingredients.filter((_, i) => i !== index),
+                }))
+              }
+              onReorderIngredients={(newIngredients) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  ingredients: newIngredients,
+                }))
+              }
+            />
           </div>
 
           <div className="space-y-4">
             <Label>Instructions</Label>
-            <div className="space-y-2">
-              <Input
-                placeholder="Add an instruction"
-                value={newInstruction}
-                onChange={(e) => setNewInstruction(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddInstruction();
-                  }
-                }}
-                className="h-10"
-              />
-              <Button
-                type="button"
-                onClick={handleAddInstruction}
-                className="w-full h-10"
-              >
-                Add Instruction
-              </Button>
-            </div>
-
-            <ol className="space-y-2">
-              {formData.instructions.map((instruction, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between bg-secondary p-3 rounded"
-                >
-                  <span className="flex flex-1">
-                    <span className="font-semibold mr-4">{index + 1}.</span>
-                    <span>{instruction}</span>
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveInstruction(index)}
-                    className="h-8 w-8"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </li>
-              ))}
-            </ol>
+            <RecipeFormInstructions
+              instructions={formData.instructions}
+              onAddInstruction={(instruction) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  instructions: [...prev.instructions, instruction],
+                }))
+              }
+              onRemoveInstruction={(index) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  instructions: prev.instructions.filter((_, i) => i !== index),
+                }))
+              }
+              onReorderInstructions={(newInstructions) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  instructions: newInstructions,
+                }))
+              }
+            />
           </div>
 
           <Button type="submit" className="w-full h-10" disabled={loading}>
