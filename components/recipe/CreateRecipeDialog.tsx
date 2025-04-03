@@ -624,7 +624,7 @@ export function CreateRecipeDialog({
                   setLazyText(newText);
                   setIsTextTooLong(newText.length > MAX_LAZY_TEXT_LENGTH);
                 }}
-                placeholder="Type or speak your recipe..."
+                placeholder="Type or paste your recipe..."
               />
               <div
                 className={`text-xs ${
@@ -645,8 +645,10 @@ export function CreateRecipeDialog({
                 Create
               </Button>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  Or record your recipe with audio
+                <span className="text-sm text-muted-foreground text-center leading-tight">
+                  Or record your recipe
+                  <br />
+                  we&apos;ll transcribe it automatically
                 </span>
                 <Button
                   type="button"
