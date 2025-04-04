@@ -4,7 +4,7 @@
 - Make a bug report section
 - Make a shopping cart section
 - Make AI generated recipes store in DB to be reused
-
+- Walkthrough on recipe creation step by step
 
 # AI Features
 - Parse ingredients list with ai

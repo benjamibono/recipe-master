@@ -154,7 +154,7 @@ export default function RecipeDetailPage() {
         throw new Error(`Failed to fetch macros: ${response.statusText}`);
       }
 
-      const { macros, isDefault } = await response.json();
+      const { macros } = await response.json();
 
       // Validate the macros data format
       if (!macros || typeof macros !== "string" || !macros.includes(":")) {
@@ -168,15 +168,12 @@ export default function RecipeDetailPage() {
         .from("recipes")
         .update({
           macros_data: macros,
-          is_default_macros: isDefault || false,
         })
         .eq("id", recipeData.id);
 
       if (updateError) {
         console.error("Error storing macros:", updateError);
         // Don't show error toast here as the user can still see the macros
-      } else if (isDefault) {
-        console.log("Using default macros for recipe:", recipeData.id);
       }
     } catch (error) {
       console.error("Error fetching macros:", error);
@@ -590,16 +587,6 @@ export default function RecipeDetailPage() {
                 </div>
               ) : macros && macros.includes(":") ? (
                 <div className="space-y-6">
-                  {recipe.is_default_macros && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 text-yellow-800 text-sm">
-                      <p className="font-medium">Note:</p>
-                      <p>
-                        These are estimated nutritional values. For more
-                        accurate information, consider manually entering the
-                        nutritional data.
-                      </p>
-                    </div>
-                  )}
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">
                       Per Serving

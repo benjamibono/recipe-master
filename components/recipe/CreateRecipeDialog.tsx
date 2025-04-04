@@ -17,6 +17,7 @@ import {
   Mic,
   MicOff,
   ImageIcon,
+  Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -26,6 +27,7 @@ import { RecipeFormInstructions } from "./RecipeFormInstructions";
 import { useRecipeForm } from "@/lib/hooks/useRecipeForm";
 import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
 import { uploadFile } from "@/lib/storage-utils";
+import { PexelsImageDialog } from "./PexelsImageDialog";
 
 interface CreateRecipeDialogProps {
   type?: "cooking" | "cleaning";
@@ -46,6 +48,7 @@ export function CreateRecipeDialog({
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [isTextTooLong, setIsTextTooLong] = useState(false);
   const [isProcessingText, setIsProcessingText] = useState(false);
+  const [pexelsDialogOpen, setPexelsDialogOpen] = useState(false);
 
   // UI state
   const [isNameFocused, setIsNameFocused] = useState(false);
@@ -191,14 +194,11 @@ export function CreateRecipeDialog({
         .from("recipes")
         .update({
           macros_data: data.macros,
-          is_default_macros: data.isDefault || false,
         })
         .eq("id", recipeId);
 
       if (updateError) {
         console.error("Error storing macros:", updateError);
-      } else if (data.isDefault) {
-        console.log("Using default macros for recipe:", recipeId);
       }
     } catch (error) {
       console.error("Error analyzing macros in background:", error);
@@ -401,6 +401,11 @@ export function CreateRecipeDialog({
     }
   };
 
+  // Add this new handler
+  const handlePexelsImageSelect = (imageUrl: string) => {
+    setImage(imageUrl);
+  };
+
   return (
     <Dialog
       open={open}
@@ -544,6 +549,15 @@ export function CreateRecipeDialog({
                   className="hidden"
                   onChange={handleFileSelect}
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="w-10 flex-shrink-0"
+                  onClick={() => setPexelsDialogOpen(true)}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
                 {currentUsername === "benjamibono" && (
                   <Button
                     type="button"
@@ -682,6 +696,12 @@ export function CreateRecipeDialog({
           </div>
         </DialogContent>
       </Dialog>
+
+      <PexelsImageDialog
+        open={pexelsDialogOpen}
+        onOpenChange={setPexelsDialogOpen}
+        onSelectImage={handlePexelsImageSelect}
+      />
     </Dialog>
   );
 }

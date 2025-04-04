@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, ImageIcon, Bot, Loader2 } from "lucide-react";
+import { Pencil, ImageIcon, Bot, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
@@ -21,6 +21,7 @@ import {
 import { RecipeFormInstructions } from "./RecipeFormInstructions";
 import Image from "next/image";
 import { uploadFile } from "@/lib/storage-utils";
+import { PexelsImageDialog } from "./PexelsImageDialog";
 
 interface EditRecipeDialogProps {
   recipe: Recipe;
@@ -32,6 +33,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [pexelsDialogOpen, setPexelsDialogOpen] = useState(false);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
 
   // Initialize form data with current recipe values and ensure ingredients have valid units
@@ -174,6 +176,14 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     }
   };
 
+  // Add this new handler
+  const handlePexelsImageSelect = (imageUrl: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      image_url: imageUrl,
+    }));
+  };
+
   // Handle form submission and recipe update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,35 +213,34 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
 
       // Get macros analysis for cooking recipes
       let macros_data = recipe.macros_data;
-      let is_default_macros = recipe.is_default_macros || false;
 
-      if (recipe.type === "cooking" && formData.ingredients.length > 0) {
-        // Check if ingredients have changed by comparing their string representations
-        const originalIngredients = JSON.stringify(recipe.ingredients);
-        const newIngredients = JSON.stringify(formData.ingredients);
+      // Check if ingredients have changed by comparing their string representations
+      const originalIngredients = JSON.stringify(recipe.ingredients);
+      const newIngredients = JSON.stringify(formData.ingredients);
+      const ingredientsChanged = originalIngredients !== newIngredients;
 
-        if (originalIngredients !== newIngredients) {
-          try {
-            const response = await fetch("/api/analyze-macros", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ ingredients: formData.ingredients }),
-            });
+      if (
+        recipe.type === "cooking" &&
+        formData.ingredients.length > 0 &&
+        ingredientsChanged
+      ) {
+        try {
+          const response = await fetch("/api/analyze-macros", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ingredients: formData.ingredients }),
+          });
 
-            if (!response.ok) throw new Error("Failed to analyze macros");
-            const data = await response.json();
-            macros_data = data.macros;
-            is_default_macros = data.isDefault || false;
+          if (!response.ok) throw new Error("Failed to analyze macros");
+          const data = await response.json();
+          macros_data = data.macros;
 
-            if (is_default_macros) {
-              console.log("Using default macros for recipe update");
-            }
-          } catch (error) {
-            console.error("Error analyzing macros:", error);
-            toast.error("Failed to analyze nutritional information");
-          }
+          console.log("Updated macros data for recipe");
+        } catch (error) {
+          console.error("Error analyzing macros:", error);
+          toast.error("Failed to analyze nutritional information");
         }
       }
 
@@ -399,6 +408,15 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                   className="hidden"
                   onChange={handleFileSelect}
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="w-10 flex-shrink-0"
+                  onClick={() => setPexelsDialogOpen(true)}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
                 {currentUsername === "benjamibono" && (
                   <Button
                     type="button"
@@ -481,6 +499,12 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           </Button>
         </form>
       </DialogContent>
+
+      <PexelsImageDialog
+        open={pexelsDialogOpen}
+        onOpenChange={setPexelsDialogOpen}
+        onSelectImage={handlePexelsImageSelect}
+      />
     </Dialog>
   );
 }

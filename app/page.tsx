@@ -55,7 +55,7 @@ export default function Home() {
           : "Welcome to Recipe Master"}
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
         <Link
           href="/recipes"
           onClick={handleCardClick}
@@ -75,6 +75,26 @@ export default function Home() {
           <h2 className="text-2xl font-semibold mb-2">Cleaning Recipes</h2>
           <p className="text-gray-600">
             Discover household cleaning tips and recipes
+          </p>
+        </Link>
+
+        <Link
+          href="/tips"
+          className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        >
+          <h2 className="text-2xl font-semibold mb-2">Tips & Tricks</h2>
+          <p className="text-gray-600">
+            Learn helpful cooking tips and kitchen hacks
+          </p>
+        </Link>
+
+        <Link
+          href="/meat-temperatures"
+          className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
+        >
+          <h2 className="text-2xl font-semibold mb-2">Meat Temperatures</h2>
+          <p className="text-gray-600">
+            Reference guide for safe meat cooking temperatures
           </p>
         </Link>
       </div>
