@@ -45,6 +45,7 @@ export function CreateRecipeDialog({
   const [lazyText, setLazyText] = useState("");
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [isTextTooLong, setIsTextTooLong] = useState(false);
+  const [isProcessingText, setIsProcessingText] = useState(false);
 
   // UI state
   const [isNameFocused, setIsNameFocused] = useState(false);
@@ -188,11 +189,16 @@ export function CreateRecipeDialog({
       // Update the recipe with the macros data
       const { error: updateError } = await supabase
         .from("recipes")
-        .update({ macros_data: data.macros })
+        .update({
+          macros_data: data.macros,
+          is_default_macros: data.isDefault || false,
+        })
         .eq("id", recipeId);
 
       if (updateError) {
         console.error("Error storing macros:", updateError);
+      } else if (data.isDefault) {
+        console.log("Using default macros for recipe:", recipeId);
       }
     } catch (error) {
       console.error("Error analyzing macros in background:", error);
@@ -363,6 +369,7 @@ export function CreateRecipeDialog({
       return;
     }
 
+    setIsProcessingText(true);
     try {
       const response = await fetch("/api/parse-recipe", {
         method: "POST",
@@ -389,6 +396,8 @@ export function CreateRecipeDialog({
     } catch (error) {
       console.error("Error parsing recipe:", error);
       toast.error("Failed to parse recipe text");
+    } finally {
+      setIsProcessingText(false);
     }
   };
 
@@ -462,7 +471,7 @@ export function CreateRecipeDialog({
                     id="time"
                     type="number"
                     min="0"
-                    value={formData.time === 0 ? "" : formData.time}
+                    value={formData.time}
                     onChange={(e) => setTime(parseInt(e.target.value) || 0)}
                     className="h-10 w-24"
                   />
@@ -640,8 +649,11 @@ export function CreateRecipeDialog({
                 variant="default"
                 size="sm"
                 onClick={handleLazyTextSubmit}
-                disabled={isTextTooLong}
+                disabled={isTextTooLong || isProcessingText}
               >
+                {isProcessingText ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
                 Create
               </Button>
               <div className="flex items-center gap-2">

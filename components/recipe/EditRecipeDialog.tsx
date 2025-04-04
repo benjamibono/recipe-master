@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, ImageIcon } from "lucide-react";
+import { Pencil, ImageIcon, Bot, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
@@ -20,6 +20,7 @@ import {
 } from "./RecipeFormIngredients";
 import { RecipeFormInstructions } from "./RecipeFormInstructions";
 import Image from "next/image";
+import { uploadFile } from "@/lib/storage-utils";
 
 interface EditRecipeDialogProps {
   recipe: Recipe;
@@ -30,6 +31,9 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   // State management for dialog and form
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+
   // Initialize form data with current recipe values and ensure ingredients have valid units
   const [formData, setFormData] = useState({
     name: recipe.name,
@@ -44,6 +48,27 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     macros_data: recipe.macros_data,
   });
 
+  // Fetch current username
+  useEffect(() => {
+    async function getCurrentUsername() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        if (profile) {
+          setCurrentUsername(profile.username);
+        }
+      }
+    }
+    getCurrentUsername();
+  }, []);
+
   // Handle image upload to Supabase storage
   const handleImageSelect = async (file: File) => {
     try {
@@ -52,45 +77,15 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         throw new Error("Please select an image file");
       }
 
-      // Generate a unique file name with timestamp
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2)}.${fileExt}`;
+      const imageUrl = await uploadFile(file);
 
-      // Create the full path for the file
-      const filePath = `public/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("recipes")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error("Upload error details:", {
-          message: uploadError.message,
-        });
-        throw uploadError;
+      if (imageUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          image_url: imageUrl,
+        }));
+        toast.success("Image uploaded successfully");
       }
-
-      if (!uploadData) {
-        throw new Error("No upload data returned");
-      }
-
-      // Get public URL for the uploaded image
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("recipes").getPublicUrl(filePath);
-
-      setFormData((prev) => ({
-        ...prev,
-        image_url: publicUrl,
-      }));
-
-      toast.success("Image uploaded successfully");
     } catch (error) {
       console.error("Upload error:", error);
       toast.error(
@@ -103,6 +98,79 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     const file = e.target.files?.[0];
     if (file) {
       handleImageSelect(file);
+    }
+  };
+
+  // Generate recipe image using AI
+  const handleGenerateImage = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Please enter a recipe name first");
+      return;
+    }
+
+    if (formData.ingredients.length === 0) {
+      toast.error("Please add at least one ingredient first");
+      return;
+    }
+
+    setGeneratingImage(true);
+    try {
+      const response = await fetch("/api/generate-recipe-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          recipeName: formData.name,
+          ingredients: formData.ingredients,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to generate image");
+      }
+
+      const imageData = await response.json();
+
+      // Download image through proxy
+      const proxyResponse = await fetch("/api/proxy-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl: imageData.url,
+        }),
+      });
+
+      if (!proxyResponse.ok) {
+        throw new Error("Failed to download generated image");
+      }
+
+      const blob = await proxyResponse.blob();
+
+      // Upload to Supabase Storage
+      const imageUrl = await uploadFile(blob, {
+        contentType: "image/png",
+      });
+
+      if (imageUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          image_url: imageUrl,
+        }));
+        toast.success("Recipe image generated successfully!");
+      }
+    } catch (error) {
+      console.error("Error in handleGenerateImage:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate recipe image"
+      );
+    } finally {
+      setGeneratingImage(false);
     }
   };
 
@@ -135,6 +203,8 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
 
       // Get macros analysis for cooking recipes
       let macros_data = recipe.macros_data;
+      let is_default_macros = recipe.is_default_macros || false;
+
       if (recipe.type === "cooking" && formData.ingredients.length > 0) {
         // Check if ingredients have changed by comparing their string representations
         const originalIngredients = JSON.stringify(recipe.ingredients);
@@ -153,6 +223,11 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             if (!response.ok) throw new Error("Failed to analyze macros");
             const data = await response.json();
             macros_data = data.macros;
+            is_default_macros = data.isDefault || false;
+
+            if (is_default_macros) {
+              console.log("Using default macros for recipe update");
+            }
           } catch (error) {
             console.error("Error analyzing macros:", error);
             toast.error("Failed to analyze nutritional information");
@@ -281,7 +356,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
 
             <div>
               <Label>Image</Label>
-              <div className="h-10 mt-2">
+              <div className="h-10 mt-2 flex gap-2">
                 {formData.image_url ? (
                   <div className="relative w-10 h-10">
                     <Image
@@ -324,6 +399,26 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                   className="hidden"
                   onChange={handleFileSelect}
                 />
+                {currentUsername === "benjamibono" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="w-10 flex-shrink-0"
+                    onClick={handleGenerateImage}
+                    disabled={
+                      generatingImage ||
+                      !formData.name.trim() ||
+                      formData.ingredients.length === 0
+                    }
+                  >
+                    {generatingImage ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Bot className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </div>

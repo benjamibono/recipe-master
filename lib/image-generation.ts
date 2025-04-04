@@ -35,7 +35,7 @@ export async function generateImageFromPrompt(
 ): Promise<GeneratedImage> {
   try {
     const response = await openai.images.generate({
-      model: "dall-e-2",
+      model: "dall-e-3",
       prompt: prompt,
       size: size,
       n: 1,

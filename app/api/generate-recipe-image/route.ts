@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     High-end restaurant quality presentation.
     I NEED to test how the tool works with extremely simple prompts. DO NOT add any detail, just use it AS-IS.`;
 
-    const imageData = await generateImageFromPrompt(prompt, "512x512");
+    const imageData = await generateImageFromPrompt(prompt, "1024x1024");
 
     return NextResponse.json(imageData);
   } catch (error) {

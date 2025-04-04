@@ -111,7 +111,7 @@ export function RecipeFormIngredients({
         <Input
           type="number"
           placeholder="Amount"
-          value={newIngredient.amount || ""}
+          value={newIngredient.amount.toString()}
           onChange={(e) =>
             setNewIngredient((prev) => ({
               ...prev,
