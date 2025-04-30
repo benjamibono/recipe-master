@@ -21,7 +21,11 @@ interface LanguageContextType {
   translations: Translations;
   setLanguage: (lang: Language) => void;
   toggleLanguage: () => void;
-  t: (key: TranslationKey, fallback?: string) => string;
+  t: (
+    key: TranslationKey,
+    interpolations?: Record<string, string | number> | string,
+    fallback?: string
+  ) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(
@@ -65,7 +69,22 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
   };
 
   // Función t para acceder a traducciones usando notación de punto
-  const t = (key: TranslationKey, fallback?: string): string => {
+  const t = (
+    key: TranslationKey,
+    interpolationsOrFallback?: Record<string, string | number> | string,
+    fallbackParam?: string
+  ): string => {
+    // Handle the case where second parameter is a string (fallback)
+    let interpolations: Record<string, string | number> | undefined;
+    let fallback: string | undefined;
+
+    if (typeof interpolationsOrFallback === "string") {
+      fallback = interpolationsOrFallback;
+    } else {
+      interpolations = interpolationsOrFallback;
+      fallback = fallbackParam;
+    }
+
     try {
       const keys = key.split(".");
       let current = translations as Record<string, unknown>;
@@ -76,7 +95,20 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({
 
         if (i === keys.length - 1) {
           // Último nivel, esperamos un string
-          return typeof value === "string" ? value : fallback || key;
+          let translatedText =
+            typeof value === "string" ? value : fallback || key;
+
+          // Apply interpolations if provided
+          if (interpolations && typeof translatedText === "string") {
+            Object.entries(interpolations).forEach(([name, value]) => {
+              translatedText = translatedText.replace(
+                new RegExp(`{{${name}}}`, "g"),
+                String(value)
+              );
+            });
+          }
+
+          return translatedText;
         } else if (value && typeof value === "object") {
           // Seguimos navegando
           current = value as Record<string, unknown>;

@@ -6,16 +6,16 @@ import { supabase } from "@/lib/supabase";
 import RecipeCard from "@/components/RecipeCard";
 import { Recipe } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Utensils } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   SortControls,
   type SortOption,
 } from "@/components/recipe/SortControls";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export default function CleaningPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
@@ -165,27 +165,16 @@ export default function CleaningPage() {
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex justify-between items-center">
           {!usernameLoading && currentUsername && (
-            <h1 className="text-base font-bold">
-              {currentUsername}&apos;s Recipes
-            </h1>
+            <h1 className="text-2xl font-bold">{t("recipes.your_recipes")}</h1>
           )}
           <SortControls value={sortOption} onChange={setSortOption} />
         </div>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 sm:self-start"
-          onClick={() => router.push("/recipes")}
-        >
-          <Utensils className="h-4 w-4" />
-          Go to Cooking Recipes
-        </Button>
       </div>
       {loading ? (
-        <div className="text-center">Loading your cleaning recipes...</div>
+        <div className="text-center">{t("cleaning.loading")}</div>
       ) : recipes.length === 0 ? (
         <div className="text-center text-gray-500">
-          You haven&apos;t created any cleaning recipes yet. Click the + button
-          to get started!
+          {t("cleaning.no_recipes")}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">

@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowDownAZ, ArrowUpAZ, Clock } from "lucide-react";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export type SortOption = {
   field: "name" | "created_at";
@@ -18,25 +19,27 @@ interface SortControlsProps {
 }
 
 export function SortControls({ value, onChange }: SortControlsProps) {
+  const { t } = useLanguage();
+
   const options = [
     {
       value: "name-asc",
-      label: "Name (A-Z)",
+      label: t("recipes.sort.name_asc"),
       icon: ArrowDownAZ,
     },
     {
       value: "name-desc",
-      label: "Name (Z-A)",
+      label: t("recipes.sort.name_desc"),
       icon: ArrowUpAZ,
     },
     {
       value: "date-desc",
-      label: "Newest First",
+      label: t("recipes.sort.newest"),
       icon: Clock,
     },
     {
       value: "date-asc",
-      label: "Oldest First",
+      label: t("recipes.sort.oldest"),
       icon: Clock,
     },
   ];
@@ -51,10 +54,24 @@ export function SortControls({ value, onChange }: SortControlsProps) {
 
   const currentValue = `${value.field}-${value.ascending ? "asc" : "desc"}`;
 
+  // Find current option for display purposes
+  const currentOption = options.find((option) => option.value === currentValue);
+
   return (
-    <Select value={currentValue} onValueChange={handleChange}>
-      <SelectTrigger className="w-[160px]">
-        <SelectValue placeholder="Sort by..." />
+    <Select
+      value={currentValue}
+      onValueChange={handleChange}
+      defaultValue="date-desc"
+    >
+      <SelectTrigger className="w-[140px]">
+        <SelectValue>
+          {currentOption && (
+            <div className="flex items-center gap-2">
+              <currentOption.icon className="h-4 w-4" />
+              {currentOption.label}
+            </div>
+          )}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (

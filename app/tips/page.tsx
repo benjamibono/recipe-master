@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface Tip {
   question: string;
   answer: string;
 }
 
-const tips: Tip[] = [
+const englishTips: Tip[] = [
   {
     question: "How to make perfect hard-boiled eggs?",
     answer:
@@ -111,16 +112,122 @@ const tips: Tip[] = [
   },
 ];
 
+const spanishTips: Tip[] = [
+  {
+    question: "¿Cómo hacer huevos duros perfectos?",
+    answer:
+      "Pon los huevos en agua fría, lleva a ebullición, apaga el fuego, espera 12 minutos y luego ponlos en agua fría. Se pelarán fácilmente y estarán perfectamente cocidos.",
+  },
+  {
+    question: "¿Cómo mantener los plátanos frescos por más tiempo?",
+    answer:
+      "Envuelve el extremo del tallo de cada plátano con papel film. Este simple truco los mantiene frescos durante días.",
+  },
+  {
+    question: "¿Cómo limpiar un microondas fácilmente?",
+    answer:
+      "Coloca un bol de agua con rodajas de limón en el microondas durante 5 minutos. El vapor hace que todo se limpie fácilmente.",
+  },
+  {
+    question: "¿Cómo mejorar el sabor de una mezcla de pastel preparada?",
+    answer:
+      "Añade un huevo extra, usa leche en lugar de agua y mantequilla derretida en lugar de aceite. Cambios simples, ¡gran diferencia!",
+  },
+  {
+    question: "¿Cómo cocinar bacon sin ensuciar?",
+    answer:
+      "Coloca el bacon en una bandeja con papel de aluminio, hornea a 200°C durante 20 minutos. ¡Sin salpicaduras, perfectamente crujiente!",
+  },
+  {
+    question: "¿Cómo mantener las galletas blandas?",
+    answer:
+      "Coloca una rebanada de pan en el recipiente de las galletas. Las galletas se mantienen blandas y ¡puedes comerte el pan cuando termines!",
+  },
+  {
+    question: "¿Cómo pelar ajo fácilmente?",
+    answer:
+      "Coloca un diente bajo el lado plano de un cuchillo ancho, presiona suavemente y la piel se desprenderá fácilmente.",
+  },
+  {
+    question: "¿Cómo mejorar la pasta con queso de caja?",
+    answer:
+      "Añade queso extra, un chorrito de leche y un poco de mantequilla. ¡Tal vez un poco de bacon si tienes!",
+  },
+  {
+    question: "¿Cómo cocinar arroz perfectamente?",
+    answer:
+      "Pon tu dedo sobre el arroz - añade agua hasta que llegue a la primera articulación del dedo. Cocina tapado hasta que esté listo.",
+  },
+  {
+    question: "¿Cómo hacer un sándwich de queso a la plancha perfecto?",
+    answer:
+      "Unta el pan con mantequilla, no la sartén. Cocina a fuego lento con una tapa. ¡El queso se derrite perfectamente!",
+  },
+  {
+    question: "¿Cómo limpiar una licuadora fácilmente?",
+    answer:
+      "Llena hasta la mitad con agua tibia y una gota de jabón, licúa durante 30 segundos, enjuaga. ¡Listo!",
+  },
+  {
+    question: "¿Cómo hacer que los brownies de caja queden más húmedos?",
+    answer:
+      "Añade una yema de huevo extra y usa mantequilla derretida en lugar de aceite. Hornea un poco menos de lo que indica el paquete.",
+  },
+  {
+    question: "¿Cómo mantener el azúcar moreno blando?",
+    answer:
+      "Pon un malvavisco en el recipiente. El azúcar se mantiene blando y ¡obtienes un premio cuando termines!",
+  },
+  {
+    question: "¿Cómo hacer palomitas en microondas perfectas?",
+    answer:
+      "Pon los granos en una bolsa de papel, dobla la parte superior dos veces, calienta en el microondas hasta que disminuyan los estallidos.",
+  },
+  {
+    question: "¿Cómo medir porciones de pasta fácilmente?",
+    answer:
+      "Usa una taza de café - una taza de pasta seca es perfecta para una persona.",
+  },
+  {
+    question: "¿Cómo mejorar el puré de patatas instantáneo?",
+    answer:
+      "Añade queso crema, mantequilla y ajo en polvo. ¡Cubre con cebollino si tienes!",
+  },
+  {
+    question: "¿Cómo mantener la lechuga fresca por más tiempo?",
+    answer:
+      "Lava y seca bien, envuelve en papel de cocina, coloca en una bolsa de plástico. Reemplaza las toallas húmedas según sea necesario.",
+  },
+  {
+    question: "¿Cómo limpiar una sartén quemada fácilmente?",
+    answer:
+      "Cubre con bicarbonato de sodio, añade vinagre hasta que burbujee, añade agua caliente, deja reposar toda la noche. ¡Se limpia fácilmente por la mañana!",
+  },
+  {
+    question: "¿Cómo mantener las hierbas frescas?",
+    answer:
+      "Coloca los tallos en un vaso con agua como flores, cubre las hojas con una bolsa de plástico, guarda en el refrigerador.",
+  },
+  {
+    question: "¿Cómo hacer huevos revueltos perfectos?",
+    answer:
+      "Cocina a fuego lento, revuelve constantemente con una espátula. Retira del fuego cuando aún estén ligeramente húmedos - terminarán de cocinarse solos.",
+  },
+];
+
 export default function TipsPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { t, language } = useLanguage();
 
   const toggleTip = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  const tips = language === "es" ? spanishTips : englishTips;
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-center mb-8">Tips & Tricks</h1>
+      <h1 className="text-2xl font-bold mb-8">{t("tips.title")}</h1>
       <div className="max-w-3xl mx-auto space-y-4">
         {tips.map((tip, index) => (
           <div

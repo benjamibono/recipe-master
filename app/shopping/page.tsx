@@ -8,9 +8,11 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckSquare, Square, Copy } from "lucide-react";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export default function ShoppingPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
@@ -207,16 +209,18 @@ export default function ShoppingPage() {
 
     // Combine summary and details
     const fullText = summaryText
-      ? `SHOPPING LIST SUMMARY:\n${summaryText}\n\nDETAILED RECIPES:\n${recipeDetails}`
+      ? `${t("shopping.shopping_list_summary")}:\n${summaryText}\n\n${t(
+          "shopping.detailed_recipes"
+        )}:\n${recipeDetails}`
       : recipeDetails;
 
     navigator.clipboard
       .writeText(fullText)
       .then(() => {
-        toast.success("Ingredients copied to clipboard!");
+        toast.success(t("shopping.ingredients_copied"));
       })
       .catch(() => {
-        toast.error("Failed to copy ingredients");
+        toast.error(t("shopping.failed_to_copy"));
       });
   };
 
@@ -225,7 +229,7 @@ export default function ShoppingPage() {
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex justify-between items-center">
           {!usernameLoading && currentUsername && (
-            <h1 className="text-base font-bold">Shopping List</h1>
+            <h1 className="text-xl font-bold">{t("shopping.shopping_list")}</h1>
           )}
           <div className="flex items-center gap-2">
             {selectedRecipes.size > 0 && (
@@ -236,11 +240,11 @@ export default function ShoppingPage() {
                   onClick={copySelectedIngredients}
                 >
                   <Copy className="h-4 w-4" />
-                  Copy
+                  {t("shopping.copy")}
                 </Button>
                 {showCopyTooltip && (
                   <p className="absolute -top-6 left-1/2 -translate-x-1/2 text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 whitespace-nowrap">
-                    Click to copy ingredients to clipboard
+                    {t("shopping.click_to_copy")}
                   </p>
                 )}
               </div>
@@ -257,7 +261,7 @@ export default function ShoppingPage() {
               ) : (
                 <>
                   <Square className="h-4 w-4" />
-                  Select
+                  {t("common.select")}
                 </>
               )}
             </Button>
@@ -265,11 +269,10 @@ export default function ShoppingPage() {
         </div>
       </div>
       {loading ? (
-        <div className="text-center">Loading your recipes...</div>
+        <div className="text-center">{t("shopping.loading")}</div>
       ) : recipes.length === 0 ? (
         <div className="text-center text-gray-500">
-          You haven&apos;t created any recipes yet. Click the + button to get
-          started!
+          {t("recipes.no_recipes")}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">

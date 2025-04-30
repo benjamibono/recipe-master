@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Plus,
   Wand2,
   Loader2,
   Bot,
@@ -18,6 +19,7 @@ import {
   MicOff,
   ImageIcon,
   Search,
+  PlusCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -28,6 +30,7 @@ import { useRecipeForm } from "@/lib/hooks/useRecipeForm";
 import { useAudioRecorder } from "@/lib/hooks/useAudioRecorder";
 import { uploadFile } from "@/lib/storage-utils";
 import { PexelsImageDialog } from "./PexelsImageDialog";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface CreateRecipeDialogProps {
   type?: "cooking" | "cleaning";
@@ -40,6 +43,7 @@ export function CreateRecipeDialog({
   type = "cooking",
   onSuccess,
 }: CreateRecipeDialogProps) {
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Dialog state
   const [open, setOpen] = useState(false);
@@ -107,7 +111,7 @@ export function CreateRecipeDialog({
 
     // Skip validation as it's handled by the form hook
     if (!formData.isValid) {
-      toast.error("Please fill in all required fields");
+      toast.error(t("recipes.fill_all_fields"));
       return;
     }
 
@@ -119,7 +123,7 @@ export function CreateRecipeDialog({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("Please log in to create a recipe");
+        toast.error(t("recipes.login_required"));
         return;
       }
 
@@ -143,7 +147,7 @@ export function CreateRecipeDialog({
       if (error) throw error;
 
       // Show success message and close dialog
-      toast.success("Recipe created successfully");
+      toast.success(t("recipes.recipe_created"));
       setOpen(false);
       reset(); // Reset form state
 
@@ -156,7 +160,7 @@ export function CreateRecipeDialog({
       }
     } catch (error) {
       console.error("Error creating recipe:", error);
-      toast.error("Failed to create recipe");
+      toast.error(t("recipes.creation_failed"));
     } finally {
       setLoading(false);
     }
@@ -212,19 +216,19 @@ export function CreateRecipeDialog({
       try {
         // Validate file type
         if (!file.type.startsWith("image/")) {
-          throw new Error("Please select an image file");
+          throw new Error(t("recipes.select_image_file"));
         }
 
         const imageUrl = await uploadFile(file);
 
         if (imageUrl) {
           setImage(imageUrl);
-          toast.success("Image uploaded successfully");
+          toast.success(t("recipes.image_uploaded"));
         }
       } catch (error) {
         console.error("Upload error:", error);
         toast.error(
-          error instanceof Error ? error.message : "Failed to upload image"
+          error instanceof Error ? error.message : t("recipes.upload_failed")
         );
       }
     }
@@ -233,7 +237,7 @@ export function CreateRecipeDialog({
   // Generate recipe using AI
   const handleGenerateRecipe = async () => {
     if (!formData.name.trim()) {
-      toast.error("Please enter a recipe name first");
+      toast.error(t("recipes.enter_name_first"));
       return;
     }
 
@@ -248,15 +252,15 @@ export function CreateRecipeDialog({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to generate recipe");
+        throw new Error(t("recipes.generation_failed"));
       }
 
       const recipe = await response.json();
       mergeRecipe(recipe);
-      toast.success("Recipe generated successfully!");
+      toast.success(t("recipes.recipe_generated"));
     } catch (error) {
       console.error("Error generating recipe:", error);
-      toast.error("Failed to generate recipe");
+      toast.error(t("recipes.generation_failed"));
     } finally {
       setGenerating(false);
     }
@@ -265,12 +269,12 @@ export function CreateRecipeDialog({
   // Generate recipe image using AI
   const handleGenerateImage = async () => {
     if (!formData.name.trim()) {
-      toast.error("Please enter a recipe name first");
+      toast.error(t("recipes.enter_name_first"));
       return;
     }
 
     if (formData.ingredients.length === 0) {
-      toast.error("Please add at least one ingredient first");
+      toast.error(t("recipes.add_ingredient_first"));
       return;
     }
 
@@ -289,7 +293,9 @@ export function CreateRecipeDialog({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate image");
+        throw new Error(
+          errorData.error || t("recipes.image_generation_failed")
+        );
       }
 
       const imageData = await response.json();
@@ -306,7 +312,7 @@ export function CreateRecipeDialog({
       });
 
       if (!proxyResponse.ok) {
-        throw new Error("Failed to download generated image");
+        throw new Error(t("recipes.download_failed"));
       }
 
       const blob = await proxyResponse.blob();
@@ -318,14 +324,14 @@ export function CreateRecipeDialog({
 
       if (imageUrl) {
         setImage(imageUrl);
-        toast.success("Recipe image generated successfully!");
+        toast.success(t("recipes.image_generated"));
       }
     } catch (error) {
       console.error("Error in handleGenerateImage:", error);
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to generate recipe image"
+          : t("recipes.image_generation_failed")
       );
     } finally {
       setGeneratingImage(false);
@@ -358,14 +364,12 @@ export function CreateRecipeDialog({
   // Add this function inside CreateRecipeDialog component
   const handleLazyTextSubmit = async () => {
     if (!lazyText.trim()) {
-      toast.error("Please enter some text first");
+      toast.error(t("recipes.enter_text_first"));
       return;
     }
 
     if (lazyText.length > MAX_LAZY_TEXT_LENGTH) {
-      toast.error(
-        `Text exceeds maximum length of ${MAX_LAZY_TEXT_LENGTH} characters`
-      );
+      toast.error(t("recipes.text_too_long", { max: MAX_LAZY_TEXT_LENGTH }));
       return;
     }
 
@@ -380,7 +384,7 @@ export function CreateRecipeDialog({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to parse recipe");
+        throw new Error(t("recipes.parse_failed"));
       }
 
       const recipeData = await response.json();
@@ -392,10 +396,10 @@ export function CreateRecipeDialog({
       setLazyDialogOpen(false);
       setLazyText("");
 
-      toast.success("Recipe parsed successfully!");
+      toast.success(t("recipes.recipe_parsed"));
     } catch (error) {
       console.error("Error parsing recipe:", error);
-      toast.error("Failed to parse recipe text");
+      toast.error(t("recipes.parse_failed"));
     } finally {
       setIsProcessingText(false);
     }
@@ -415,22 +419,23 @@ export function CreateRecipeDialog({
     >
       <DialogTrigger asChild>
         <Button
-          size="lg"
-          className="rounded-full fixed bottom-6 right-6 h-14 w-14"
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-full absolute bottom-4 right-4 shadow-xl bg-primary hover:bg-primary/90"
         >
-          <Plus className="h-8 w-8" />
+          <PlusCircle className="h-6 w-6 text-white" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
+      <DialogContent className="max-w-3xl overflow-y-auto max-h-screen">
+        <DialogHeader>
           <DialogTitle>
-            Create New {type === "cleaning" ? "Cleaning " : ""}Recipe
+            {type === "cleaning" ? t("cleaning.add_new") : t("recipes.add_new")}
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div className="space-y-2 flex-1">
-              <Label htmlFor="name">Recipe Name</Label>
+              <Label htmlFor="name">{t("recipes.name")}</Label>
               <div className="flex flex-col gap-2">
                 <div className="flex gap-2">
                   <Input
@@ -439,7 +444,7 @@ export function CreateRecipeDialog({
                     onChange={(e) => setName(e.target.value)}
                     onFocus={() => setIsNameFocused(true)}
                     onBlur={() => setIsNameFocused(false)}
-                    placeholder="Enter recipe name"
+                    placeholder={t("recipes.enter_recipe_name")}
                     className="h-10"
                     autoComplete="off"
                   />
@@ -460,7 +465,7 @@ export function CreateRecipeDialog({
                 </div>
                 {isNameFocused && (
                   <p className="text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2">
-                    Clicking the wand icon will generate an AI recipe
+                    {t("recipes.wand_explanation")}
                   </p>
                 )}
               </div>
@@ -470,7 +475,7 @@ export function CreateRecipeDialog({
           <div className="flex justify-between gap-4">
             {type === "cooking" && (
               <div>
-                <Label htmlFor="time">Prep Time (mins)</Label>
+                <Label htmlFor="time">{t("recipes.prep_time")}</Label>
                 <div className="h-10 mt-2">
                   <Input
                     id="time"
@@ -485,7 +490,7 @@ export function CreateRecipeDialog({
             )}
 
             <div>
-              <Label htmlFor="servings">Servings</Label>
+              <Label htmlFor="servings">{t("recipes.servings")}</Label>
               <div className="h-10 mt-2 flex items-center">
                 <Button
                   type="button"
@@ -510,13 +515,13 @@ export function CreateRecipeDialog({
             </div>
 
             <div>
-              <Label>Image</Label>
+              <Label>{t("recipes.image")}</Label>
               <div className="h-10 mt-2 flex gap-2">
                 {formData.image_url ? (
                   <div className="relative w-10 h-10">
                     <Image
                       src={formData.image_url}
-                      alt="Recipe"
+                      alt={t("recipes.recipe_image")}
                       fill
                       className="object-cover rounded-md"
                       sizes="40px"
@@ -528,7 +533,10 @@ export function CreateRecipeDialog({
                       className="absolute -top-2 -right-2 h-4 w-4 rounded-full"
                       onClick={() => setImage(undefined)}
                     >
-                      <span className="sr-only">Remove image</span>×
+                      <span className="sr-only">
+                        {t("recipes.remove_image")}
+                      </span>
+                      ×
                     </Button>
                   </div>
                 ) : (
@@ -604,7 +612,7 @@ export function CreateRecipeDialog({
               onClick={() => setLazyDialogOpen(true)}
               className="h-10"
             >
-              Lazy?
+              {t("recipes.lazy")}
             </Button>
             <div className="flex gap-2">
               <Button
@@ -617,14 +625,14 @@ export function CreateRecipeDialog({
                 disabled={loading}
                 className="h-10"
               >
-                Cancel
+                {t("recipes.cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={loading || !formData.isValid}
                 className="h-10"
               >
-                {loading ? "Creating..." : "Create Recipe"}
+                {loading ? t("recipes.creating") : t("recipes.create_recipe")}
               </Button>
             </div>
           </div>
@@ -634,11 +642,11 @@ export function CreateRecipeDialog({
       <Dialog open={lazyDialogOpen} onOpenChange={setLazyDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Quick Recipe Input</DialogTitle>
+            <DialogTitle>{t("recipes.quick_recipe_input")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="lazy-text">Describe your recipe</Label>
+              <Label htmlFor="lazy-text">{t("recipes.describe_recipe")}</Label>
               <Input
                 id="lazy-text"
                 value={lazyText}
@@ -647,14 +655,15 @@ export function CreateRecipeDialog({
                   setLazyText(newText);
                   setIsTextTooLong(newText.length > MAX_LAZY_TEXT_LENGTH);
                 }}
-                placeholder="Type or paste your recipe..."
+                placeholder={t("recipes.type_paste_recipe")}
               />
               <div
                 className={`text-xs ${
                   isTextTooLong ? "text-red-500" : "text-muted-foreground"
                 }`}
               >
-                {lazyText.length}/{MAX_LAZY_TEXT_LENGTH} characters
+                {lazyText.length}/{MAX_LAZY_TEXT_LENGTH}{" "}
+                {t("recipes.characters")}
               </div>
             </div>
             <div className="flex justify-between items-center">
@@ -668,13 +677,13 @@ export function CreateRecipeDialog({
                 {isProcessingText ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 ) : null}
-                Create
+                {t("recipes.create")}
               </Button>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground text-center leading-tight">
-                  Or record your recipe
+                  {t("recipes.record_recipe")}
                   <br />
-                  we&apos;ll transcribe it automatically
+                  {t("recipes.transcribe_automatically")}
                 </span>
                 <Button
                   type="button"

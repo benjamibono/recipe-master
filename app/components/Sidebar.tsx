@@ -10,11 +10,11 @@ import {
   ShoppingCart,
   X,
   Settings,
-  HelpCircle,
   BookOpen,
   Thermometer,
-  Lightbulb,
+  Sparkles,
   LogOut,
+  Info,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSidebar } from "./Navigation";
@@ -83,13 +83,13 @@ export default function Sidebar() {
 
   const additionalLinks = [
     { href: "/recipes", icon: BookOpen, label: t("common.recipes") },
-    { href: "/cleaning", icon: Lightbulb, label: t("common.cleaning") },
+    { href: "/cleaning", icon: Sparkles, label: t("common.cleaning") },
     {
       href: "/meat-temperatures",
       icon: Thermometer,
       label: t("common.meat_temperatures"),
     },
-    { href: "/tips", icon: HelpCircle, label: t("common.tips") },
+    { href: "/tips", icon: Info, label: t("common.tips") },
     { href: "/settings", icon: Settings, label: t("common.settings") },
   ];
 
@@ -108,7 +108,7 @@ export default function Sidebar() {
         className={cn(
           "fixed top-0 left-0 h-[100dvh] w-full lg:w-64 bg-white shadow-lg z-50 transition-all duration-300 ease-in-out",
           isOpen ? "opacity-100 visible" : "opacity-0 invisible",
-          "lg:opacity-100 lg:visible lg:static lg:z-0 lg:shadow-none lg:translate-x-0"
+          "lg:opacity-100 lg:visible lg:sticky lg:top-0 lg:z-0 lg:shadow-none lg:translate-x-0"
         )}
       >
         <div className="h-full flex flex-col">

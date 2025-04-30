@@ -6,7 +6,7 @@
     "tips": "Tips",
     "shopping": "Shopping",
     "cleaning": "Cleaning",
-    "meat_temperatures": "Meat Temperatures",
+    "meat_temperatures": "Temperatures",
     "search": "Search",
     "language": "Language",
     "settings": "Settings",
@@ -21,7 +21,9 @@
     "main": "Main",
     "more": "More",
     "switch_to_english": "Switch to English",
-    "switch_to_spanish": "Switch to Spanish"
+    "switch_to_spanish": "Switch to Spanish",
+    "back_home": "Back to Home",
+    "explore_recipes": "Explore Recipes"
   },
   "home": {
     "welcome": "Welcome to Recipe Master",
@@ -81,7 +83,15 @@
     "difficulty": "Difficulty",
     "easy": "Easy",
     "medium": "Medium",
-    "hard": "Hard"
+    "hard": "Hard",
+    "your_recipes": "Your Recipes",
+    "text_too_long": "Text is too long. Maximum allowed characters is {{max}}",
+    "sort": {
+      "name_asc": "(A-Z)",
+      "name_desc": "(Z-A)",
+      "newest": "Newest",
+      "oldest": "Oldest"
+    }
   },
   "shopping": {
     "add_item": "Add Item",
@@ -90,6 +100,29 @@
     "unit": "Unit",
     "item_name": "Item Name"
   },
+  "meatTemps": {
+    "title": "Meat Cooking Temperatures Guide",
+    "subtitle": "Essential reference for perfectly cooked meats",
+    "red_meat_title": "Red Meat & Fish Cooking Guide",
+    "safe_temps": "Safe Minimum Temperatures",
+    "type": "Type of Meat",
+    "safe_temp": "Safe Temperature",
+    "rare": "Rare",
+    "medium_rare": "Medium Rare",
+    "medium": "Medium",
+    "medium_well": "Medium Well",
+    "well_done": "Well Done",
+    "beef": "Beef",
+    "pork": "Pork",
+    "fish": "Fish",
+    "chicken_turkey": "Chicken / Turkey",
+    "ground_meat": "Ground Meat",
+    "temperature_note": "Note: Always use a meat thermometer for accuracy",
+    "beef_tip": "Beef can be safely consumed at lower temperatures",
+    "pork_tip": "Modern pork can be slightly pink when fully cooked",
+    "poultry_tip": "Poultry must always reach the recommended safe temperature",
+    "fish_tip": "Fish is done when it flakes easily with a fork"
+  },
   "errors": {
     "required_field": "This field is required",
     "invalid_email": "Invalid email address",
@@ -97,6 +130,8 @@
     "passwords_dont_match": "Passwords don't match",
     "required_email": "Email is required",
     "required_username_email": "Username or email is required",
-    "required_password": "Password is required"
+    "required_password": "Password is required",
+    "not_found_title": "Oops! This recipe doesn't exist",
+    "not_found_message": "It seems the ingredient you're looking for is not in our kitchen. Head back to the main page or try searching for another recipe."
   }
 }

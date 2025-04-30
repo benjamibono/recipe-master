@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Recipe } from "@/lib/supabase";
 import { Clock } from "lucide-react";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -18,6 +19,7 @@ export default function RecipeCard({
   isSelected = false,
   onSelect,
 }: RecipeCardProps) {
+  const { t } = useLanguage();
   const basePath = recipe.type === "cleaning" ? "/cleaning" : "/recipes";
 
   const handleClick = (e: React.MouseEvent) => {
@@ -41,12 +43,14 @@ export default function RecipeCard({
           {recipe.type === "cooking" && (
             <div className="flex items-center text-gray-600">
               <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span>{recipe.time} minutes</span>
+              <span>
+                {recipe.time} {t("recipes.minutes")}
+              </span>
             </div>
           )}
           {recipe.creator_name && recipe.creator_name !== currentUsername && (
             <p className="text-xs text-gray-500 mt-auto">
-              by {recipe.creator_name}
+              {t("recipes.by")} {recipe.creator_name}
             </p>
           )}
         </div>

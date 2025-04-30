@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,12 +24,14 @@ import { RecipeFormInstructions } from "./RecipeFormInstructions";
 import Image from "next/image";
 import { uploadFile } from "@/lib/storage-utils";
 import { PexelsImageDialog } from "./PexelsImageDialog";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface EditRecipeDialogProps {
   recipe: Recipe;
 }
 
 export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
+  const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   // State management for dialog and form
   const [open, setOpen] = useState(false);
@@ -76,7 +80,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     try {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        throw new Error("Please select an image file");
+        throw new Error(t("recipes.select_image_file"));
       }
 
       const imageUrl = await uploadFile(file);
@@ -86,12 +90,12 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           ...prev,
           image_url: imageUrl,
         }));
-        toast.success("Image uploaded successfully");
+        toast.success(t("recipes.image_uploaded"));
       }
     } catch (error) {
       console.error("Upload error:", error);
       toast.error(
-        error instanceof Error ? error.message : "Failed to upload image"
+        error instanceof Error ? error.message : t("recipes.upload_failed")
       );
     }
   };
@@ -106,12 +110,12 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   // Generate recipe image using AI
   const handleGenerateImage = async () => {
     if (!formData.name.trim()) {
-      toast.error("Please enter a recipe name first");
+      toast.error(t("recipes.enter_name_first"));
       return;
     }
 
     if (formData.ingredients.length === 0) {
-      toast.error("Please add at least one ingredient first");
+      toast.error(t("recipes.add_ingredient_first"));
       return;
     }
 
@@ -130,7 +134,9 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate image");
+        throw new Error(
+          errorData.error || t("recipes.image_generation_failed")
+        );
       }
 
       const imageData = await response.json();
@@ -147,7 +153,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
       });
 
       if (!proxyResponse.ok) {
-        throw new Error("Failed to download generated image");
+        throw new Error(t("recipes.download_failed"));
       }
 
       const blob = await proxyResponse.blob();
@@ -162,14 +168,14 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           ...prev,
           image_url: imageUrl,
         }));
-        toast.success("Recipe image generated successfully!");
+        toast.success(t("recipes.image_generated"));
       }
     } catch (error) {
       console.error("Error in handleGenerateImage:", error);
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to generate recipe image"
+          : t("recipes.image_generation_failed")
       );
     } finally {
       setGeneratingImage(false);
@@ -196,7 +202,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("Please log in to edit a recipe");
+        toast.error(t("recipes.login_required"));
         return;
       }
 
@@ -208,7 +214,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         .single();
 
       if (!profile) {
-        throw new Error("User profile not found");
+        throw new Error(t("recipes.profile_not_found"));
       }
 
       // Get macros analysis for cooking recipes
@@ -233,14 +239,15 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             body: JSON.stringify({ ingredients: formData.ingredients }),
           });
 
-          if (!response.ok) throw new Error("Failed to analyze macros");
+          if (!response.ok)
+            throw new Error(t("recipes.macros_analysis_failed"));
           const data = await response.json();
           macros_data = data.macros;
 
           console.log("Updated macros data for recipe");
         } catch (error) {
           console.error("Error analyzing macros:", error);
-          toast.error("Failed to analyze nutritional information");
+          toast.error(t("recipes.nutritional_info_failed"));
         }
       }
 
@@ -270,12 +277,12 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
 
       if (error) throw error;
 
-      toast.success("Recipe updated successfully");
+      toast.success(t("recipes.recipe_updated"));
       setOpen(false);
       window.location.reload();
     } catch (error) {
       console.error("Error updating recipe:", error);
-      toast.error("Failed to update recipe");
+      toast.error(t("recipes.update_failed"));
     } finally {
       setLoading(false);
     }
@@ -284,34 +291,35 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="h-10 w-10">
+        <Button variant="ghost" size="icon" className="h-8 w-8">
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
-          <DialogTitle>Edit Recipe</DialogTitle>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>{recipe.name}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 py-4">
-          <div>
-            <Label htmlFor="name">Recipe Name</Label>
-            <div className="mt-2">
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
-                }
-                placeholder="Enter recipe name"
-                className="h-10"
-              />
-            </div>
-          </div>
 
-          <div className="flex justify-between gap-4">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">{t("recipes.name")}</Label>
+              <div className="h-10 mt-2">
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                  className="h-10"
+                />
+              </div>
+            </div>
+
             {recipe.type === "cooking" && (
               <div>
-                <Label htmlFor="time">Prep Time (mins)</Label>
+                <Label htmlFor="time">{t("recipes.prep_time")}</Label>
                 <div className="h-10 mt-2">
                   <Input
                     id="time"
@@ -331,7 +339,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             )}
 
             <div>
-              <Label htmlFor="servings">Servings</Label>
+              <Label htmlFor="servings">{t("recipes.servings")}</Label>
               <div className="h-10 mt-2 flex items-center">
                 <Button
                   type="button"
@@ -364,13 +372,13 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
             </div>
 
             <div>
-              <Label>Image</Label>
+              <Label>{t("recipes.image")}</Label>
               <div className="h-10 mt-2 flex gap-2">
                 {formData.image_url ? (
                   <div className="relative w-10 h-10">
                     <Image
                       src={formData.image_url}
-                      alt="Recipe"
+                      alt={t("recipes.recipe_image")}
                       fill
                       className="object-cover rounded-md"
                       sizes="40px"
@@ -387,7 +395,10 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                         }))
                       }
                     >
-                      <span className="sr-only">Remove image</span>×
+                      <span className="sr-only">
+                        {t("recipes.remove_image")}
+                      </span>
+                      ×
                     </Button>
                   </div>
                 ) : (
@@ -443,7 +454,9 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
 
           <div className="space-y-4">
             <Label>
-              {recipe.type === "cleaning" ? "Materials" : "Ingredients"}
+              {recipe.type === "cleaning"
+                ? t("cleaning.materials")
+                : t("recipes.ingredients")}
             </Label>
             <RecipeFormIngredients
               ingredients={formData.ingredients}
@@ -470,7 +483,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           </div>
 
           <div className="space-y-4">
-            <Label>Instructions</Label>
+            <Label>{t("recipes.instructions")}</Label>
             <RecipeFormInstructions
               instructions={formData.instructions}
               onAddInstruction={(instruction) =>
@@ -495,7 +508,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           </div>
 
           <Button type="submit" className="w-full h-10" disabled={loading}>
-            {loading ? "Saving..." : "Save Changes"}
+            {loading ? t("recipes.saving") : t("recipes.save_changes")}
           </Button>
         </form>
       </DialogContent>

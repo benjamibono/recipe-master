@@ -4,7 +4,7 @@
     "explore": "Explorar",
     "recipes": "Recetas",
     "tips": "Consejos",
-    "shopping": "Compras",
+    "shopping": "Lista de la compra",
     "cleaning": "Limpieza",
     "meat_temperatures": "Temperaturas",
     "search": "Buscar",
@@ -21,7 +21,9 @@
     "main": "Principal",
     "more": "Más",
     "switch_to_english": "Cambiar a inglés",
-    "switch_to_spanish": "Cambiar a español"
+    "switch_to_spanish": "Cambiar a español",
+    "back_home": "Volver al inicio",
+    "explore_recipes": "Explorar recetas"
   },
   "home": {
     "welcome": "Bienvenido a Recipe Master",
@@ -81,14 +83,85 @@
     "difficulty": "Dificultad",
     "easy": "Fácil",
     "medium": "Media",
-    "hard": "Difícil"
+    "hard": "Difícil",
+    "your_recipes": "Tus Recetas",
+    "text_too_long": "El texto es demasiado largo. El máximo de caracteres permitidos es {{max}}",
+    "sort": {
+      "name_asc": "(A-Z)",
+      "name_desc": "(Z-A)",
+      "newest": "Recientes",
+      "oldest": "Antiguas"
+    },
+    "loading": "Cargando tus recetas...",
+    "no_recipes": "Aún no has creado ninguna receta. ¡Haz clic en el botón + para comenzar!",
+    "creating": "Creando...",
+    "create_recipe": "Crear Receta",
+    "saving": "Guardando...",
+    "save_changes": "Guardar Cambios",
+    "lazy": "¿Perezoso?",
+    "cancel": "Cancelar",
+    "quick_recipe_input": "Entrada Rápida de Receta",
+    "describe_recipe": "Describe tu receta",
+    "type_paste_recipe": "Escribe o pega tu receta...",
+    "characters": "caracteres",
+    "create": "Crear",
+    "record_recipe": "O graba tu receta",
+    "transcribe_automatically": "la transcribiremos automáticamente",
+    "image": "Imagen",
+    "remove_image": "Eliminar imagen",
+    "prep_time": "Tiempo de preparación (mins)"
   },
   "shopping": {
     "add_item": "Añadir artículo",
     "list_name": "Nombre de la lista",
     "quantity": "Cantidad",
     "unit": "Unidad",
-    "item_name": "Nombre del artículo"
+    "item_name": "Nombre del artículo",
+    "loading": "Cargando tu lista de la compra...",
+    "no_items": "No hay elementos en tu lista de la compra",
+    "shopping_list": "Lista de la compra",
+    "shopping_list_summary": "RESUMEN DE LA LISTA DE LA COMPRA",
+    "detailed_recipes": "RECETAS DETALLADAS",
+    "click_to_copy": "Haz clic para copiar los ingredientes al portapapeles",
+    "copy": "Copiar",
+    "ingredients_copied": "¡Ingredientes copiados al portapapeles!",
+    "failed_to_copy": "Error al copiar los ingredientes"
+  },
+  "meatTemps": {
+    "title": "Guía de Temperaturas de Cocción de Carnes",
+    "subtitle": "Referencia esencial para carnes perfectamente cocinadas",
+    "red_meat_title": "Guía de Cocción de Carnes Rojas y Pescado",
+    "safe_temps": "Temperaturas Mínimas Seguras",
+    "type": "Tipo de Carne",
+    "safe_temp": "Temperatura Segura",
+    "rare": "Poco Hecha",
+    "medium_rare": "Poco a Punto",
+    "medium": "A Punto",
+    "medium_well": "Hecha",
+    "well_done": "Muy Hecha",
+    "beef": "Ternera",
+    "pork": "Cerdo",
+    "fish": "Pescado",
+    "chicken_turkey": "Pollo / Pavo",
+    "ground_meat": "Carne Picada",
+    "temperature_note": "Nota: Siempre use un termómetro de cocina para mayor precisión",
+    "beef_tip": "La carne de ternera puede consumirse con seguridad a temperaturas más bajas",
+    "pork_tip": "El cerdo moderno puede estar ligeramente rosado cuando está bien cocinado",
+    "poultry_tip": "Las aves de corral siempre deben alcanzar la temperatura segura recomendada",
+    "fish_tip": "El pescado está listo cuando se deshace fácilmente con un tenedor"
+  },
+  "explore": {
+    "loading": "Cargando recetas...",
+    "no_recipes": "No hay recetas disponibles para explorar.",
+    "explore_recipes": "Explorar Recetas"
+  },
+  "cleaning": {
+    "loading": "Cargando tus recetas de limpieza...",
+    "no_recipes": "Aún no has creado ninguna receta de limpieza. ¡Haz clic en el botón + para comenzar!"
+  },
+  "tips": {
+    "title": "Consejos y Trucos",
+    "loading": "Cargando consejos..."
   },
   "errors": {
     "required_field": "Este campo es obligatorio",
@@ -97,6 +170,8 @@
     "passwords_dont_match": "Las contraseñas no coinciden",
     "required_email": "El correo electrónico es obligatorio",
     "required_username_email": "El usuario o correo electrónico es obligatorio",
-    "required_password": "La contraseña es obligatoria"
+    "required_password": "La contraseña es obligatoria",
+    "not_found_title": "¡Ups! Esta receta no existe",
+    "not_found_message": "Parece que el ingrediente que buscas no está en nuestra cocina. Vuelve a la página principal o prueba a buscar otra receta."
   }
 }

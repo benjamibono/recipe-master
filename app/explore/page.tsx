@@ -9,9 +9,11 @@ import { useRouter } from "next/navigation";
 import { SearchDialog } from "../components/SearchDialog";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export default function ExplorePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export default function ExplorePage() {
   if (loading) {
     return (
       <div className="container py-8">
-        <div className="text-center">Loading recipes...</div>
+        <div className="text-center">{t("explore.loading")}</div>
       </div>
     );
   }
@@ -82,7 +84,7 @@ export default function ExplorePage() {
     <div className="container py-8">
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Explore Recipes</h1>
+          <h1 className="text-2xl font-bold">{t("explore.explore_recipes")}</h1>
           <Button
             variant="outline"
             size="icon"
@@ -95,7 +97,7 @@ export default function ExplorePage() {
       </div>
       {recipes.length === 0 ? (
         <div className="text-center text-gray-500">
-          No recipes available to explore.
+          {t("explore.no_recipes")}
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
