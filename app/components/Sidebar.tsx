@@ -18,11 +18,14 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSidebar } from "./Navigation";
+import { LanguageSelector } from "./LanguageSelector";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function Sidebar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const pathname = usePathname();
   const { isOpen, setIsOpen } = useSidebar();
+  const { t } = useLanguage();
 
   // Cerrar el sidebar en mobile al cambiar de ruta
   useEffect(() => {
@@ -69,21 +72,25 @@ export default function Sidebar() {
   };
 
   const mainLinks = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/explore", icon: Compass, label: "Explore" },
-    { href: "/shopping", icon: ShoppingCart, label: "Shopping" },
+    { href: "/", icon: Home, label: t("common.home") },
+    { href: "/explore", icon: Compass, label: t("common.explore") },
+    {
+      href: "/shopping",
+      icon: ShoppingCart,
+      label: t("common.shopping"),
+    },
   ];
 
   const additionalLinks = [
-    { href: "/recipes", icon: BookOpen, label: "Recipes" },
-    { href: "/cleaning", icon: Lightbulb, label: "Cleaning" },
+    { href: "/recipes", icon: BookOpen, label: t("common.recipes") },
+    { href: "/cleaning", icon: Lightbulb, label: t("common.cleaning") },
     {
       href: "/meat-temperatures",
       icon: Thermometer,
-      label: "Meat Temperatures",
+      label: t("common.meat_temperatures"),
     },
-    { href: "/tips", icon: HelpCircle, label: "Tips & Tricks" },
-    { href: "/settings", icon: Settings, label: "Settings" },
+    { href: "/tips", icon: HelpCircle, label: t("common.tips") },
+    { href: "/settings", icon: Settings, label: t("common.settings") },
   ];
 
   return (
@@ -120,7 +127,7 @@ export default function Sidebar() {
           <nav className="flex-1 p-4 space-y-4">
             <div className="space-y-2">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Main
+                {t("common.main")}
               </h2>
               {mainLinks.map((link) => (
                 <Link
@@ -142,7 +149,7 @@ export default function Sidebar() {
 
             <div className="space-y-2">
               <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                More
+                {t("common.more")}
               </h2>
               {additionalLinks.map((link) => (
                 <Link
@@ -163,6 +170,14 @@ export default function Sidebar() {
             </div>
           </nav>
 
+          {/* Language selector */}
+          <div className="p-4 border-t flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              {t("common.language")}:
+            </span>
+            <LanguageSelector />
+          </div>
+
           {/* Logout button in sidebar */}
           {isAuthenticated && (
             <div className="p-4 border-t">
@@ -176,7 +191,7 @@ export default function Sidebar() {
                 }}
               >
                 <LogOut className="h-5 w-5" />
-                <span>Logout</span>
+                <span>{t("common.logout")}</span>
               </button>
             </div>
           )}

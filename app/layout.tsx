@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
-import Navigation, { SidebarProvider } from "./components/Navigation";
-import Sidebar from "./components/Sidebar";
 import "./globals.css";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import { LanguageHandler } from "./components/LanguageHandler";
+import RootLayoutContent from "./components/RootLayoutContent";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,20 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body className={inter.className}>
-        <SidebarProvider>
-          <div className="flex min-h-screen">
-            <Sidebar />
-            <div className="flex-1 flex flex-col">
-              <Navigation />
-              <main className="flex-1 bg-gray-50 p-4 lg:p-6">
-                <div className="max-w-7xl mx-auto w-full">{children}</div>
-              </main>
-            </div>
-          </div>
-        </SidebarProvider>
-        <Toaster />
+        <LanguageProvider>
+          <LanguageHandler />
+          <RootLayoutContent>{children}</RootLayoutContent>
+        </LanguageProvider>
       </body>
     </html>
   );

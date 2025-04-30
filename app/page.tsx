@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "./contexts/LanguageContext";
 
 export default function Home() {
+  const { t } = useLanguage();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [usernameLoading, setUsernameLoading] = useState(true);
@@ -51,8 +53,8 @@ export default function Home() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold text-center mb-8">
         {!usernameLoading && isAuthenticated && username
-          ? `Welcome back, ${username}`
-          : "Welcome to Recipe Master"}
+          ? `${t("home.welcome_back")}, ${username}`
+          : t("home.welcome")}
       </h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -61,9 +63,12 @@ export default function Home() {
           onClick={handleCardClick}
           className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
         >
-          <h2 className="text-2xl font-semibold mb-2">Cooking Recipes</h2>
+          <h2 className="text-2xl font-semibold mb-2">{t("common.recipes")}</h2>
           <p className="text-gray-600">
-            Explore and manage your favorite cooking recipes
+            {t(
+              "home.recipes_description",
+              "Explore and manage your favorite cooking recipes"
+            )}
           </p>
         </Link>
 
@@ -72,9 +77,14 @@ export default function Home() {
           onClick={handleCardClick}
           className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
         >
-          <h2 className="text-2xl font-semibold mb-2">Cleaning Recipes</h2>
+          <h2 className="text-2xl font-semibold mb-2">
+            {t("common.cleaning")}
+          </h2>
           <p className="text-gray-600">
-            Discover household cleaning tips and recipes
+            {t(
+              "home.cleaning_description",
+              "Discover household cleaning tips and recipes"
+            )}
           </p>
         </Link>
 
@@ -82,9 +92,12 @@ export default function Home() {
           href="/tips"
           className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
         >
-          <h2 className="text-2xl font-semibold mb-2">Tips & Tricks</h2>
+          <h2 className="text-2xl font-semibold mb-2">{t("common.tips")}</h2>
           <p className="text-gray-600">
-            Learn helpful cooking tips and kitchen hacks
+            {t(
+              "home.tips_description",
+              "Learn helpful cooking tips and kitchen hacks"
+            )}
           </p>
         </Link>
 
@@ -92,9 +105,14 @@ export default function Home() {
           href="/meat-temperatures"
           className="p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow"
         >
-          <h2 className="text-2xl font-semibold mb-2">Meat Temperatures</h2>
+          <h2 className="text-2xl font-semibold mb-2">
+            {t("common.meat_temperatures")}
+          </h2>
           <p className="text-gray-600">
-            Reference guide for safe meat cooking temperatures
+            {t(
+              "home.meat_temperatures_description",
+              "Reference guide for safe meat cooking temperatures"
+            )}
           </p>
         </Link>
       </div>
@@ -102,7 +120,7 @@ export default function Home() {
       {!isAuthenticated && (
         <div className="mt-12 text-center">
           <Link href="/auth/login" className="btn-primary">
-            Sign In
+            {t("common.login")}
           </Link>
         </div>
       )}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface LogoutButtonProps {
   variant?:
@@ -23,6 +24,7 @@ export default function LogoutButton({
 }: LogoutButtonProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     setLoading(true);
@@ -30,12 +32,12 @@ export default function LogoutButton({
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      toast.success("Logged out successfully");
+      toast.success(t("auth.logout_success", "Logged out successfully"));
       router.push("/auth/login");
       router.refresh();
     } catch (error) {
       console.error("Logout error:", error);
-      toast.error("Failed to log out");
+      toast.error(t("auth.logout_error", "Failed to log out"));
     } finally {
       setLoading(false);
     }
@@ -48,7 +50,9 @@ export default function LogoutButton({
       disabled={loading}
       className={className}
     >
-      {loading ? "Logging out..." : "Log out"}
+      {loading
+        ? t("auth.logging_out", "Logging out...")
+        : t("common.logout", "Log out")}
     </Button>
   );
 }

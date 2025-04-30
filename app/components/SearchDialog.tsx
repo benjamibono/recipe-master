@@ -8,6 +8,7 @@ import { Recipe } from "@/lib/supabase";
 import Fuse from "fuse.js";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface SearchDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ export function SearchDialog({
   onOpenChange,
   currentPageRecipes = [],
 }: SearchDialogProps) {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const recipeType = pathname === "/cleaning" ? "cleaning" : "cooking";
   const [query, setQuery] = useState("");
@@ -61,11 +63,20 @@ export function SearchDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogTitle className="sr-only">
-          Search {recipeType === "cleaning" ? "Cleaning" : ""} Recipes
+          {recipeType === "cleaning"
+            ? t("search.search_cleaning_recipes", "Search Cleaning Recipes")
+            : t("search.search_recipes", "Search Recipes")}
         </DialogTitle>
         <div className="space-y-4 py-6">
           <Input
-            placeholder={`Search ${recipeType} recipes...`}
+            placeholder={
+              recipeType === "cleaning"
+                ? t(
+                    "search.search_cleaning_recipes_placeholder",
+                    "Search cleaning recipes..."
+                  )
+                : t("search.search_recipes_placeholder", "Search recipes...")
+            }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full"
@@ -77,7 +88,7 @@ export function SearchDialog({
               {/* Matches section */}
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">
-                  Matches
+                  {t("search.matches", "Matches")}
                 </h3>
                 {matches.length > 0 ? (
                   <div className="space-y-2">
@@ -95,7 +106,9 @@ export function SearchDialog({
                     ))}
                   </div>
                 ) : (
-                  <div className="text-gray-500">No matches found.</div>
+                  <div className="text-gray-500">
+                    {t("search.no_matches", "No matches found.")}
+                  </div>
                 )}
               </div>
             </div>
