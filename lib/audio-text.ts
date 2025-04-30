@@ -8,12 +8,17 @@ export interface RecipeAudioData {
     unit: "g" | "ml" | "u";
   }>;
   instructions?: string[];
+  original_language?: "en" | "es";
 }
 
-export async function transcribeAudio(audioBlob: Blob): Promise<string> {
+export async function transcribeAudio(
+  audioBlob: Blob,
+  language: string = "auto"
+): Promise<{ text: string; detected_language: "en" | "es" }> {
   try {
     const formData = new FormData();
     formData.append("audio", audioBlob);
+    formData.append("language", language);
 
     const response = await fetch("/api/transcribe", {
       method: "POST",
@@ -25,7 +30,10 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
     }
 
     const data = await response.json();
-    return data.text;
+    return {
+      text: data.text,
+      detected_language: data.detected_language || "en",
+    };
   } catch (error) {
     console.error("Error transcribing audio:", error);
     throw error;
@@ -33,7 +41,8 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
 }
 
 export async function parseTranscribedRecipe(
-  transcription: string
+  transcription: string,
+  detected_language: "en" | "es" = "en"
 ): Promise<RecipeAudioData> {
   try {
     const response = await fetch("/api/parse-recipe", {
@@ -41,7 +50,10 @@ export async function parseTranscribedRecipe(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ transcription }),
+      body: JSON.stringify({
+        transcription,
+        language: detected_language,
+      }),
     });
 
     if (!response.ok) {
@@ -49,7 +61,12 @@ export async function parseTranscribedRecipe(
     }
 
     const recipeData = await response.json();
-    return recipeData;
+
+    // Añadir el idioma detectado a los datos de la receta
+    return {
+      ...recipeData,
+      original_language: detected_language,
+    };
   } catch (error) {
     console.error("Error parsing transcribed recipe:", error);
     throw error;
@@ -62,11 +79,11 @@ export async function generateTextFromAudio(audioBlob: Blob): Promise<{
   recipeData?: RecipeAudioData;
 }> {
   try {
-    const transcription = await transcribeAudio(audioBlob);
-    const recipeData = await parseTranscribedRecipe(transcription);
+    const { text, detected_language } = await transcribeAudio(audioBlob);
+    const recipeData = await parseTranscribedRecipe(text, detected_language);
 
     return {
-      text: transcription,
+      text: text,
       confidence: 0.95,
       recipeData,
     };

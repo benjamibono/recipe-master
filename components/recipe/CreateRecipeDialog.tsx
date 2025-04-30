@@ -18,7 +18,7 @@ import {
   MicOff,
   ImageIcon,
   Globe,
-  PlusCircle,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -42,7 +42,7 @@ export function CreateRecipeDialog({
   type = "cooking",
   onSuccess,
 }: CreateRecipeDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Dialog state
   const [open, setOpen] = useState(false);
@@ -131,6 +131,7 @@ export function CreateRecipeDialog({
           type,
           user_id: user.id,
           macros_data: null,
+          original_language: language,
         })
         .select("id")
         .single();
@@ -342,7 +343,7 @@ export function CreateRecipeDialog({
           size="icon"
           className="h-14 w-14 rounded-full fixed bottom-8 right-8 shadow-xl bg-primary hover:bg-primary/90 z-50"
         >
-          <PlusCircle className="h-8 w-8 text-white" />
+          <Plus className="h-8 w-8 text-white" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl overflow-y-auto max-h-screen">

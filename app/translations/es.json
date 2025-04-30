@@ -148,7 +148,15 @@
     "photoBy": "Foto por",
     "tryDifferentSearchTerm": "Prueba con otro término de búsqueda.",
     "loadMore": "Cargar Más",
-    "imagesProvidedBy": "Imágenes proporcionadas por"
+    "imagesProvidedBy": "Imágenes proporcionadas por",
+    "translated": "Traducido",
+    "originalLanguage": "Idioma original",
+    "showOriginal": "Ver original",
+    "showTranslated": "Ver traducido",
+    "translating": "Traduciendo...",
+    "originalRecipe": "Receta original",
+    "translatedRecipe": "Receta traducida",
+    "translationFailed": "Error al traducir el contenido"
   },
   "shopping": {
     "add_item": "Añadir artículo",

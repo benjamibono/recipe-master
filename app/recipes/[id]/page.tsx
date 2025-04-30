@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { Clock, ArrowLeft, Trash2, ChevronDown } from "lucide-react";
+import { Clock, ArrowLeft, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,33 +11,33 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogClose,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
 import { toast } from "sonner";
 import { EditRecipeDialog } from "@/components/recipe/EditRecipeDialog";
+import { ShareRecipeDialog } from "@/components/recipe/ShareRecipeDialog";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ShareRecipeDialog } from "@/components/recipe/ShareRecipeDialog";
 import NutritionPieChart from "@/components/recipe/NutritionPieChart";
 import { useLanguage } from "@/app/contexts/LanguageContext";
+import { TranslationIndicator } from "@/components/recipe/TranslationIndicator";
+import { useRecipeTranslation } from "@/lib/hooks/useRecipeTranslation";
 
-// Helper function to normalize nutrition terms
-const getNormalizedNutritionKey = (term: string): string => {
-  // Convert to lowercase for case-insensitive comparison
-  const lowerTerm = term.toLowerCase();
-
-  // Map variant terms to their standardized keys
-  if (lowerTerm === "carbs") return "carbohydrates";
-  if (lowerTerm === "fats") return "fat";
-
-  // Default case: return the term as is
-  return lowerTerm;
-};
+/**
+ * Normaliza las claves de nutrición para que puedan usarse en las traducciones.
+ */
+function getNormalizedNutritionKey(key: string): string {
+  return key
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s]/g, ""); // Eliminar caracteres especiales
+}
 
 export default function RecipeDetailPage() {
   const params = useParams();
@@ -55,8 +55,16 @@ export default function RecipeDetailPage() {
   const [currentServings, setCurrentServings] = useState<number>(1);
   const [originalServings, setOriginalServings] = useState<number>(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [showCopyHelper, setShowCopyHelper] = useState(false);
   const { t } = useLanguage();
+
+  // Hook para gestionar la traducción de la receta
+  const {
+    displayData,
+    isShowingTranslation,
+    isTranslating,
+    needsTranslation,
+    toggleTranslation,
+  } = useRecipeTranslation(recipe);
 
   useEffect(() => {
     async function getCurrentUsername() {
@@ -141,18 +149,6 @@ export default function RecipeDetailPage() {
 
     loadRecipe();
   }, [params.id, router]);
-
-  // Add effect to show copy helper when recipe is loaded
-  useEffect(() => {
-    if (recipe && currentUsername && recipe.creator_name !== currentUsername) {
-      const showTimer = setTimeout(() => setShowCopyHelper(true), 500);
-      const hideTimer = setTimeout(() => setShowCopyHelper(false), 7000);
-      return () => {
-        clearTimeout(showTimer);
-        clearTimeout(hideTimer);
-      };
-    }
-  }, [recipe, currentUsername]);
 
   // Separate function to fetch nutritional information asynchronously
   const fetchNutritionalInfo = async (recipeData: Recipe) => {
@@ -265,7 +261,7 @@ export default function RecipeDetailPage() {
     );
   }
 
-  if (!recipe) {
+  if (!recipe || !displayData) {
     return null;
   }
 
@@ -281,126 +277,18 @@ export default function RecipeDetailPage() {
             <ArrowLeft className="h-4 w-4" />
             {t("common.back")}
           </Button>
-          <div className="flex items-center gap-2">
-            <ShareRecipeDialog recipe={recipe} />
-            {recipe.user_id === currentUserId ? (
+          <div className="flex items-center gap-3">
+            {recipe.user_id === currentUserId && (
               <>
                 <EditRecipeDialog recipe={recipe} />
-                <Dialog
-                  open={deleteDialogOpen}
-                  onOpenChange={setDeleteDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="h-10 w-10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{t("recipes.deleteRecipe")}</DialogTitle>
-                      <DialogDescription>
-                        {t("recipes.deleteConfirmation")}
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setDeleteDialogOpen(false)}
-                        disabled={deleting}
-                      >
-                        {t("common.cancel")}
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDelete}
-                        disabled={deleting}
-                      >
-                        {deleting ? t("common.deleting") : t("common.delete")}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </>
-            ) : (
-              <div className="relative">
+                <ShareRecipeDialog recipe={recipe} />
                 <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10"
-                  onClick={async () => {
-                    try {
-                      const {
-                        data: { user },
-                      } = await supabase.auth.getUser();
-
-                      if (!user) {
-                        toast.error(t("auth.loginRequired"));
-                        router.push("/auth/login");
-                        return;
-                      }
-
-                      // Create a new recipe for the current user
-                      const { data: newRecipe, error } = await supabase
-                        .from("recipes")
-                        .insert({
-                          name: recipe.name,
-                          type: recipe.type,
-                          time: recipe.time,
-                          servings: recipe.servings,
-                          ingredients: recipe.ingredients,
-                          instructions: recipe.instructions,
-                          image_url: recipe.image_url,
-                          user_id: user.id,
-                          created_at: new Date().toISOString(),
-                          updated_at: new Date().toISOString(),
-                          creator_name: recipe.creator_name,
-                          macros_data: recipe.macros_data,
-                        })
-                        .select()
-                        .single();
-
-                      if (error) throw error;
-
-                      toast.success(t("recipes.copiedSuccess"));
-                      router.push(`/recipes/${newRecipe.id}`);
-                    } catch (error) {
-                      console.error("Error copying recipe:", error);
-                      toast.error(t("recipes.copyFailed"));
-                    }
-                  }}
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect
-                      x="9"
-                      y="9"
-                      width="13"
-                      height="13"
-                      rx="2"
-                      ry="2"
-                    ></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
+                  {t("common.delete")}
                 </Button>
-                {showCopyHelper && (
-                  <p className="absolute -top-6 right-0 pr-4 text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 whitespace-nowrap transition-opacity duration-300">
-                    {t("recipes.clickToCopy")}
-                  </p>
-                )}
-              </div>
+              </>
             )}
           </div>
         </div>
@@ -409,7 +297,7 @@ export default function RecipeDetailPage() {
           <div className="relative w-full h-[200px] md:h-[400px] rounded-lg overflow-hidden">
             <Image
               src={recipe.image_url}
-              alt={recipe.name}
+              alt={displayData.name}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -421,7 +309,18 @@ export default function RecipeDetailPage() {
         <div>
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
+              <h1 className="text-3xl font-bold mb-4">{displayData.name}</h1>
+
+              {/* Indicador de traducción */}
+              {needsTranslation && (
+                <TranslationIndicator
+                  isTranslated={isShowingTranslation}
+                  originalLanguage={recipe.original_language}
+                  onToggle={toggleTranslation}
+                  isTranslating={isTranslating}
+                />
+              )}
+
               {recipe.creator_name &&
                 recipe.creator_name !== currentUsername && (
                   <p className="text-gray-600 mb-2">
@@ -494,7 +393,7 @@ export default function RecipeDetailPage() {
             </CollapsibleTrigger>
           </div>
           <CollapsibleContent className="space-y-2">
-            {recipe.ingredients.map((ingredient, index) => (
+            {displayData.ingredients.map((ingredient, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between py-2 border-b last:border-b-0"
@@ -533,31 +432,21 @@ export default function RecipeDetailPage() {
             </CollapsibleTrigger>
           </div>
           <CollapsibleContent className="space-y-4">
-            {recipe.instructions.length === 0 ? (
-              <div className="text-center py-4">
-                <p className="text-gray-500">
-                  {recipe.type === "shopping"
-                    ? t("recipes.noNotesAvailable")
-                    : t("recipes.noInstructionsAvailable")}
-                </p>
-                <p className="text-sm text-gray-400 mt-1">
-                  {t("recipes.clickToAdd", {
-                    type:
-                      recipe.type === "shopping"
-                        ? t("recipes.notes")
-                        : t("recipes.instructions"),
-                  })}
-                </p>
-              </div>
-            ) : (
-              recipe.instructions.map((instruction, index) => (
+            {displayData.instructions.length > 0 ? (
+              displayData.instructions.map((instruction, index) => (
                 <div key={index} className="flex gap-4">
-                  {recipe.type !== "shopping" && (
-                    <span className="font-bold">{index + 1}.</span>
-                  )}
-                  <p>{instruction}</p>
+                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">{instruction}</div>
                 </div>
               ))
+            ) : (
+              <p className="text-gray-500 italic">
+                {t("recipes.noInstructionsAvailable")}
+                <br />
+                {t("recipes.clickToAdd", { type: t("recipes.instructions") })}
+              </p>
             )}
           </CollapsibleContent>
         </Collapsible>
@@ -702,6 +591,30 @@ export default function RecipeDetailPage() {
           </Collapsible>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("recipes.deleteRecipe")}</DialogTitle>
+            <DialogDescription>
+              {t("recipes.deleteConfirmation")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">{t("common.cancel")}</Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
+              {deleting ? t("common.deleting") : t("common.delete")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

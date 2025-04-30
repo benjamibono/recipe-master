@@ -31,7 +31,7 @@ interface EditRecipeDialogProps {
 }
 
 export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   // State management for dialog and form
   const [open, setOpen] = useState(false);
@@ -188,10 +188,23 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   // Handle form submission and recipe update
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Verificar si el formulario es válido (todos los campos requeridos)
+    const isValid =
+      formData.name.trim() !== "" &&
+      formData.time > 0 &&
+      formData.servings > 0 &&
+      formData.ingredients.length > 0 &&
+      formData.instructions.length > 0;
+
+    if (!isValid) {
+      toast.error(t("recipes.fill_all_fields"));
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Check if user is authenticated
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -201,7 +214,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         return;
       }
 
-      // Get user's username for creator_name
+      // Get the current user's username
       const { data: profile } = await supabase
         .from("profiles")
         .select("username")
@@ -209,16 +222,16 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
         .single();
 
       if (!profile) {
-        throw new Error(t("recipes.profile_not_found"));
+        throw new Error("Failed to load user profile");
       }
 
-      // Get macros analysis for cooking recipes
+      // Check if we need to update macros data
       let macros_data = recipe.macros_data;
 
-      // Check if ingredients have changed by comparing their string representations
-      const originalIngredients = JSON.stringify(recipe.ingredients);
-      const newIngredients = JSON.stringify(formData.ingredients);
-      const ingredientsChanged = originalIngredients !== newIngredients;
+      // Re-analyze macros if ingredients have changed
+      const ingredientsChanged =
+        JSON.stringify(formData.ingredients) !==
+        JSON.stringify(recipe.ingredients);
 
       if (
         recipe.type === "cooking" &&
@@ -264,7 +277,9 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           instructions: formData.instructions,
           image_url: formData.image_url,
           macros_data,
-          // Only update creator_name if significant changes were made
+          // Solo actualizar original_language si el idioma ha cambiado Y es un cambio significativo
+          ...(hasSignificantChanges && { original_language: language }),
+          // Solo actualizar creator_name si los cambios son significativos
           ...(hasSignificantChanges && { creator_name: profile.username }),
         })
         .eq("id", recipe.id)

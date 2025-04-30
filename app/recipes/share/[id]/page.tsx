@@ -138,6 +138,7 @@ export default function ShareRecipePage() {
         creator_name: recipe.creator_name,
         servings: recipe.servings,
         macros_data: recipe.macros_data,
+        original_language: recipe.original_language,
       };
 
       // Create a new recipe for the current user

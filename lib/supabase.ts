@@ -30,6 +30,7 @@ export type Recipe = {
   updated_at: string;
   creator_name?: string;
   macros_data?: string;
+  original_language?: "en" | "es";
 };
 
 export type Profile = {
