@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Search, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { usePexelsSearch } from "@/lib/hooks/usePexelsSearch";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface PexelsImageDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ export function PexelsImageDialog({
   onOpenChange,
   onSelectImage,
 }: PexelsImageDialogProps) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const { searchImages, loading, results, error } = usePexelsSearch();
   const lastSearchedQuery = useRef<string>("");
@@ -44,18 +46,23 @@ export function PexelsImageDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Search for Images</DialogTitle>
+          <DialogTitle>
+            {t("recipes.searchImages", "Search for Images")}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="flex gap-2">
             <div className="flex-1">
               <Label htmlFor="search-query" className="sr-only">
-                Search for images
+                {t("search.search_recipes", "Search for images")}
               </Label>
               <Input
                 id="search-query"
-                placeholder="Search for images..."
+                placeholder={t(
+                  "search.search_recipes_placeholder",
+                  "Search for images..."
+                )}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -67,7 +74,7 @@ export function PexelsImageDialog({
               ) : (
                 <Search className="h-4 w-4 mr-2" />
               )}
-              Search
+              {t("common.search", "Search")}
             </Button>
           </div>
         </form>
@@ -90,21 +97,25 @@ export function PexelsImageDialog({
               >
                 <Image
                   src={photo.src.original}
-                  alt={photo.alt || "Pexels image"}
+                  alt={photo.alt || t("recipes.pexelsImage", "Pexels image")}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 50vw, 33vw"
                 />
                 <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-1 text-xs truncate">
-                  Photo by {photo.photographer}
+                  {t("recipes.photoBy", "Photo by")} {photo.photographer}
                 </div>
               </div>
             ))}
           </div>
         ) : results && results.photos.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            No images found for &quot;{searchQuery}&quot;. Try a different
-            search term.
+            {t("search.no_matches", "No images found for")} &quot;{searchQuery}
+            &quot;.{" "}
+            {t(
+              "recipes.tryDifferentSearchTerm",
+              "Try a different search term."
+            )}
           </div>
         ) : null}
 
@@ -120,13 +131,13 @@ export function PexelsImageDialog({
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
               ) : null}
-              Load More
+              {t("recipes.loadMore", "Load More")}
             </Button>
           </div>
         )}
 
         <div className="mt-4 text-xs text-gray-500 text-center">
-          Images provided by{" "}
+          {t("recipes.imagesProvidedBy", "Images provided by")}{" "}
           <a
             href="https://www.pexels.com"
             target="_blank"

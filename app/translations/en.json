@@ -142,7 +142,13 @@
     "shareDescription": "Share this recipe with other Recipe Master users:",
     "shareSuccess": "Share link copied to clipboard!",
     "shareFailed": "Failed to share recipe",
-    "shareMessage": "Check out this recipe for {{name}}{{servings}} on Recipe Master!"
+    "shareMessage": "Check out this recipe for {{name}}{{servings}} on Recipe Master!",
+    "searchImages": "Search for Images",
+    "pexelsImage": "Pexels image",
+    "photoBy": "Photo by",
+    "tryDifferentSearchTerm": "Try a different search term.",
+    "loadMore": "Load More",
+    "imagesProvidedBy": "Images provided by"
   },
   "shopping": {
     "add_item": "Add Item",

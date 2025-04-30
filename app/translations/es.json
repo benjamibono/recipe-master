@@ -118,7 +118,7 @@
     "transcribe_automatically": "la transcribiremos automáticamente",
     "image": "Imagen",
     "remove_image": "Eliminar imagen",
-    "prep_time": "Tiempo de preparación (mins)",
+    "prep_time": "Tiempo (mins)",
     "deleteRecipe": "Eliminar Receta",
     "deleteConfirmation": "¿Estás seguro de que quieres eliminar esta receta? Esta acción no se puede deshacer.",
     "by": "por",
@@ -142,7 +142,13 @@
     "shareDescription": "Comparte esta receta con otros usuarios de Recipe Master:",
     "shareSuccess": "¡Enlace de compartir copiado al portapapeles!",
     "shareFailed": "Error al compartir la receta",
-    "shareMessage": "¡Mira esta receta de {{name}}{{servings}} en Recipe Master!"
+    "shareMessage": "¡Mira esta receta de {{name}}{{servings}} en Recipe Master!",
+    "searchImages": "Buscar Imágenes",
+    "pexelsImage": "Imagen de Pexels",
+    "photoBy": "Foto por",
+    "tryDifferentSearchTerm": "Prueba con otro término de búsqueda.",
+    "loadMore": "Cargar Más",
+    "imagesProvidedBy": "Imágenes proporcionadas por"
   },
   "shopping": {
     "add_item": "Añadir artículo",

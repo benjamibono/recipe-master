@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import {
   Wand2,
   Loader2,
-  Bot,
   Mic,
   MicOff,
   ImageIcon,
@@ -58,7 +57,6 @@ export function CreateRecipeDialog({
   const [isNameFocused, setIsNameFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [generatingImage, setGeneratingImage] = useState(false);
 
   // Form state using custom hook
   const {
@@ -81,25 +79,18 @@ export function CreateRecipeDialog({
   // Audio recording state using custom hook
   const { isRecording, startRecording, stopRecording } = useAudioRecorder();
 
-  // Current user state
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
-
-  // Fetch current username
+  // Fetch current user
   useEffect(() => {
     async function getCurrentUsername() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase
+        await supabase
           .from("profiles")
           .select("username")
           .eq("id", user.id)
           .single();
-
-        if (profile) {
-          setCurrentUsername(profile.username);
-        }
       }
     }
     getCurrentUsername();
@@ -266,78 +257,6 @@ export function CreateRecipeDialog({
     }
   };
 
-  // Generate recipe image using AI
-  const handleGenerateImage = async () => {
-    if (!formData.name.trim()) {
-      toast.error(t("recipes.enter_name_first"));
-      return;
-    }
-
-    if (formData.ingredients.length === 0) {
-      toast.error(t("recipes.add_ingredient_first"));
-      return;
-    }
-
-    setGeneratingImage(true);
-    try {
-      const response = await fetch("/api/generate-recipe-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          recipeName: formData.name,
-          ingredients: formData.ingredients,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error || t("recipes.image_generation_failed")
-        );
-      }
-
-      const imageData = await response.json();
-
-      // Download image through proxy
-      const proxyResponse = await fetch("/api/proxy-image", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageUrl: imageData.url,
-        }),
-      });
-
-      if (!proxyResponse.ok) {
-        throw new Error(t("recipes.download_failed"));
-      }
-
-      const blob = await proxyResponse.blob();
-
-      // Upload to Supabase Storage
-      const imageUrl = await uploadFile(blob, {
-        contentType: "image/png",
-      });
-
-      if (imageUrl) {
-        setImage(imageUrl);
-        toast.success(t("recipes.image_generated"));
-      }
-    } catch (error) {
-      console.error("Error in handleGenerateImage:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : t("recipes.image_generation_failed")
-      );
-    } finally {
-      setGeneratingImage(false);
-    }
-  };
-
   // Handle audio recording
   const handleToggleRecording = async () => {
     if (isRecording) {
@@ -421,9 +340,9 @@ export function CreateRecipeDialog({
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full absolute bottom-4 right-4 shadow-xl bg-primary hover:bg-primary/90"
+          className="h-14 w-14 rounded-full fixed bottom-8 right-8 shadow-xl bg-primary hover:bg-primary/90 z-50"
         >
-          <PlusCircle className="h-6 w-6 text-white" />
+          <PlusCircle className="h-8 w-8 text-white" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl overflow-y-auto max-h-screen">
@@ -566,26 +485,6 @@ export function CreateRecipeDialog({
                 >
                   <Search className="h-4 w-4" />
                 </Button>
-                {currentUsername === "benjamibono" && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="w-10 flex-shrink-0"
-                    onClick={handleGenerateImage}
-                    disabled={
-                      generatingImage ||
-                      !formData.name.trim() ||
-                      formData.ingredients.length === 0
-                    }
-                  >
-                    {generatingImage ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Bot className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
               </div>
             </div>
           </div>
