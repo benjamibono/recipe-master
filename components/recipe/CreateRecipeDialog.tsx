@@ -17,7 +17,7 @@ import {
   Mic,
   MicOff,
   ImageIcon,
-  Search,
+  Globe,
   PlusCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -480,10 +480,10 @@ export function CreateRecipeDialog({
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="w-10 flex-shrink-0"
+                  className="h-10 w-10"
                   onClick={() => setPexelsDialogOpen(true)}
                 >
-                  <Search className="h-4 w-4" />
+                  <Globe className="h-4 w-4" />
                 </Button>
               </div>
             </div>

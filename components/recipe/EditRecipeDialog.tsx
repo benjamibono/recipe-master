@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, ImageIcon, Bot, Loader2, Search } from "lucide-react";
+import { Pencil, ImageIcon, Bot, Loader2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { Recipe } from "@/lib/supabase";
@@ -38,7 +38,6 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   const [loading, setLoading] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [pexelsDialogOpen, setPexelsDialogOpen] = useState(false);
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
 
   // Initialize form data with current recipe values and ensure ingredients have valid units
   const [formData, setFormData] = useState({
@@ -54,22 +53,18 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
     macros_data: recipe.macros_data,
   });
 
-  // Fetch current username
+  // Fetch current user
   useEffect(() => {
     async function getCurrentUsername() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        const { data: profile } = await supabase
+        await supabase
           .from("profiles")
           .select("username")
           .eq("id", user.id)
           .single();
-
-        if (profile) {
-          setCurrentUsername(profile.username);
-        }
       }
     }
     getCurrentUsername();
@@ -291,7 +286,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button variant="outline" size="icon" className="h-10 w-10">
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
@@ -317,129 +312,125 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
               </div>
             </div>
 
-            {recipe.type === "cooking" && (
-              <div>
-                <Label htmlFor="time">{t("recipes.prep_time")}</Label>
-                <div className="h-10 mt-2">
-                  <Input
-                    id="time"
-                    type="number"
-                    min="0"
-                    value={formData.time === 0 ? "" : formData.time}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        time: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                    className="h-10 w-24"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div>
-              <Label htmlFor="servings">{t("recipes.servings")}</Label>
-              <div className="h-10 mt-2 flex items-center">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 w-10"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      servings: Math.max(1, prev.servings - 1),
-                    }))
-                  }
-                >
-                  -
-                </Button>
-                <span className="w-8 text-center">{formData.servings}</span>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-10 w-10"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      servings: prev.servings + 1,
-                    }))
-                  }
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <Label>{t("recipes.image")}</Label>
-              <div className="h-10 mt-2 flex gap-2">
-                {formData.image_url ? (
-                  <div className="relative w-10 h-10">
-                    <Image
-                      src={formData.image_url}
-                      alt={t("recipes.recipe_image")}
-                      fill
-                      className="object-cover rounded-md"
-                      sizes="40px"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 h-4 w-4 rounded-full"
-                      onClick={() =>
+            <div className="flex justify-between gap-4">
+              {recipe.type === "cooking" && (
+                <div>
+                  <Label htmlFor="time">{t("recipes.prep_time")}</Label>
+                  <div className="h-10 mt-2">
+                    <Input
+                      id="time"
+                      type="number"
+                      min="0"
+                      value={formData.time === 0 ? "" : formData.time}
+                      onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          image_url: undefined,
+                          time: parseInt(e.target.value) || 0,
                         }))
                       }
-                    >
-                      <span className="sr-only">
-                        {t("recipes.remove_image")}
-                      </span>
-                      ×
-                    </Button>
+                      className="h-10 w-24"
+                    />
                   </div>
-                ) : (
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="servings">{t("recipes.servings")}</Label>
+                <div className="h-10 mt-2 flex items-center">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-10"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        servings: Math.max(1, prev.servings - 1),
+                      }))
+                    }
+                  >
+                    -
+                  </Button>
+                  <span className="w-8 text-center">{formData.servings}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-10"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        servings: prev.servings + 1,
+                      }))
+                    }
+                  >
+                    +
+                  </Button>
+                </div>
+              </div>
+
+              <div>
+                <Label>{t("recipes.image")}</Label>
+                <div className="h-10 mt-2 flex gap-2">
+                  {formData.image_url ? (
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={formData.image_url}
+                        alt={t("recipes.recipe_image")}
+                        fill
+                        className="object-cover rounded-md"
+                        sizes="40px"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-4 w-4 rounded-full"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            image_url: undefined,
+                          }))
+                        }
+                      >
+                        <span className="sr-only">
+                          {t("recipes.remove_image")}
+                        </span>
+                        ×
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     className="h-10 w-10"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setPexelsDialogOpen(true)}
                   >
-                    <ImageIcon className="h-4 w-4" />
+                    <Globe className="h-4 w-4" />
                   </Button>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileSelect}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="w-10 flex-shrink-0"
-                  onClick={() => setPexelsDialogOpen(true)}
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
-                {currentUsername === "benjamibono" && (
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    className="w-10 flex-shrink-0"
+                    className="h-10 w-10"
                     onClick={handleGenerateImage}
-                    disabled={
-                      generatingImage ||
-                      !formData.name.trim() ||
-                      formData.ingredients.length === 0
-                    }
+                    disabled={generatingImage}
                   >
                     {generatingImage ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -447,7 +438,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
                       <Bot className="h-4 w-4" />
                     )}
                   </Button>
-                )}
+                </div>
               </div>
             </div>
           </div>
