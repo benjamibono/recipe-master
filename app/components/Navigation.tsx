@@ -1,153 +1,75 @@
 "use client";
 
-import Link from "next/link";
+import { useState, createContext, useContext } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { Home, Compass, ShoppingCart, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
-import LogoutButton from "./LogoutButton";
-import { ChefHat, Search } from "lucide-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import { SearchDialog } from "./SearchDialog";
-import { Recipe } from "@/lib/supabase";
+
+// Crear un contexto para el sidebar
+export type SidebarContextType = {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+};
+
+export const SidebarContext = createContext<SidebarContextType>({
+  isOpen: false,
+  setIsOpen: () => {},
+});
+
+// Proveedor del contexto que se usará en layout.tsx
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <SidebarContext.Provider value={{ isOpen, setIsOpen }}>
+      {children}
+    </SidebarContext.Provider>
+  );
+}
+
+// Hook para usar el contexto
+export const useSidebar = () => useContext(SidebarContext);
 
 export default function Navigation() {
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [currentPageRecipes, setCurrentPageRecipes] = useState<Recipe[]>([]);
+  const { isOpen, setIsOpen } = useSidebar();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-    };
-
-    checkAuth();
-
-    // Listen for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        setIsAuthenticated(true);
-      }
-      if (event === "SIGNED_OUT") {
-        setIsAuthenticated(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Load current page recipes when pathname changes
-  useEffect(() => {
-    const loadCurrentPageRecipes = async () => {
-      // Only load recipes for recipe pages
-      if (pathname !== "/recipes" && pathname !== "/cleaning") {
-        setCurrentPageRecipes([]);
-        return;
-      }
-
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          setCurrentPageRecipes([]);
-          return;
-        }
-
-        const recipeType = pathname === "/cleaning" ? "cleaning" : "cooking";
-
-        const { data, error } = await supabase
-          .from("recipes")
-          .select("*")
-          .eq("type", recipeType)
-          .eq("user_id", user.id);
-
-        if (error) throw error;
-        setCurrentPageRecipes(data || []);
-      } catch (error) {
-        console.error("Error loading recipes:", error);
-        setCurrentPageRecipes([]);
-      }
-    };
-
-    loadCurrentPageRecipes();
-  }, [pathname]);
-
-  const isActive = (path: string) => {
-    return pathname === path;
-  };
+  const mainLinks = [
+    { href: "/", icon: Home, label: "Home" },
+    { href: "/explore", icon: Compass, label: "Explore" },
+    { href: "/shopping", icon: ShoppingCart, label: "Shopping" },
+  ];
 
   return (
-    <>
-      <nav className="border-b">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 text-xl">
-              <ChefHat className="h-6 w-6" />
-            </Link>
-            <div className="flex gap-4">
-              <Link
-                href="/"
-                className={cn(
-                  "text-sm transition-colors hover:text-primary",
-                  isActive("/") ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                Home
-              </Link>
-              <Link
-                href="/explore"
-                className={cn(
-                  "text-sm transition-colors hover:text-primary",
-                  isActive("/explore")
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                Explore
-              </Link>
-              <Link
-                href="/shopping"
-                className={cn(
-                  "text-sm transition-colors hover:text-primary",
-                  isActive("/shopping")
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                Shopping
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-4">
-              {(pathname === "/recipes" || pathname === "/cleaning") && (
-                <button
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors ml-2"
-                  onClick={() => setIsSearchOpen(true)}
-                >
-                  <Search className="h-5 w-5 text-gray-600" />
-                </button>
-              )}
-              {isAuthenticated && <LogoutButton variant="ghost" />}
-            </div>
-          </div>
-        </div>
-      </nav>
+    <nav className="sticky top-0 z-40 bg-white border-b lg:border-none">
+      <div className="flex items-center h-16">
+        {/* Iconos para móvil */}
+        <div className="grid grid-cols-4 w-full px-4 items-center lg:hidden">
+          {/* Botón de hamburguesa */}
+          <button
+            className="flex justify-center items-center"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <Menu className="h-6 w-6" />
+          </button>
 
-      <SearchDialog
-        open={isSearchOpen}
-        onOpenChange={setIsSearchOpen}
-        currentPageRecipes={currentPageRecipes}
-      />
-    </>
+          {mainLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "flex justify-center items-center p-2 rounded-lg transition-colors",
+                pathname === link.href
+                  ? "text-primary"
+                  : "text-gray-600 hover:text-primary"
+              )}
+            >
+              <link.icon className="h-6 w-6" />
+            </Link>
+          ))}
+        </div>
+      </div>
+    </nav>
   );
 }
