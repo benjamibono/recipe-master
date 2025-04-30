@@ -10,6 +10,7 @@ import {
 import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Recipe } from "@/lib/supabase";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface ShareRecipeDialogProps {
   recipe: Recipe;
@@ -17,6 +18,7 @@ interface ShareRecipeDialogProps {
 
 export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   const handleShare = async () => {
     try {
@@ -27,19 +29,30 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
       if (navigator.share) {
         await navigator.share({
           title: `${recipe.name} - Recipe Master`,
-          text: `Check out this recipe for ${recipe.name}${
-            recipe.servings ? ` (${recipe.servings} servings)` : ""
-          } on Recipe Master!`,
+          text: t(
+            "recipes.shareMessage",
+            {
+              name: recipe.name,
+              servings: recipe.servings
+                ? ` (${recipe.servings} ${t("recipes.servings")})`
+                : "",
+            },
+            `Check out this recipe for ${recipe.name}${
+              recipe.servings ? ` (${recipe.servings} servings)` : ""
+            } on Recipe Master!`
+          ),
           url: shareUrl,
         });
       } else {
         // Fallback to copying to clipboard
         await navigator.clipboard.writeText(shareUrl);
-        toast.success("Share link copied to clipboard!");
+        toast.success(
+          t("recipes.shareSuccess", "Share link copied to clipboard!")
+        );
       }
     } catch (error) {
       console.error("Error sharing recipe:", error);
-      toast.error("Failed to share recipe");
+      toast.error(t("recipes.shareFailed", "Failed to share recipe"));
     } finally {
       setOpen(false);
     }
@@ -54,15 +67,22 @@ export function ShareRecipeDialog({ recipe }: ShareRecipeDialogProps) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Share Recipe</DialogTitle>
+          <DialogTitle>{t("recipes.shareRecipe", "Share Recipe")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <p>Share this recipe with other Recipe Master users:</p>
+          <p>
+            {t(
+              "recipes.shareDescription",
+              "Share this recipe with other Recipe Master users:"
+            )}
+          </p>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("common.cancel", "Cancel")}
             </Button>
-            <Button onClick={handleShare}>Share Recipe</Button>
+            <Button onClick={handleShare}>
+              {t("recipes.shareRecipe", "Share Recipe")}
+            </Button>
           </div>
         </div>
       </DialogContent>

@@ -24,6 +24,20 @@ import {
 } from "@/components/ui/collapsible";
 import { ShareRecipeDialog } from "@/components/recipe/ShareRecipeDialog";
 import NutritionPieChart from "@/components/recipe/NutritionPieChart";
+import { useLanguage } from "@/app/contexts/LanguageContext";
+
+// Helper function to normalize nutrition terms
+const getNormalizedNutritionKey = (term: string): string => {
+  // Convert to lowercase for case-insensitive comparison
+  const lowerTerm = term.toLowerCase();
+
+  // Map variant terms to their standardized keys
+  if (lowerTerm === "carbs") return "carbohydrates";
+  if (lowerTerm === "fats") return "fat";
+
+  // Default case: return the term as is
+  return lowerTerm;
+};
 
 export default function RecipeDetailPage() {
   const params = useParams();
@@ -38,10 +52,11 @@ export default function RecipeDetailPage() {
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   const [macros, setMacros] = useState<string | null>(null);
   const [loadingMacros, setLoadingMacros] = useState(false);
-  const [currentServings, setCurrentServings] = useState<number>(0);
+  const [currentServings, setCurrentServings] = useState<number>(1);
   const [originalServings, setOriginalServings] = useState<number>(0);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showCopyHelper, setShowCopyHelper] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     async function getCurrentUsername() {
@@ -225,7 +240,7 @@ export default function RecipeDetailPage() {
               onClick={() => router.back()}
             >
               <ArrowLeft className="h-4 w-4" />
-              Back
+              {t("common.back")}
             </Button>
           </div>
           <div className="animate-pulse">
@@ -264,7 +279,7 @@ export default function RecipeDetailPage() {
             onClick={() => router.back()}
           >
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("common.back")}
           </Button>
           <div className="flex items-center gap-2">
             <ShareRecipeDialog recipe={recipe} />
@@ -286,10 +301,9 @@ export default function RecipeDetailPage() {
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Delete Recipe</DialogTitle>
+                      <DialogTitle>{t("recipes.deleteRecipe")}</DialogTitle>
                       <DialogDescription>
-                        Are you sure you want to delete this recipe? This action
-                        cannot be undone.
+                        {t("recipes.deleteConfirmation")}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="flex justify-end gap-2">
@@ -298,14 +312,14 @@ export default function RecipeDetailPage() {
                         onClick={() => setDeleteDialogOpen(false)}
                         disabled={deleting}
                       >
-                        Cancel
+                        {t("common.cancel")}
                       </Button>
                       <Button
                         variant="destructive"
                         onClick={handleDelete}
                         disabled={deleting}
                       >
-                        {deleting ? "Deleting..." : "Delete"}
+                        {deleting ? t("common.deleting") : t("common.delete")}
                       </Button>
                     </div>
                   </DialogContent>
@@ -324,7 +338,7 @@ export default function RecipeDetailPage() {
                       } = await supabase.auth.getUser();
 
                       if (!user) {
-                        toast.error("Please log in to copy this recipe");
+                        toast.error(t("auth.loginRequired"));
                         router.push("/auth/login");
                         return;
                       }
@@ -351,11 +365,11 @@ export default function RecipeDetailPage() {
 
                       if (error) throw error;
 
-                      toast.success("Recipe copied to your collection!");
+                      toast.success(t("recipes.copiedSuccess"));
                       router.push(`/recipes/${newRecipe.id}`);
                     } catch (error) {
                       console.error("Error copying recipe:", error);
-                      toast.error("Failed to copy recipe");
+                      toast.error(t("recipes.copyFailed"));
                     }
                   }}
                 >
@@ -383,7 +397,7 @@ export default function RecipeDetailPage() {
                 </Button>
                 {showCopyHelper && (
                   <p className="absolute -top-6 right-0 pr-4 text-sm text-muted-foreground animate-in fade-in slide-in-from-top-2 whitespace-nowrap transition-opacity duration-300">
-                    Click to share or copy this recipe to your collection
+                    {t("recipes.clickToCopy")}
                   </p>
                 )}
               </div>
@@ -410,18 +424,24 @@ export default function RecipeDetailPage() {
               <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
               {recipe.creator_name &&
                 recipe.creator_name !== currentUsername && (
-                  <p className="text-gray-600 mb-2">by {recipe.creator_name}</p>
+                  <p className="text-gray-600 mb-2">
+                    {t("recipes.by")} {recipe.creator_name}
+                  </p>
                 )}
               {recipe.type === "cooking" && (
                 <div className="flex items-center gap-2 text-gray-600">
                   <Clock className="h-5 w-5" />
-                  <span>{recipe.time} minutes</span>
+                  <span>
+                    {recipe.time} {t("recipes.minutes")}
+                  </span>
                 </div>
               )}
             </div>
             {recipe.type !== "shopping" && (
               <div className="flex flex-col items-center gap-2">
-                <span className="text-sm text-gray-600">Servings</span>
+                <span className="text-sm text-gray-600">
+                  {t("recipes.servings")}
+                </span>
                 <div className="flex items-center gap-1 md:gap-2">
                   <Button
                     variant="outline"
@@ -458,10 +478,10 @@ export default function RecipeDetailPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">
               {recipe.type === "cleaning"
-                ? "Materials"
+                ? t("recipes.materials")
                 : recipe.type === "shopping"
-                ? "Items"
-                : "Ingredients"}
+                ? t("recipes.items")
+                : t("recipes.ingredients")}
             </h2>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-9 p-0">
@@ -498,7 +518,9 @@ export default function RecipeDetailPage() {
         >
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold">
-              {recipe.type === "shopping" ? "Notes" : "Instructions"}
+              {recipe.type === "shopping"
+                ? t("recipes.notes")
+                : t("recipes.instructions")}
             </h2>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="w-9 p-0">
@@ -515,12 +537,16 @@ export default function RecipeDetailPage() {
               <div className="text-center py-4">
                 <p className="text-gray-500">
                   {recipe.type === "shopping"
-                    ? "No notes available"
-                    : "No instructions available"}
+                    ? t("recipes.noNotesAvailable")
+                    : t("recipes.noInstructionsAvailable")}
                 </p>
                 <p className="text-sm text-gray-400 mt-1">
-                  Click the edit button to add{" "}
-                  {recipe.type === "shopping" ? "notes" : "instructions"}
+                  {t("recipes.clickToAdd", {
+                    type:
+                      recipe.type === "shopping"
+                        ? t("recipes.notes")
+                        : t("recipes.instructions"),
+                  })}
                 </p>
               </div>
             ) : (
@@ -544,7 +570,7 @@ export default function RecipeDetailPage() {
           >
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-semibold">
-                Nutritional Information
+                {t("recipes.nutritionalInfo")}
               </h2>
               <div className="flex items-center gap-2">
                 {recipe.type === "cooking" && !loadingMacros && (
@@ -558,7 +584,7 @@ export default function RecipeDetailPage() {
                       }
                     }}
                   >
-                    Refresh
+                    {t("common.refresh")}
                   </Button>
                 )}
                 <CollapsibleTrigger asChild>
@@ -576,20 +602,20 @@ export default function RecipeDetailPage() {
               {loadingMacros ? (
                 <div className="text-center py-4">
                   <p className="text-gray-500">
-                    Analyzing nutritional information...
+                    {t("recipes.analyzingNutrition")}
                   </p>
                   <div className="mt-2 flex justify-center">
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600"></div>
                   </div>
                   <p className="text-sm text-gray-400 mt-2">
-                    This might take a moment as AI analyzes your ingredients
+                    {t("recipes.nutritionAnalysisTime")}
                   </p>
                 </div>
               ) : macros && macros.includes(":") ? (
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">
-                      Per Serving
+                      {t("recipes.perServing")}
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {macros.split("\n").map((line, index) => {
@@ -607,7 +633,12 @@ export default function RecipeDetailPage() {
                             className="bg-gray-50 rounded-lg p-4 text-center"
                           >
                             <div className="text-sm text-gray-600 mb-1">
-                              {label}
+                              {t(
+                                `nutrition.${getNormalizedNutritionKey(
+                                  label
+                                ).replace(/ /g, "_")}`,
+                                label
+                              )}
                             </div>
                             <div className="text-xl font-semibold text-gray-900">
                               {label === "Energy value"
@@ -623,14 +654,15 @@ export default function RecipeDetailPage() {
 
                   <div className="mt-8">
                     <h3 className="text-sm font-medium text-gray-500 mb-3">
-                      Nutritional Distribution
+                      {t("recipes.nutritionalDistribution")}
                     </h3>
                     <NutritionPieChart macros={macros} />
                   </div>
 
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">
-                      Recipe Total • {recipe.servings} servings
+                      {t("recipes.recipeTotal")} • {recipe.servings}{" "}
+                      {t("recipes.servings").toLowerCase()}
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {macros.split("\n").map((line, index) => {
@@ -643,7 +675,12 @@ export default function RecipeDetailPage() {
                             className="bg-gray-50 rounded-lg p-4 text-center"
                           >
                             <div className="text-sm text-gray-600 mb-1">
-                              {label}
+                              {t(
+                                `nutrition.${getNormalizedNutritionKey(
+                                  label
+                                ).replace(/ /g, "_")}`,
+                                label
+                              )}
                             </div>
                             <div className="text-xl font-semibold text-gray-900">
                               {value}
@@ -657,7 +694,7 @@ export default function RecipeDetailPage() {
               ) : (
                 <div className="text-center py-4">
                   <p className="text-gray-500">
-                    No nutritional information available
+                    {t("recipes.noNutritionAvailable")}
                   </p>
                 </div>
               )}

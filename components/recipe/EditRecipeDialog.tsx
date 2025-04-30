@@ -295,7 +295,7 @@ export function EditRecipeDialog({ recipe }: EditRecipeDialogProps) {
           <Pencil className="h-4 w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{recipe.name}</DialogTitle>
         </DialogHeader>

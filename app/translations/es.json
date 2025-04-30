@@ -2,7 +2,7 @@
   "common": {
     "home": "Inicio",
     "explore": "Explorar",
-    "recipes": "Recetas",
+    "recipes": "Recetas de cocina",
     "tips": "Consejos",
     "shopping": "Lista de la compra",
     "cleaning": "Limpieza",
@@ -23,7 +23,11 @@
     "switch_to_english": "Cambiar a inglés",
     "switch_to_spanish": "Cambiar a español",
     "back_home": "Volver al inicio",
-    "explore_recipes": "Explorar recetas"
+    "explore_recipes": "Explorar recetas",
+    "back": "Volver",
+    "refresh": "Actualizar",
+    "deleting": "Eliminando...",
+    "select": "Seleccionar"
   },
   "home": {
     "welcome": "Bienvenido a Recipe Master",
@@ -64,7 +68,8 @@
     "enter_email": "Ingresa tu correo electrónico",
     "welcome_back": "Bienvenido de nuevo",
     "new_to_app": "¿Nuevo en Recipe Master?",
-    "create_account": "Crear una cuenta"
+    "create_account": "Crear una cuenta",
+    "loginRequired": "Por favor inicia sesión para ver esta receta"
   },
   "search": {
     "search_recipes": "Buscar recetas",
@@ -86,6 +91,10 @@
     "hard": "Difícil",
     "your_recipes": "Tus Recetas",
     "text_too_long": "El texto es demasiado largo. El máximo de caracteres permitidos es {{max}}",
+    "minutes": "minutos",
+    "name": "Nombre",
+    "enter_recipe_name": "Ingresa el nombre de la receta",
+    "wand_explanation": "Haz clic en el botón varita para dejar que la IA cree una receta por ti.",
     "sort": {
       "name_asc": "(A-Z)",
       "name_desc": "(Z-A)",
@@ -109,7 +118,31 @@
     "transcribe_automatically": "la transcribiremos automáticamente",
     "image": "Imagen",
     "remove_image": "Eliminar imagen",
-    "prep_time": "Tiempo de preparación (mins)"
+    "prep_time": "Tiempo de preparación (mins)",
+    "deleteRecipe": "Eliminar Receta",
+    "deleteConfirmation": "¿Estás seguro de que quieres eliminar esta receta? Esta acción no se puede deshacer.",
+    "by": "por",
+    "materials": "Materiales",
+    "items": "Artículos",
+    "notes": "Notas",
+    "noNotesAvailable": "No hay notas disponibles",
+    "noInstructionsAvailable": "No hay instrucciones disponibles",
+    "clickToAdd": "Haz clic en el botón de editar para añadir {{type}}",
+    "nutritionalInfo": "Información Nutricional",
+    "analyzingNutrition": "Analizando información nutricional...",
+    "nutritionAnalysisTime": "Esto puede tardar un momento mientras la IA analiza los ingredientes",
+    "perServing": "Por Porción",
+    "nutritionalDistribution": "Distribución Nutricional",
+    "recipeTotal": "Total de la Receta",
+    "noNutritionAvailable": "No hay información nutricional disponible",
+    "copiedSuccess": "¡Receta copiada a tu colección!",
+    "copyFailed": "Error al copiar la receta",
+    "clickToCopy": "Haz clic para compartir o copiar esta receta a tu colección",
+    "shareRecipe": "Compartir Receta",
+    "shareDescription": "Comparte esta receta con otros usuarios de Recipe Master:",
+    "shareSuccess": "¡Enlace de compartir copiado al portapapeles!",
+    "shareFailed": "Error al compartir la receta",
+    "shareMessage": "¡Mira esta receta de {{name}}{{servings}} en Recipe Master!"
   },
   "shopping": {
     "add_item": "Añadir artículo",
@@ -157,7 +190,9 @@
   },
   "cleaning": {
     "loading": "Cargando tus recetas de limpieza...",
-    "no_recipes": "Aún no has creado ninguna receta de limpieza. ¡Haz clic en el botón + para comenzar!"
+    "no_recipes": "Aún no has creado ninguna receta de limpieza. ¡Haz clic en el botón + para comenzar!",
+    "add_new": "Añadir nueva receta de limpieza",
+    "materials": "Materiales"
   },
   "tips": {
     "title": "Consejos y Trucos",
@@ -173,5 +208,11 @@
     "required_password": "La contraseña es obligatoria",
     "not_found_title": "¡Ups! Esta receta no existe",
     "not_found_message": "Parece que el ingrediente que buscas no está en nuestra cocina. Vuelve a la página principal o prueba a buscar otra receta."
+  },
+  "nutrition": {
+    "energy_value": "Valor energético",
+    "protein": "Proteínas",
+    "carbohydrates": "Carbohidratos",
+    "fat": "Grasas"
   }
 }

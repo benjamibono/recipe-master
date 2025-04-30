@@ -17,6 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableItem } from "./SortableItem";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface RecipeFormInstructionsProps {
   instructions: string[];
@@ -31,6 +32,7 @@ export function RecipeFormInstructions({
   onRemoveInstruction,
   onReorderInstructions,
 }: RecipeFormInstructionsProps) {
+  const { t, language } = useLanguage();
   const [newInstruction, setNewInstruction] = useState("");
 
   const sensors = useSensors(
@@ -71,7 +73,7 @@ export function RecipeFormInstructions({
       <div className="flex gap-2">
         <Input
           type="text"
-          placeholder="Add a new instruction"
+          placeholder={t("recipes.instructions")}
           value={newInstruction}
           onChange={(e) => setNewInstruction(e.target.value)}
           onKeyDown={(e) => {
@@ -88,7 +90,7 @@ export function RecipeFormInstructions({
           disabled={!newInstruction.trim()}
           className="h-10 bg-black hover:bg-black/90"
         >
-          Add
+          {language === "es" ? "Añadir" : "Add"}
         </Button>
       </div>
 

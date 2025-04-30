@@ -24,11 +24,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { SortableItem } from "@/components/recipe/SortableItem";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export const UNITS = [
-  { value: "g", label: "grams" },
-  { value: "ml", label: "milliliters" },
-  { value: "u", label: "units" },
+  { value: "g", label: "grams", labelEs: "gramos" },
+  { value: "ml", label: "milliliters", labelEs: "mililitros" },
+  { value: "u", label: "units", labelEs: "unidades" },
 ] as const;
 
 export interface Ingredient {
@@ -52,6 +53,7 @@ export function RecipeFormIngredients({
   onRemoveIngredient,
   onReorderIngredients,
 }: RecipeFormIngredientsProps) {
+  const { t, language } = useLanguage();
   const [newIngredient, setNewIngredient] = useState<Ingredient>({
     name: "",
     amount: 0,
@@ -91,12 +93,17 @@ export function RecipeFormIngredients({
     }
   };
 
+  // Helper function to get the appropriate unit label based on language
+  const getUnitLabel = (unit: (typeof UNITS)[number]) => {
+    return language === "es" ? unit.labelEs : unit.label;
+  };
+
   return (
     <div className="space-y-4">
       <div>
         <Input
           type="text"
-          placeholder="Ingredient"
+          placeholder={t("recipes.ingredients")}
           value={newIngredient.name}
           onChange={(e) =>
             setNewIngredient((prev) => ({
@@ -110,7 +117,7 @@ export function RecipeFormIngredients({
       <div className="flex items-center gap-2">
         <Input
           type="number"
-          placeholder="Amount"
+          placeholder={t("shopping.quantity")}
           value={newIngredient.amount.toString()}
           onChange={(e) =>
             setNewIngredient((prev) => ({
@@ -128,12 +135,12 @@ export function RecipeFormIngredients({
             }
           >
             <SelectTrigger className="h-10 flex-1">
-              <SelectValue placeholder="Unit" />
+              <SelectValue placeholder={t("shopping.unit")} />
             </SelectTrigger>
             <SelectContent>
               {UNITS.map((unit) => (
                 <SelectItem key={unit.value} value={unit.value}>
-                  {unit.label}
+                  {getUnitLabel(unit)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -145,7 +152,7 @@ export function RecipeFormIngredients({
           disabled={!newIngredient.name.trim()}
           className="h-10 flex-1 bg-black hover:bg-black/90"
         >
-          Add
+          {language === "es" ? "Añadir" : "Add"}
         </Button>
       </div>
 

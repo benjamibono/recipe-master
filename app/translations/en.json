@@ -2,7 +2,7 @@
   "common": {
     "home": "Home",
     "explore": "Explore",
-    "recipes": "Recipes",
+    "recipes": "Cooking Recipes",
     "tips": "Tips",
     "shopping": "Shopping",
     "cleaning": "Cleaning",
@@ -23,7 +23,11 @@
     "switch_to_english": "Switch to English",
     "switch_to_spanish": "Switch to Spanish",
     "back_home": "Back to Home",
-    "explore_recipes": "Explore Recipes"
+    "explore_recipes": "Explore Recipes",
+    "back": "Back",
+    "refresh": "Refresh",
+    "deleting": "Deleting...",
+    "select": "Select"
   },
   "home": {
     "welcome": "Welcome to Recipe Master",
@@ -64,7 +68,8 @@
     "enter_email": "Enter your email",
     "welcome_back": "Welcome Back",
     "new_to_app": "New to Recipe Master?",
-    "create_account": "Create an Account"
+    "create_account": "Create an Account",
+    "loginRequired": "Please log in to view this recipe"
   },
   "search": {
     "search_recipes": "Search Recipes",
@@ -86,19 +91,74 @@
     "hard": "Hard",
     "your_recipes": "Your Recipes",
     "text_too_long": "Text is too long. Maximum allowed characters is {{max}}",
+    "minutes": "minutes",
+    "name": "Name",
+    "enter_recipe_name": "Enter recipe name",
+    "wand_explanation": "Click the wand button to let the AI create a recipe for you.",
     "sort": {
       "name_asc": "(A-Z)",
       "name_desc": "(Z-A)",
       "newest": "Newest",
       "oldest": "Oldest"
-    }
+    },
+    "loading": "Loading your recipes...",
+    "no_recipes": "You haven't created any recipes yet. Click the + button to get started!",
+    "creating": "Creating...",
+    "create_recipe": "Create Recipe",
+    "saving": "Saving...",
+    "save_changes": "Save Changes",
+    "lazy": "Feeling lazy?",
+    "cancel": "Cancel",
+    "quick_recipe_input": "Quick Recipe Input",
+    "describe_recipe": "Describe your recipe",
+    "type_paste_recipe": "Type or paste your recipe...",
+    "characters": "characters",
+    "create": "Create",
+    "record_recipe": "Or record your recipe",
+    "transcribe_automatically": "we'll transcribe it automatically",
+    "image": "Image",
+    "remove_image": "Remove image",
+    "prep_time": "Prep time (mins)",
+    "deleteRecipe": "Delete Recipe",
+    "deleteConfirmation": "Are you sure you want to delete this recipe? This action cannot be undone.",
+    "by": "by",
+    "materials": "Materials",
+    "items": "Items",
+    "notes": "Notes",
+    "noNotesAvailable": "No notes available",
+    "noInstructionsAvailable": "No instructions available",
+    "clickToAdd": "Click the edit button to add {{type}}",
+    "nutritionalInfo": "Nutritional Information",
+    "analyzingNutrition": "Analyzing nutritional information...",
+    "nutritionAnalysisTime": "This might take a moment as AI analyzes your ingredients",
+    "perServing": "Per Serving",
+    "nutritionalDistribution": "Nutritional Distribution",
+    "recipeTotal": "Recipe Total",
+    "noNutritionAvailable": "No nutritional information available",
+    "copiedSuccess": "Recipe copied to your collection!",
+    "copyFailed": "Failed to copy recipe",
+    "clickToCopy": "Click to share or copy this recipe to your collection",
+    "shareRecipe": "Share Recipe",
+    "shareDescription": "Share this recipe with other Recipe Master users:",
+    "shareSuccess": "Share link copied to clipboard!",
+    "shareFailed": "Failed to share recipe",
+    "shareMessage": "Check out this recipe for {{name}}{{servings}} on Recipe Master!"
   },
   "shopping": {
     "add_item": "Add Item",
     "list_name": "List Name",
     "quantity": "Quantity",
     "unit": "Unit",
-    "item_name": "Item Name"
+    "item_name": "Item Name",
+    "loading": "Loading your shopping list...",
+    "no_items": "No items in your shopping list",
+    "shopping_list": "Shopping List",
+    "shopping_list_summary": "SHOPPING LIST SUMMARY",
+    "detailed_recipes": "DETAILED RECIPES",
+    "click_to_copy": "Click to copy ingredients to clipboard",
+    "copy": "Copy",
+    "ingredients_copied": "Ingredients copied to clipboard!",
+    "failed_to_copy": "Failed to copy ingredients"
   },
   "meatTemps": {
     "title": "Meat Cooking Temperatures Guide",
@@ -123,6 +183,21 @@
     "poultry_tip": "Poultry must always reach the recommended safe temperature",
     "fish_tip": "Fish is done when it flakes easily with a fork"
   },
+  "explore": {
+    "loading": "Loading recipes...",
+    "no_recipes": "No recipes available to explore.",
+    "explore_recipes": "Explore Recipes"
+  },
+  "cleaning": {
+    "loading": "Loading your cleaning recipes...",
+    "no_recipes": "You haven't created any cleaning recipes yet. Click the + button to get started!",
+    "add_new": "Add New Cleaning Recipe",
+    "materials": "Materials"
+  },
+  "tips": {
+    "title": "Tips & Tricks",
+    "loading": "Loading tips..."
+  },
   "errors": {
     "required_field": "This field is required",
     "invalid_email": "Invalid email address",
@@ -133,5 +208,11 @@
     "required_password": "Password is required",
     "not_found_title": "Oops! This recipe doesn't exist",
     "not_found_message": "It seems the ingredient you're looking for is not in our kitchen. Head back to the main page or try searching for another recipe."
+  },
+  "nutrition": {
+    "energy_value": "Energy value",
+    "protein": "Protein",
+    "carbohydrates": "Carbohydrates",
+    "fat": "Fat"
   }
 }
