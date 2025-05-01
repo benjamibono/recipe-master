@@ -13,6 +13,7 @@ import { useAuthContext } from "../contexts/AuthContext";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { Recipe as SupabaseRecipe } from "@/lib/supabase";
 
 // Definir tipos para mayor seguridad
 interface Profile {
@@ -20,26 +21,9 @@ interface Profile {
   username: string;
 }
 
-interface Ingredient {
-  id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-}
-
-interface Recipe {
-  id: string;
-  name: string;
-  user_id: string;
-  type: string;
-  created_at: string;
-  updated_at?: string;
-  time?: string | number;
-  servings?: number;
-  ingredients?: Ingredient[];
-  instructions?: string;
+// Usar un tipo extendido de Recipe para nuestro uso local que sea compatible con el tipo de Supabase
+interface RecipeWithProfile extends SupabaseRecipe {
   profile?: Profile | null;
-  [key: string]: any; // Para permitir propiedades adicionales
 }
 
 export default function RecipesPage() {
@@ -104,10 +88,12 @@ export default function RecipesPage() {
         if (profilesError) throw profilesError;
 
         // Paso 3: Combinar recetas con perfiles
-        const recipesWithProfiles: Recipe[] = recipeData.map((recipe) => ({
-          ...recipe,
-          profile: profiles?.find((p) => p.id === recipe.user_id) || null,
-        }));
+        const recipesWithProfiles: RecipeWithProfile[] = recipeData.map(
+          (recipe) => ({
+            ...recipe,
+            profile: profiles?.find((p) => p.id === recipe.user_id) || null,
+          })
+        );
 
         return recipesWithProfiles;
       } catch (err) {
@@ -158,7 +144,7 @@ export default function RecipesPage() {
           {recipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}
-              recipe={recipe}
+              recipe={recipe as unknown as SupabaseRecipe}
               currentUsername={recipe.profile?.username || null}
             />
           ))}

@@ -29,6 +29,7 @@ export function useRealtimeSubscription(
 
       configs.forEach((cfg) => {
         channel = channel.on(
+          // @ts-expect-error - El tipo RealtimeChannel.on() no incluye "postgres_changes" pero es válido en Supabase
           "postgres_changes",
           {
             event: cfg.event || "*",

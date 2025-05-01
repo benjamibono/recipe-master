@@ -7,8 +7,8 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import esTranslations from "../translations/es.json";
-import enTranslations from "../translations/en.json";
+import esTranslations from "../../app/translations/es.json";
+import enTranslations from "../../app/translations/en.json";
 
 type Language = "es" | "en";
 type Translations = typeof enTranslations;
