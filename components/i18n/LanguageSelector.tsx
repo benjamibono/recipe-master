@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export const LanguageSelector: React.FC = () => {
   const { language, toggleLanguage, t } = useLanguage();

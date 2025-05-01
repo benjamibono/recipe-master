@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { supabase } from "@/lib/supabase";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,7 +8,8 @@ const openai = new OpenAI({
 
 export async function POST(request: Request) {
   try {
-    const { content, targetLanguage, contentType } = await request.json();
+    const { content, targetLanguage, contentType, recipeId } =
+      await request.json();
 
     if (!content || !targetLanguage || !contentType) {
       return NextResponse.json(
@@ -119,6 +121,59 @@ export async function POST(request: Request) {
           { error: "Failed to parse translated content" },
           { status: 500 }
         );
+      }
+    }
+
+    // Si tenemos un ID de receta y el contenido completo, intentaremos
+    // guardar la traducción en la base de datos para uso futuro
+    if (
+      recipeId &&
+      (contentType === "ingredients" || contentType === "instructions")
+    ) {
+      try {
+        // Obtener las traducciones existentes
+        const { data, error } = await supabase
+          .from("recipes")
+          .select("translations")
+          .eq("id", recipeId)
+          .single();
+
+        if (!error && data) {
+          // Preparar la actualización
+          const translations = data.translations || {};
+
+          // Inicializar el objeto de idioma si no existe
+          if (!translations[targetLanguage]) {
+            translations[targetLanguage] = {
+              ingredients: [],
+              instructions: [],
+              translated_at: new Date().toISOString(),
+            };
+          }
+
+          // Actualizar el campo correspondiente
+          if (contentType === "ingredients") {
+            translations[targetLanguage].ingredients = parsedContent;
+          } else if (contentType === "instructions") {
+            translations[targetLanguage].instructions = parsedContent;
+          }
+
+          // Actualizar la marca de tiempo
+          translations[targetLanguage].translated_at = new Date().toISOString();
+
+          // Guardar en la base de datos
+          await supabase
+            .from("recipes")
+            .update({ translations })
+            .eq("id", recipeId);
+
+          console.log(
+            `API translation cached for ${contentType} in ${targetLanguage}`
+          );
+        }
+      } catch (cacheError) {
+        // Fallar silenciosamente, no queremos que afecte a la respuesta principal
+        console.error("Error caching translation in API:", cacheError);
       }
     }
 

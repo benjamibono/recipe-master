@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useSidebar } from "./Navigation";
-import { LanguageSelector } from "./LanguageSelector";
+import { LanguageSelector } from "@/components/i18n/LanguageSelector";
 import { useLanguage } from "../contexts/LanguageContext";
 
 export default function Sidebar() {
@@ -73,16 +73,9 @@ export default function Sidebar() {
 
   const mainLinks = [
     { href: "/", icon: Home, label: t("common.home") },
-    { href: "/explore", icon: Compass, label: t("common.explore") },
-    {
-      href: "/shopping",
-      icon: ShoppingCart,
-      label: t("common.shopping"),
-    },
-  ];
-
-  const additionalLinks = [
     { href: "/recipes", icon: BookOpen, label: t("common.recipes") },
+    { href: "/explore", icon: Compass, label: t("common.explore") },
+    { href: "/shopping", icon: ShoppingCart, label: t("common.shopping") },
     { href: "/cleaning", icon: Sparkles, label: t("common.cleaning") },
     {
       href: "/meat-temperatures",
@@ -124,50 +117,23 @@ export default function Sidebar() {
             </button>
           </div>
 
-          <nav className="flex-1 p-4 space-y-4">
-            <div className="space-y-2">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t("common.main")}
-              </h2>
-              {mainLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={handleLinkClick}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                    isActive(link.href)
-                      ? "bg-primary/10 text-primary"
-                      : "text-gray-600 hover:bg-gray-100"
-                  )}
-                >
-                  <link.icon className="h-5 w-5" />
-                  <span>{link.label}</span>
-                </Link>
-              ))}
-            </div>
-
-            <div className="space-y-2">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {t("common.more")}
-              </h2>
-              {additionalLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={handleLinkClick}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                    isActive(link.href)
-                      ? "bg-primary/10 text-primary"
-                      : "text-gray-600 hover:bg-gray-100"
-                  )}
-                >
-                  <link.icon className="h-5 w-5" />
-                  <span>{link.label}</span>
-                </Link>
-              ))}
-            </div>
+          <nav className="flex-1 p-4 space-y-2">
+            {mainLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={handleLinkClick}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                  isActive(link.href)
+                    ? "bg-primary/10 text-primary"
+                    : "text-gray-600 hover:bg-gray-100"
+                )}
+              >
+                <link.icon className="h-5 w-5" />
+                <span>{link.label}</span>
+              </Link>
+            ))}
           </nav>
 
           {/* Language selector */}

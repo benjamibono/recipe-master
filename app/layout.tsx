@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { LanguageProvider } from "./contexts/LanguageContext";
-import { LanguageHandler } from "./components/LanguageHandler";
-import RootLayoutContent from "./components/RootLayoutContent";
+import { Providers } from "./components/Providers";
+import { PreloadCommonData } from "./components/PreloadCommonData";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,12 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning>
+    <html lang="en">
       <body className={inter.className}>
-        <LanguageProvider>
-          <LanguageHandler />
-          <RootLayoutContent>{children}</RootLayoutContent>
-        </LanguageProvider>
+        <Providers>
+          <PreloadCommonData />
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -1,176 +1,153 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect } from "react";
 import { CreateRecipeDialog } from "@/components/recipe/CreateRecipeDialog";
-import { supabase } from "@/lib/supabase";
 import RecipeCard from "@/components/RecipeCard";
-import { Recipe } from "@/lib/supabase";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
   SortControls,
   type SortOption,
 } from "@/components/recipe/SortControls";
 import { useLanguage } from "@/app/contexts/LanguageContext";
+import { useAuthContext } from "../contexts/AuthContext";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+
+// Definir tipos para mayor seguridad
+interface Profile {
+  id: string;
+  username: string;
+}
+
+interface Ingredient {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
+interface Recipe {
+  id: string;
+  name: string;
+  user_id: string;
+  type: string;
+  created_at: string;
+  updated_at?: string;
+  time?: string | number;
+  servings?: number;
+  ingredients?: Ingredient[];
+  instructions?: string;
+  profile?: Profile | null;
+  [key: string]: any; // Para permitir propiedades adicionales
+}
 
 export default function RecipesPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
-  const [usernameLoading, setUsernameLoading] = useState(true);
+  const { user, isLoading: isLoadingAuth } = useAuthContext();
   const [sortOption, setSortOption] = useState<SortOption>({
     field: "created_at",
     ascending: false,
   });
 
+  // Redirigir si no está autenticado
   useEffect(() => {
-    async function getCurrentUsername() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
+    if (!isLoadingAuth && !user) {
+      router.push("/auth/login");
+    }
+  }, [isLoadingAuth, user, router]);
+
+  // Cargar recetas con React Query
+  const {
+    data: recipes = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: [
+      "recipes",
+      user?.id,
+      "cooking",
+      sortOption.field,
+      sortOption.ascending,
+    ],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      try {
+        // Paso 1: Obtener recetas
+        const { data: recipeData, error: recipeError } = await supabase
+          .from("recipes")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("type", "cooking")
+          .order(sortOption.field, { ascending: sortOption.ascending });
+
+        if (recipeError) throw recipeError;
+
+        if (!recipeData || recipeData.length === 0) {
+          return [];
+        }
+
+        // Paso 2: Obtener perfiles de usuarios
+        const userIdMap: { [key: string]: boolean } = {};
+        recipeData.forEach((recipe) => {
+          userIdMap[recipe.user_id] = true;
+        });
+        const userIds = Object.keys(userIdMap);
+
+        const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
-          .select("username")
-          .eq("id", user.id)
-          .single();
+          .select("id, username")
+          .in("id", userIds);
 
-        if (profile) {
-          setCurrentUsername(profile.username);
-        }
+        if (profilesError) throw profilesError;
+
+        // Paso 3: Combinar recetas con perfiles
+        const recipesWithProfiles: Recipe[] = recipeData.map((recipe) => ({
+          ...recipe,
+          profile: profiles?.find((p) => p.id === recipe.user_id) || null,
+        }));
+
+        return recipesWithProfiles;
+      } catch (err) {
+        console.error("Error cargando recetas:", err);
+        throw err;
       }
-      setUsernameLoading(false);
-    }
-    getCurrentUsername();
-  }, []);
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+    gcTime: 1000 * 60 * 30, // 30 minutos
+    refetchOnWindowFocus: false,
+  });
 
-  const loadRecipes = useCallback(async () => {
-    try {
-      console.log("Starting to load recipes...");
-
-      const authResponse = await supabase.auth.getUser();
-      console.log("Auth response:", {
-        user: authResponse.data.user ? "exists" : "null",
-        error: authResponse.error,
-      });
-
-      const {
-        data: { user },
-      } = authResponse;
-
-      if (!user) {
-        console.log("No authenticated user found");
-        router.push("/auth/login");
-        return;
-      }
-
-      console.log("Building query for user:", user.id);
-      let query = supabase
-        .from("recipes")
-        .select("*")
-        .eq("type", "cooking")
-        .eq("user_id", user.id);
-
-      // Apply sorting
-      if (sortOption.field === "name") {
-        console.log(
-          "Applying name sort:",
-          sortOption.ascending ? "ascending" : "descending"
-        );
-        query = query.order("name", {
-          ascending: sortOption.ascending,
-          nullsFirst: false,
-          foreignTable: undefined,
-        });
-      } else {
-        console.log(
-          "Applying date sort:",
-          sortOption.ascending ? "ascending" : "descending"
-        );
-        query = query.order("created_at", {
-          ascending: sortOption.ascending,
-          nullsFirst: false,
-          foreignTable: undefined,
-        });
-      }
-
-      console.log("Executing query...");
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Supabase query error:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-          fullError: JSON.stringify(error, null, 2),
-        });
-        toast.error(
-          `Failed to load recipes: ${error.message || "Unknown error"}`
-        );
-        return;
-      }
-
-      console.log(`Query successful, found ${data?.length || 0} recipes`);
-      setRecipes(data || []);
-    } catch (error) {
-      console.error(
-        "Unexpected error in loadRecipes:",
-        error instanceof Error
-          ? {
-              name: error.name,
-              message: error.message,
-              stack: error.stack,
-            }
-          : error
-      );
-      toast.error("Failed to load recipes. Please try refreshing the page.");
-    } finally {
-      setLoading(false);
-    }
-  }, [sortOption, router]);
-
-  // Load recipes when sort option changes
-  useEffect(() => {
-    loadRecipes();
-  }, [loadRecipes]);
-
-  // Realtime subscription effect
-  useEffect(() => {
-    const channel = supabase
-      .channel("recipe_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "recipes",
-          filter: `type=eq.cooking`,
-        },
-        () => {
-          loadRecipes();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [loadRecipes]);
+  if (isLoadingAuth) {
+    return (
+      <div className="container py-8 text-center">{t("recipes.loading")}</div>
+    );
+  }
 
   return (
     <div className="container py-8">
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex justify-between items-center">
-          {!usernameLoading && currentUsername && (
-            <h1 className="text-2xl font-bold">{t("recipes.your_recipes")}</h1>
-          )}
+          <h1 className="text-2xl font-bold">{t("recipes.your_recipes")}</h1>
           <SortControls value={sortOption} onChange={setSortOption} />
         </div>
+
+        {error instanceof Error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+            <h3 className="text-lg font-semibold text-red-700">
+              Error cargando recetas
+            </h3>
+            <pre className="mt-2 text-sm overflow-auto bg-red-100 p-2 rounded">
+              {error.message}
+            </pre>
+          </div>
+        )}
       </div>
-      {loading ? (
+
+      {isLoading ? (
         <div className="text-center">{t("recipes.loading")}</div>
       ) : recipes.length === 0 ? (
         <div className="text-center text-gray-500">
@@ -182,12 +159,12 @@ export default function RecipesPage() {
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
-              currentUsername={currentUsername}
+              currentUsername={recipe.profile?.username || null}
             />
           ))}
         </div>
       )}
-      <CreateRecipeDialog onSuccess={loadRecipes} />
+      <CreateRecipeDialog />
     </div>
   );
 }

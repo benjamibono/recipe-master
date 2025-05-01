@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,6 +27,14 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({
     identifier: "", // This will hold either username or email
     password: "",
+  });
+
+  // Usar el hook optimizado que aprovecha la caché
+  useAuthRedirect({
+    ifAuthenticated: "/",
+    message: {
+      authenticated: t("auth.already_logged_in", "Ya has iniciado sesión"),
+    },
   });
 
   const handlePasswordReset = async (e: React.FormEvent) => {

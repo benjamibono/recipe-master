@@ -1,7 +1,12 @@
 # Core Features
 - Make a bug report section
 - Walkthrough on recipe creation step by step
-
+- Settings:
+  - Change Language
+  - Change username
+  - Change password
+  - Delete account
+  
 # AI Features
 - Parse ingredients list with ai
 

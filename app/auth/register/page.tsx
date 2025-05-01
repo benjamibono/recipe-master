@@ -8,15 +8,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
+  });
+
+  // Usar el hook optimizado que aprovecha la caché
+  useAuthRedirect({
+    ifAuthenticated: "/",
+    message: {
+      authenticated: t("auth.already_logged_in", "Ya has iniciado sesión"),
+    },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {

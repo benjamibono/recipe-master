@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 interface LogoutButtonProps {
   variant?:

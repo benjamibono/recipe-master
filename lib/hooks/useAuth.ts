@@ -1,27 +1,62 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { authQueryOptions } from "@/lib/react-query";
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
+  // Consulta para obtener el usuario actual y su perfil
+  const { data: session, isLoading: isLoadingSession } = useQuery({
+    queryKey: ["auth", "session"],
+    queryFn: async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      return session;
+    },
+    ...authQueryOptions,
+  });
+
+  const { data: profile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["auth", "profile", session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!session?.user?.id,
+    ...authQueryOptions,
+  });
+
+  // Suscribirse a cambios en la autenticación
   useEffect(() => {
-    // Verificar la sesión actual
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+      // Actualizar la caché de React Query cuando cambie la sesión
+      queryClient.setQueryData(["auth", "session"], session);
+
+      // Si el usuario cierra sesión, limpiar la caché
+      if (!session) {
+        queryClient.clear();
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [queryClient]);
 
+  // Funciones de autenticación
   const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -45,7 +80,6 @@ export function useAuth() {
       });
 
       if (error) throw error;
-      // Redirigir a una página de verificación o mostrar un mensaje
       router.push("/auth/verify");
     } catch (error) {
       console.error("Error al registrarse:", error);
@@ -65,8 +99,11 @@ export function useAuth() {
   };
 
   return {
-    user,
-    loading,
+    session,
+    profile,
+    isLoading: isLoadingSession || isLoadingProfile,
+    isAuthenticated: !!session?.user,
+    user: session?.user,
     signIn,
     signUp,
     signOut,
