@@ -5,11 +5,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Función para parsear recetas en un solo paso, reduciendo el número de llamadas a OpenAI
 export async function POST(request: Request) {
   try {
     const { transcription, language } = await request.json();
-    const detectedLanguage = language || "en"; // Default a inglés si no se proporciona
+    const detectedLanguage = language || "en";
 
     if (!transcription) {
       return NextResponse.json(
@@ -18,36 +17,46 @@ export async function POST(request: Request) {
       );
     }
 
-    // Realizar todo el procesamiento en una sola llamada a la API
-    const combinedPrompt = `
-    Analiza esta transcripción de una receta y extrae la información estructurada.
-    La transcripción está en ${
-      detectedLanguage === "es" ? "español" : "inglés"
+    // Limitar longitud del texto para evitar tiempos de procesamiento excesivos
+    const limitedTranscription = transcription.slice(0, 3000);
+
+    // Prompt optimizado que funciona bien en ambos idiomas
+    const prompt = `
+    ${
+      detectedLanguage === "es"
+        ? "Analiza esta transcripción de receta en español"
+        : "Analyze this recipe transcription in English"
     }.
-
+    
     Transcripción:
-    ${transcription}
-
-    Responde solo con un JSON válido que contenga los siguientes campos:
-    - name: nombre de la receta (string o vacío)
-    - time: tiempo de preparación en minutos (número entero o 0)
-    - servings: número de porciones/personas (número entero o 1)
-    - ingredients: array de ingredientes, cada uno con {name, amount, unit} donde unit debe ser exactamente "g", "ml" o "u"
-    - instructions: array de pasos/instrucciones
-
-    Asegúrate de que:
-    1. Si un valor no se puede determinar, usa valores por defecto
-    2. Las unidades deben normalizarse a "g" (gramos), "ml" (mililitros) o "u" (unidades)
-    3. Evita valores null en la respuesta
-    4. La respuesta debe estar en el idioma original (${detectedLanguage})
-
-    Importante: Solo devuelve JSON válido sin explicaciones ni markdown.
-    `;
+    ${limitedTranscription}
+    
+    Extrae y devuelve SOLO un objeto JSON con la siguiente estructura:
+    {
+      "name": "nombre de la receta",
+      "time": número de minutos de preparación (o 0 si no se menciona),
+      "servings": número de porciones (o 1 si no se menciona),
+      "ingredients": [
+        {"name": "nombre del ingrediente", "amount": cantidad numérica, "unit": "g"/"ml"/"u"}
+      ],
+      "instructions": ["paso 1", "paso 2", ...]
+    }
+    
+    Reglas importantes:
+    1. La unidad debe ser exactamente "g" (gramos), "ml" (mililitros) o "u" (unidades/piezas)
+    2. Detecta cantidades y conviértelas a números (ej. "dos tazas" → 2)
+    3. La respuesta debe estar en el idioma original (${
+      detectedLanguage === "es" ? "español" : "inglés"
+    })
+    4. Si no puedes determinar algún valor, usa valores por defecto (nombre vacío, 0 minutos, 1 porción)
+    5. Devuelve SOLO el JSON, sin explicaciones ni texto adicional`;
 
     const response = await openai.chat.completions.create({
-      model: process.env.NEXT_PUBLIC_OPENAI_MODEL || "gpt-4o-mini-2024-07-18",
-      messages: [{ role: "user", content: combinedPrompt }],
-      response_format: { type: "json_object" }, // Forzar formato JSON
+      model: "gpt-4o-mini-2024-07-18",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+      temperature: 0.3,
+      max_tokens: 1500,
     });
 
     const content = response.choices[0].message.content?.trim();
@@ -57,37 +66,52 @@ export async function POST(request: Request) {
 
     let recipeData;
     try {
-      // Limpiar posibles marcas de Markdown si las hubiera a pesar de forzar json_object
-      let cleanedContent = content;
-      if (cleanedContent.startsWith("```")) {
-        cleanedContent = cleanedContent
-          .replace(/^```(json)?\n/, "")
-          .replace(/\n```$/, "");
-      }
-
-      recipeData = JSON.parse(cleanedContent);
+      recipeData = JSON.parse(content);
     } catch (parseError) {
       console.error("JSON parse error:", parseError);
-      console.error("Failed to parse text:", content);
-      throw new Error("Failed to parse recipe data");
+      return NextResponse.json({
+        name: "",
+        time: 0,
+        servings: 1,
+        ingredients: [],
+        instructions: [],
+        error: "Failed to parse response",
+      });
     }
 
-    // Convertir valores null o undefined a valores por defecto
+    // Asegurar valores por defecto para evitar nulos
     recipeData.name = recipeData.name || "";
     recipeData.time = recipeData.time || 0;
     recipeData.servings = recipeData.servings || 1;
-    recipeData.ingredients = recipeData.ingredients || [];
-    recipeData.instructions = recipeData.instructions || [];
+    recipeData.ingredients = Array.isArray(recipeData.ingredients)
+      ? recipeData.ingredients
+      : [];
+    recipeData.instructions = Array.isArray(recipeData.instructions)
+      ? recipeData.instructions
+      : [];
 
-    // Añadir el idioma original a los datos
+    // Verificar y corregir ingredientes
+    recipeData.ingredients = recipeData.ingredients.map(
+      (ing: { name?: string; amount?: number | string; unit?: string }) => ({
+        name: ing.name || "",
+        amount: typeof ing.amount === "number" ? ing.amount : 0,
+        unit: ["g", "ml", "u"].includes(ing.unit as string) ? ing.unit : "u",
+      })
+    );
+
     recipeData.original_language = detectedLanguage;
 
     return NextResponse.json(recipeData);
   } catch (error) {
     console.error("Error parsing recipe:", error);
-    return NextResponse.json(
-      { error: "Failed to parse recipe" },
-      { status: 500 }
-    );
+    // Devolver datos por defecto en caso de error
+    return NextResponse.json({
+      name: "",
+      time: 0,
+      servings: 1,
+      ingredients: [],
+      instructions: [],
+      error: "Failed to process recipe",
+    });
   }
 }
