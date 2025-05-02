@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
+// Mantener Edge Function para límites de tiempo más generosos (hasta 60 segundos)
+export const runtime = "edge";
+// Configurar para maximizar el tiempo de respuesta permitido
+export const maxDuration = 60; // Máximo para Edge Functions en Vercel
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -17,101 +22,117 @@ export async function POST(request: Request) {
       );
     }
 
-    // Limitar longitud del texto para evitar tiempos de procesamiento excesivos
-    const limitedTranscription = transcription.slice(0, 3000);
+    // Mantener texto completo sin límites artificiales
+    const limitedTranscription = transcription;
 
-    // Prompt optimizado que funciona bien en ambos idiomas
+    // Prompt completo y detallado para máxima calidad
     const prompt = `
     ${
       detectedLanguage === "es"
         ? "Analiza esta transcripción de receta en español"
-        : "Analyze this recipe transcription in English"
+        : "Analyze this recipe transcript in English"
     }.
     
     Transcripción:
     ${limitedTranscription}
     
-    Extrae y devuelve SOLO un objeto JSON con la siguiente estructura:
+    Extrae la siguiente información y devuelve un objeto JSON:
+    1. El nombre de la receta
+    2. El tiempo de preparación en minutos (si se menciona)
+    3. El número de porciones o personas que sirve (si se menciona)
+    4. La lista completa de ingredientes con sus cantidades y unidades
+    5. Las instrucciones paso a paso
+    
+    Formato JSON requerido:
     {
-      "name": "nombre de la receta",
-      "time": número de minutos de preparación (o 0 si no se menciona),
-      "servings": número de porciones (o 1 si no se menciona),
+      "name": "nombre completo de la receta",
+      "time": número de minutos de preparación,
+      "servings": número de porciones,
       "ingredients": [
-        {"name": "nombre del ingrediente", "amount": cantidad numérica, "unit": "g"/"ml"/"u"}
+        {"name": "nombre del ingrediente", "amount": cantidad numérica, "unit": unidad}
       ],
       "instructions": ["paso 1", "paso 2", ...]
     }
     
-    Reglas importantes:
-    1. La unidad debe ser exactamente "g" (gramos), "ml" (mililitros) o "u" (unidades/piezas)
-    2. Detecta cantidades y conviértelas a números (ej. "dos tazas" → 2)
-    3. La respuesta debe estar en el idioma original (${
-      detectedLanguage === "es" ? "español" : "inglés"
-    })
-    4. Si no puedes determinar algún valor, usa valores por defecto (nombre vacío, 0 minutos, 1 porción)
-    5. Devuelve SOLO el JSON, sin explicaciones ni texto adicional`;
+    Reglas:
+    - La unidad de ingredientes debe ser "g" para gramos, "ml" para mililitros, o "u" para unidades/piezas
+    - Convierte todas las cantidades a números (ej. "dos tazas" → 2)
+    - Si un valor no se menciona explícitamente, usa los valores por defecto (nombre vacío, 0 minutos, 1 porción)
+    - La respuesta debe estar en el idioma original de la transcripción (${detectedLanguage})
+    - No agregues explicaciones ni comentarios, solo el JSON`;
 
     const response = await openai.chat.completions.create({
+      // Usar modelo potente pero relativamente rápido
       model: "gpt-4o-mini-2024-07-18",
       messages: [{ role: "user", content: prompt }],
       response_format: { type: "json_object" },
       temperature: 0.3,
-      max_tokens: 1500,
+      max_tokens: 2000,
     });
 
     const content = response.choices[0].message.content?.trim();
     if (!content) {
-      throw new Error("Empty response from OpenAI");
-    }
-
-    let recipeData;
-    try {
-      recipeData = JSON.parse(content);
-    } catch (parseError) {
-      console.error("JSON parse error:", parseError);
       return NextResponse.json({
         name: "",
         time: 0,
         servings: 1,
         ingredients: [],
         instructions: [],
-        error: "Failed to parse response",
+        original_language: detectedLanguage,
       });
     }
 
-    // Asegurar valores por defecto para evitar nulos
-    recipeData.name = recipeData.name || "";
-    recipeData.time = recipeData.time || 0;
-    recipeData.servings = recipeData.servings || 1;
-    recipeData.ingredients = Array.isArray(recipeData.ingredients)
-      ? recipeData.ingredients
-      : [];
-    recipeData.instructions = Array.isArray(recipeData.instructions)
-      ? recipeData.instructions
-      : [];
+    // Procesar la respuesta
+    let recipeData;
+    try {
+      recipeData = JSON.parse(content);
+    } catch (parseError) {
+      return NextResponse.json({
+        name: "",
+        time: 0,
+        servings: 1,
+        ingredients: [],
+        instructions: [],
+        original_language: detectedLanguage,
+      });
+    }
 
-    // Verificar y corregir ingredientes
-    recipeData.ingredients = recipeData.ingredients.map(
-      (ing: { name?: string; amount?: number | string; unit?: string }) => ({
-        name: ing.name || "",
-        amount: typeof ing.amount === "number" ? ing.amount : 0,
-        unit: ["g", "ml", "u"].includes(ing.unit as string) ? ing.unit : "u",
-      })
-    );
+    // Asegurar valores por defecto
+    const result = {
+      name: recipeData.name || "",
+      time: Number(recipeData.time) || 0,
+      servings: Number(recipeData.servings) || 1,
+      ingredients: Array.isArray(recipeData.ingredients)
+        ? recipeData.ingredients.map(
+            (ing: {
+              name?: string;
+              amount?: number | string;
+              unit?: string;
+            }) => ({
+              name: ing?.name || "",
+              amount: Number(ing?.amount) || 0,
+              unit: ["g", "ml", "u"].includes(String(ing?.unit || ""))
+                ? ing.unit
+                : "u",
+            })
+          )
+        : [],
+      instructions: Array.isArray(recipeData.instructions)
+        ? recipeData.instructions.map(String)
+        : [],
+      original_language: detectedLanguage,
+    };
 
-    recipeData.original_language = detectedLanguage;
-
-    return NextResponse.json(recipeData);
+    return NextResponse.json(result);
   } catch (error) {
-    console.error("Error parsing recipe:", error);
-    // Devolver datos por defecto en caso de error
+    // Siempre devolver un objeto válido en caso de error
     return NextResponse.json({
       name: "",
       time: 0,
       servings: 1,
       ingredients: [],
       instructions: [],
-      error: "Failed to process recipe",
+      original_language: "en",
     });
   }
 }
