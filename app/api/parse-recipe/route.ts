@@ -91,6 +91,13 @@ export async function POST(request: Request) {
       throw new Error("Failed to parse recipe data");
     }
 
+    // Convertir valores null a valores por defecto adecuados para React
+    recipeData.name = recipeData.name || "";
+    recipeData.time = recipeData.time || 0;
+    recipeData.servings = recipeData.servings || 1;
+    recipeData.ingredients = recipeData.ingredients || [];
+    recipeData.instructions = recipeData.instructions || [];
+
     // Si el idioma original era español, traducir de nuevo los datos textuales a español
     if (detectedLanguage === "es") {
       const fieldsToTranslate = [
@@ -107,7 +114,7 @@ export async function POST(request: Request) {
           
           "${recipeData[item.field]}"
           
-          Reply with ONLY the translated text.`;
+          Reply with ONLY the translated text, without quotes or any other formatting.`;
 
           const translationResponse = await openai.chat.completions.create({
             model:
@@ -134,11 +141,11 @@ export async function POST(request: Request) {
           const translationPrompt = `Translate the following ${
             item.field
           } from English to Spanish. 
-          Return a JSON array with only the translated texts in the same order:
+          Return a JSON array with only the translated texts in the same order.
+          IMPORTANT: Do not include any markdown formatting, code blocks, or backticks in your response.
+          Return ONLY the raw JSON array without any decoration or explanation.
           
-          ${JSON.stringify(arrayContent, null, 2)}
-          
-          The response must be only a valid JSON array that can be parsed.`;
+          ${JSON.stringify(arrayContent, null, 2)}`;
 
           const translationResponse = await openai.chat.completions.create({
             model:
@@ -150,7 +157,31 @@ export async function POST(request: Request) {
             translationResponse.choices[0].message.content?.trim();
           if (translatedContent) {
             try {
-              const translatedArray = JSON.parse(translatedContent);
+              // Limpiar posibles marcas de Markdown
+              let cleanedContent = translatedContent;
+
+              // Eliminar backticks y etiquetas de formato markdown si existen
+              if (cleanedContent.startsWith("```")) {
+                cleanedContent = cleanedContent
+                  .replace(/^```(json)?\n/, "") // Eliminar apertura de bloque de código
+                  .replace(/\n```$/, ""); // Eliminar cierre de bloque de código
+              }
+
+              // Asegurar que el contenido comienza con "[" y termina con "]"
+              if (
+                !cleanedContent.trim().startsWith("[") ||
+                !cleanedContent.trim().endsWith("]")
+              ) {
+                console.error(`Invalid JSON array format: ${cleanedContent}`);
+                throw new Error("Invalid JSON array format");
+              }
+
+              const translatedArray = JSON.parse(cleanedContent);
+
+              // Verificar que es un array
+              if (!Array.isArray(translatedArray)) {
+                throw new Error("Parsed result is not an array");
+              }
 
               // Actualizar los elementos con las traducciones
               if (item.subfield) {
@@ -172,6 +203,41 @@ export async function POST(request: Request) {
                 `Error parsing ${item.field} translation:`,
                 translationError
               );
+              console.error("Content that failed to parse:", translatedContent);
+
+              // Intento de recuperación para arrays simples con formato incorrecto
+              try {
+                if (item.field === "instructions") {
+                  // Intento de recuperación para instrucciones: dividir por líneas y limpiar
+                  const fallbackArray = translatedContent
+                    .replace(/^```(json)?\n/, "") // Quitar inicio de bloque código
+                    .replace(/\n```$/, "") // Quitar final de bloque código
+                    .replace(/\[\n/, "") // Quitar apertura de array
+                    .replace(/\n\]$/, "") // Quitar cierre de array
+                    .split("\n") // Dividir por líneas
+                    .map((line) => line.trim()) // Limpiar espacios
+                    .filter((line) => line) // Eliminar líneas vacías
+                    .map((line) => {
+                      // Limpiar comillas y comas
+                      return line
+                        .replace(/^"/, "") // Quitar comillas de apertura
+                        .replace(/",$/, "") // Quitar comillas de cierre con coma
+                        .replace(/"$/, "") // Quitar comillas de cierre sin coma
+                        .trim(); // Limpiar espacios
+                    })
+                    .filter((line) => line); // Filtrar líneas vacías otra vez
+
+                  if (fallbackArray.length > 0) {
+                    console.log(
+                      "Recovered instructions using fallback method:",
+                      fallbackArray
+                    );
+                    recipeData[item.field] = fallbackArray;
+                  }
+                }
+              } catch (fallbackError) {
+                console.error("Fallback parsing also failed:", fallbackError);
+              }
             }
           }
         }

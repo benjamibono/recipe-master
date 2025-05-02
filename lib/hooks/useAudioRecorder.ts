@@ -50,8 +50,8 @@ export function useAudioRecorder() {
     }
   }, []);
 
-  const stopRecording =
-    useCallback(async (): Promise<RecipeAudioData | null> => {
+  const stopRecording = useCallback(
+    async (language: string = "auto"): Promise<RecipeAudioData | null> => {
       if (!mediaRecorderRef.current || !state.isRecording) {
         return null;
       }
@@ -65,7 +65,10 @@ export function useAudioRecorder() {
               type: mediaRecorderRef.current?.mimeType || "audio/webm",
             });
 
-            const { recipeData } = await generateTextFromAudio(audioBlob);
+            const { recipeData } = await generateTextFromAudio(
+              audioBlob,
+              language
+            );
             resolve(recipeData || null);
           } catch (error) {
             console.error("Error processing audio:", error);
@@ -87,7 +90,9 @@ export function useAudioRecorder() {
           resolve(null);
         }
       });
-    }, [state.isRecording]);
+    },
+    [state.isRecording]
+  );
 
   const handleRecordingError = (error: unknown) => {
     console.error("Error accessing microphone:", error);

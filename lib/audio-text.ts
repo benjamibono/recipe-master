@@ -73,13 +73,19 @@ export async function parseTranscribedRecipe(
   }
 }
 
-export async function generateTextFromAudio(audioBlob: Blob): Promise<{
+export async function generateTextFromAudio(
+  audioBlob: Blob,
+  language: string = "auto"
+): Promise<{
   text: string;
   confidence: number;
   recipeData?: RecipeAudioData;
 }> {
   try {
-    const { text, detected_language } = await transcribeAudio(audioBlob);
+    const { text, detected_language } = await transcribeAudio(
+      audioBlob,
+      language
+    );
     const recipeData = await parseTranscribedRecipe(text, detected_language);
 
     return {

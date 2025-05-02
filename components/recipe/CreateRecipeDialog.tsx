@@ -263,21 +263,21 @@ export function CreateRecipeDialog({
     if (isRecording) {
       setIsProcessingAudio(true);
       try {
-        const recipeData = await stopRecording();
+        const recipeData = await stopRecording(language);
         if (recipeData) {
           mergeAudioData(recipeData);
           setLazyDialogOpen(false);
-          toast.success("Audio recorded and processed successfully!");
+          toast.success(t("recipes.audio_recorded_success"));
         }
       } catch (error) {
         console.error("Error processing audio:", error);
-        toast.error("Failed to process audio");
+        toast.error(t("recipes.audio_process_failed"));
       } finally {
         setIsProcessingAudio(false);
       }
     } else {
       await startRecording();
-      toast.info("Recording started...");
+      toast.info(t("recipes.recording_started"));
     }
   };
 
@@ -300,7 +300,10 @@ export function CreateRecipeDialog({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ transcription: lazyText }),
+        body: JSON.stringify({
+          transcription: lazyText,
+          language: language,
+        }),
       });
 
       if (!response.ok) {
