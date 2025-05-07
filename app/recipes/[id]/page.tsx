@@ -1,5 +1,6 @@
 "use client";
 
+import { Recipe } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -15,7 +16,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
-import { Recipe } from "@/lib/supabase";
 import { toast } from "sonner";
 import { EditRecipeDialog } from "@/components/recipe/EditRecipeDialog";
 import { ShareRecipeDialog } from "@/components/recipe/ShareRecipeDialog";
@@ -28,34 +28,111 @@ import NutritionPieChart from "@/components/recipe/NutritionPieChart";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { TranslationIndicator } from "@/components/recipe/TranslationIndicator";
 import { useRecipeTranslation } from "@/lib/hooks/useRecipeTranslation";
+import { getNormalizedNutritionKey } from "@/lib/string-utils";
+import { useAuthContext } from "@/app/contexts/AuthContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
- * Normaliza las claves de nutrición para que puedan usarse en las traducciones.
+ * Página de detalle de receta
  */
-function getNormalizedNutritionKey(key: string): string {
-  return key
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s]/g, ""); // Eliminar caracteres especiales
-}
-
 export default function RecipeDetailPage() {
   const params = useParams();
+  const recipeId = params.id as string;
   const router = useRouter();
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { user } = useAuthContext();
+  const { t } = useLanguage();
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(true);
   const [isInstructionsOpen, setIsInstructionsOpen] = useState(true);
   const [isMacrosOpen, setIsMacrosOpen] = useState(true);
-  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
-  const [macros, setMacros] = useState<string | null>(null);
   const [loadingMacros, setLoadingMacros] = useState(false);
   const [currentServings, setCurrentServings] = useState<number>(1);
   const [originalServings, setOriginalServings] = useState<number>(0);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { t } = useLanguage();
+
+  // Consulta para obtener los datos del perfil
+  const { data: profile } = useQuery({
+    queryKey: ["auth", "profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 60, // 1 hora
+  });
+
+  // Función para inicializar configuración después de cargar la receta
+  const onRecipeLoaded = (data: Recipe) => {
+    setCurrentServings(data.servings);
+    setOriginalServings(data.servings);
+
+    // Si es una receta de cocina y tiene ingredientes, comprobar los macros
+    if (
+      data.type === "cooking" &&
+      data.ingredients.length > 0 &&
+      (!data.macros_data || !data.macros_data.includes(":"))
+    ) {
+      fetchNutritionalInfo(data);
+    }
+  };
+
+  // Consulta para obtener los datos de la receta
+  const { data: recipe, isLoading } = useQuery<Recipe>({
+    queryKey: ["recipe", recipeId],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
+
+      const { data, error } = await supabase
+        .from("recipes")
+        .select("*")
+        .eq("id", recipeId)
+        .single();
+
+      if (error) throw error;
+      if (!data) throw new Error("Recipe not found");
+
+      return data as Recipe;
+    },
+    enabled: !!user?.id && !!recipeId,
+    staleTime: 1000 * 60 * 5, // 5 minutos
+  });
+
+  // Efecto para configurar la receta después de cargarla
+  useEffect(() => {
+    if (recipe) {
+      onRecipeLoaded(recipe);
+    }
+  }, [recipe]);
+
+  // Manejo de errores de carga
+  useEffect(() => {
+    if (!user && !isLoading) {
+      toast.error("Please log in to view this recipe");
+      router.push("/auth/login");
+    }
+  }, [user, isLoading, router]);
+
+  // Consulta para obtener macros (solo cuando se necesita)
+  const { data: macros } = useQuery({
+    queryKey: ["recipe", recipeId, "macros"],
+    queryFn: async () => {
+      if (!recipe) return null;
+      return recipe.macros_data || null;
+    },
+    enabled:
+      !!recipe &&
+      recipe.type === "cooking" &&
+      !!recipe.macros_data &&
+      recipe.macros_data.includes(":"),
+  });
 
   // Hook para gestionar la traducción de la receta
   const {
@@ -64,95 +141,13 @@ export default function RecipeDetailPage() {
     isTranslating,
     needsTranslation,
     toggleTranslation,
-  } = useRecipeTranslation(recipe);
-
-  useEffect(() => {
-    async function getCurrentUsername() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", user.id)
-          .single();
-
-        if (profile) {
-          setCurrentUsername(profile.username);
-        }
-      }
-    }
-    getCurrentUsername();
-  }, []);
-
-  useEffect(() => {
-    async function getCurrentUserId() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-      }
-    }
-    getCurrentUserId();
-  }, []);
-
-  useEffect(() => {
-    async function loadRecipe() {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        if (!user) {
-          toast.error("Please log in to view this recipe");
-          router.push("/auth/login");
-          return;
-        }
-
-        const { data, error } = await supabase
-          .from("recipes")
-          .select("*")
-          .eq("id", params.id)
-          .single();
-
-        if (error) throw error;
-        if (!data) {
-          toast.error("Recipe not found");
-          router.push("/recipes");
-          return;
-        }
-
-        setRecipe(data);
-        setCurrentServings(data.servings);
-        setOriginalServings(data.servings);
-
-        // Load macros separately in the background if this is a cooking recipe
-        if (data.type === "cooking" && data.ingredients.length > 0) {
-          // If macros are already stored and valid, use them immediately
-          if (data.macros_data && data.macros_data.includes(":")) {
-            setMacros(data.macros_data);
-          } else {
-            // Set loading state and fetch macros in the background
-            setLoadingMacros(true);
-            fetchNutritionalInfo(data);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading recipe:", error);
-        toast.error("Failed to load recipe");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadRecipe();
-  }, [params.id, router]);
+  } = useRecipeTranslation(recipe || null);
 
   // Separate function to fetch nutritional information asynchronously
   const fetchNutritionalInfo = async (recipeData: Recipe) => {
     try {
+      setLoadingMacros(true);
+
       const response = await fetch("/api/analyze-macros", {
         method: "POST",
         headers: {
@@ -172,7 +167,8 @@ export default function RecipeDetailPage() {
         throw new Error("Invalid macros data format");
       }
 
-      setMacros(macros);
+      // Actualizar la caché de React Query con los nuevos macros
+      queryClient.setQueryData(["recipe", recipeId, "macros"], macros);
 
       // Store the macros in the database as JSONB
       const { error: updateError } = await supabase
@@ -184,11 +180,16 @@ export default function RecipeDetailPage() {
 
       if (updateError) {
         console.error("Error storing macros:", updateError);
-        // Don't show error toast here as the user can still see the macros
+      } else {
+        // Actualizar la caché de la receta con los nuevos macros
+        queryClient.setQueryData<Recipe | undefined>(
+          ["recipe", recipeId],
+          (oldData) =>
+            oldData ? { ...oldData, macros_data: macros } : undefined
+        );
       }
     } catch (error) {
       console.error("Error fetching macros:", error);
-      // Only show error toast if we don't have any macros data
       if (!recipeData.macros_data) {
         toast.error("Failed to load nutritional information");
       }
@@ -209,6 +210,10 @@ export default function RecipeDetailPage() {
 
       if (error) throw error;
 
+      // Invalidar la caché después de eliminar
+      queryClient.removeQueries({ queryKey: ["recipe", recipeId] });
+      queryClient.invalidateQueries({ queryKey: ["recipes"] });
+
       toast.success("Recipe deleted successfully");
       router.push("/recipes");
     } catch (error) {
@@ -225,7 +230,7 @@ export default function RecipeDetailPage() {
     return Math.round((original * currentServings) / originalServings);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container py-8">
         <div className="flex flex-col gap-8">
@@ -278,7 +283,7 @@ export default function RecipeDetailPage() {
             {t("common.back")}
           </Button>
           <div className="flex items-center gap-3">
-            {recipe.user_id === currentUserId && (
+            {recipe.user_id === user?.id && (
               <>
                 <EditRecipeDialog recipe={recipe} />
                 <ShareRecipeDialog recipe={recipe} />
@@ -322,7 +327,7 @@ export default function RecipeDetailPage() {
               )}
 
               {recipe.creator_name &&
-                recipe.creator_name !== currentUsername && (
+                recipe.creator_name !== profile?.username && (
                   <p className="text-gray-600 mb-2">
                     {t("recipes.by")} {recipe.creator_name}
                   </p>

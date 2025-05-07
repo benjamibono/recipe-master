@@ -30,8 +30,8 @@
     "select": "Seleccionar"
   },
   "home": {
-    "welcome": "Bienvenido a Recipe Master",
-    "welcome_back": "Bienvenido de nuevo",
+    "welcome": "Bienvenido/a a Recipe Master",
+    "welcome_back": "Bienvenido/a de nuevo",
     "description": "Tu asistente culinario para todas tus necesidades en la cocina",
     "get_started": "Comenzar",
     "learn_more": "Más información",
@@ -66,7 +66,7 @@
     "enter_username_or_email": "Ingresa tu usuario o correo electrónico",
     "enter_password": "Ingresa tu contraseña",
     "enter_email": "Ingresa tu correo electrónico",
-    "welcome_back": "Bienvenido de nuevo",
+    "welcome_back": "Bienvenido/a de nuevo",
     "new_to_app": "¿Nuevo en Recipe Master?",
     "create_account": "Crear una cuenta",
     "loginRequired": "Por favor inicia sesión para ver esta receta"

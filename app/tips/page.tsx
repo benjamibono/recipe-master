@@ -4,12 +4,12 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 
-interface Tip {
+export interface Tip {
   question: string;
   answer: string;
 }
 
-const englishTips: Tip[] = [
+export const englishTips: Tip[] = [
   {
     question: "How to make perfect hard-boiled eggs?",
     answer:
@@ -112,7 +112,7 @@ const englishTips: Tip[] = [
   },
 ];
 
-const spanishTips: Tip[] = [
+export const spanishTips: Tip[] = [
   {
     question: "¿Cómo hacer huevos duros perfectos?",
     answer:

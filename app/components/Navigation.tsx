@@ -3,7 +3,7 @@
 import { useState, createContext, useContext } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Compass, ShoppingCart, Menu } from "lucide-react";
+import { Home, Compass, ShoppingCart, Menu, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Crear un contexto para el sidebar
@@ -37,6 +37,7 @@ export default function Navigation() {
 
   const mainLinks = [
     { href: "/", icon: Home, label: "Home" },
+    { href: "/recipes", icon: BookOpen, label: "Recipes" },
     { href: "/explore", icon: Compass, label: "Explore" },
     { href: "/shopping", icon: ShoppingCart, label: "Shopping" },
   ];
@@ -45,7 +46,7 @@ export default function Navigation() {
     <nav className="sticky top-0 z-40 bg-white border-b lg:border-none">
       <div className="flex items-center h-16">
         {/* Iconos para móvil */}
-        <div className="grid grid-cols-4 w-full px-4 items-center lg:hidden">
+        <div className="grid grid-cols-5 w-full px-4 items-center lg:hidden">
           {/* Botón de hamburguesa */}
           <button
             className="flex justify-center items-center"
