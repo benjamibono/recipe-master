@@ -27,7 +27,8 @@
     "back": "Back",
     "refresh": "Refresh",
     "deleting": "Deleting...",
-    "select": "Select"
+    "select": "Select",
+    "add": "Add"
   },
   "home": {
     "welcome": "Welcome to Recipe Master",
@@ -38,7 +39,11 @@
     "recipes_description": "Explore and manage your favorite cooking recipes",
     "cleaning_description": "Discover household cleaning tips and recipes",
     "tips_description": "Learn helpful cooking tips and kitchen hacks",
-    "meat_temperatures_description": "Reference guide for safe meat cooking temperatures"
+    "meat_temperatures_description": "Reference guide for safe meat cooking temperatures",
+    "tips_rotation_description": "Culinary tips that change every minute",
+    "shopping_description": "Manage your shopping list intelligently",
+    "shopping_detail": "Create your shopping list automatically from your favorite recipes. Add, edit and organize ingredients to make your shopping efficient.",
+    "cooking_temperatures": "Cooking Temperatures"
   },
   "auth": {
     "email": "Email",
@@ -70,7 +75,15 @@
     "new_to_app": "New to Recipe Master?",
     "create_account": "Create an Account",
     "loginRequired": "Please log in to view this recipe",
-    "email_changed_login_required": "Email updated. Please log in with your new email address."
+    "email_changed_login_required": "Email updated. Please login with your new email address.",
+    "login_required": "Please login to access settings",
+    "confirming": "Confirming...",
+    "invalid_link": "Invalid confirmation link",
+    "email_verification": "Email Verification",
+    "email_verification_failed": "Email verification failed",
+    "email_verification_success": "Email verified successfully. Redirecting...",
+    "error": "Error",
+    "unknown_verification_type": "Unknown verification type"
   },
   "search": {
     "search_recipes": "Search Recipes",
@@ -236,6 +249,8 @@
     "delete_account": "Delete my account",
     "deleting_account": "Deleting account...",
     "delete_account_confirm": "Are you sure you want to delete your account? This action cannot be undone.",
+    "delete_account_question": "Are you sure you want to delete your account?",
+    "delete_account_warning_final": "This action cannot be undone.",
     "delete_account_warning": "By deleting your account, all your data will be permanently erased, including your recipes and personal settings.",
     "delete_account_failed": "Failed to delete account"
   },

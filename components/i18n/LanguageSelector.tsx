@@ -12,8 +12,8 @@ export const LanguageSelector: React.FC = () => {
       className="flex items-center justify-center p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       aria-label={
         language === "es"
-          ? t("common.switch_to_english", "Cambiar a inglés")
-          : t("common.switch_to_spanish", "Switch to Spanish")
+          ? t("common.switch_to_english")
+          : t("common.switch_to_spanish")
       }
     >
       <span className="text-sm font-medium">

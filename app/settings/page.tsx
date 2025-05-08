@@ -9,11 +9,20 @@ import { toast } from "sonner";
 import { useAuthContext } from "@/app/contexts/AuthContext";
 import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
 import { useLanguage } from "../contexts/LanguageContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function SettingsPage() {
   const { t } = useLanguage();
   const { user, profile } = useAuthContext();
   const [loading, setLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Redirigir si no está autenticado
   useAuthRedirect({
@@ -230,50 +239,42 @@ export default function SettingsPage() {
 
   // Eliminar cuenta
   const deleteAccount = async () => {
-    if (
-      confirm(
-        t(
-          "settings.delete_account_confirm",
-          "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer."
-        )
-      )
-    ) {
-      setLoading(true);
-      try {
-        // Eliminar perfil primero (gracias a la cascada en la base de datos, esto también eliminaría datos relacionados)
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .delete()
-          .eq("id", user?.id);
+    setLoading(true);
+    try {
+      // Eliminar perfil primero (gracias a la cascada en la base de datos, esto también eliminaría datos relacionados)
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", user?.id);
 
-        if (profileError) throw profileError;
+      if (profileError) throw profileError;
 
-        // Marcar el usuario como eliminado en los metadatos
-        // Esto es porque los clientes no pueden eliminar directamente usuarios de auth
-        const { error: userError } = await supabase.auth.updateUser({
-          data: {
-            deleted: true,
-            deleted_at: new Date().toISOString(),
-          },
-        });
+      // Marcar el usuario como eliminado en los metadatos
+      // Esto es porque los clientes no pueden eliminar directamente usuarios de auth
+      const { error: userError } = await supabase.auth.updateUser({
+        data: {
+          deleted: true,
+          deleted_at: new Date().toISOString(),
+        },
+      });
 
-        if (userError) throw userError;
+      if (userError) throw userError;
 
-        // Cerrar sesión
-        await supabase.auth.signOut();
+      // Cerrar sesión
+      await supabase.auth.signOut();
 
-        // Redirigir a la página de despedida
-        window.location.href = "/goodbye";
-      } catch (error) {
-        console.error("Error eliminando cuenta:", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : t("settings.delete_account_failed", "Error al eliminar la cuenta")
-        );
-      } finally {
-        setLoading(false);
-      }
+      // Redirigir a la página de despedida
+      window.location.href = "/goodbye";
+    } catch (error) {
+      console.error("Error eliminando cuenta:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("settings.delete_account_failed", "Error al eliminar la cuenta")
+      );
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
     }
   };
 
@@ -431,7 +432,7 @@ export default function SettingsPage() {
         </p>
         <Button
           variant="destructive"
-          onClick={deleteAccount}
+          onClick={() => setDeleteDialogOpen(true)}
           disabled={loading}
           className="w-full"
         >
@@ -440,6 +441,51 @@ export default function SettingsPage() {
             : t("settings.delete_account", "Eliminar mi cuenta")}
         </Button>
       </div>
+
+      {/* Diálogo de confirmación para eliminar cuenta */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {t("settings.delete_account", "Eliminar mi cuenta")}
+            </DialogTitle>
+            <DialogDescription className="space-y-2">
+              <p>
+                {t(
+                  "settings.delete_account_question",
+                  "¿Estás seguro de que deseas eliminar tu cuenta?"
+                )}
+              </p>
+              <p className="font-semibold">
+                {t(
+                  "settings.delete_account_warning_final",
+                  "Esta acción no se puede deshacer."
+                )}
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-start gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={loading}
+            >
+              {t("common.cancel", "Cancelar")}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={deleteAccount}
+              disabled={loading}
+            >
+              {loading
+                ? t("settings.deleting_account", "Eliminando cuenta...")
+                : t("settings.delete_account", "Eliminar mi cuenta")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

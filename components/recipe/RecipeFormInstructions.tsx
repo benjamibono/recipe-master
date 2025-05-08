@@ -90,7 +90,7 @@ export function RecipeFormInstructions({
           disabled={!newInstruction.trim()}
           className="h-10 bg-black hover:bg-black/90"
         >
-          {language === "es" ? "Añadir" : "Add"}
+          {t("common.add")}
         </Button>
       </div>
 

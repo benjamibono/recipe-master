@@ -27,7 +27,8 @@
     "back": "Volver",
     "refresh": "Actualizar",
     "deleting": "Eliminando...",
-    "select": "Seleccionar"
+    "select": "Seleccionar",
+    "add": "Añadir"
   },
   "home": {
     "welcome": "Bienvenido/a a Recipe Master",
@@ -38,7 +39,11 @@
     "recipes_description": "Explora y gestiona tus recetas de cocina favoritas",
     "cleaning_description": "Descubre consejos y recetas de limpieza para el hogar",
     "tips_description": "Aprende consejos útiles de cocina y trucos para la cocina",
-    "meat_temperatures_description": "Guía de referencia para temperaturas seguras de cocción de carnes"
+    "meat_temperatures_description": "Guía de referencia para temperaturas seguras de cocción de carnes",
+    "tips_rotation_description": "Consejos culinarios que cambian cada minuto",
+    "shopping_description": "Gestiona tu lista de compras de manera inteligente",
+    "shopping_detail": "Crea tu lista de compras de forma automática a partir de tus recetas favoritas. Añade, edita y organiza ingredientes para hacer tus compras de manera eficiente.",
+    "cooking_temperatures": "Temperaturas de cocción"
   },
   "auth": {
     "email": "Correo electrónico",
@@ -57,9 +62,16 @@
     "invalid_credentials": "Usuario/correo o contraseña incorrectos",
     "reset_password": "Restablecer contraseña",
     "reset_email_sent": "Instrucciones para restablecer la contraseña enviadas a tu correo",
-    "reset_email_failed": "Error al enviar el correo de restablecimiento",
-    "reset_email_sent_message": "Se han enviado instrucciones para restablecer la contraseña a tu correo electrónico.",
-    "check_inbox": "Por favor revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.",
+    "reset_email_failed": "Error al enviar correo de restablecimiento",
+    "email_changed_login_required": "Email actualizado. Por favor, inicia sesión con tu nuevo correo electrónico.",
+    "login_required": "Inicia sesión para acceder a la configuración",
+    "confirming": "Confirmando...",
+    "invalid_link": "Enlace de confirmación inválido",
+    "email_verification": "Verificación de email",
+    "email_verification_failed": "La verificación del email falló",
+    "email_verification_success": "Email verificado correctamente. Redirigiendo...",
+    "error": "Error",
+    "unknown_verification_type": "Tipo de verificación desconocido",
     "sending": "Enviando...",
     "send_reset_instructions": "Enviar instrucciones de restablecimiento",
     "username_or_email": "Usuario o correo electrónico",
@@ -68,9 +80,7 @@
     "enter_email": "Ingresa tu correo electrónico",
     "welcome_back": "Bienvenido/a de nuevo",
     "new_to_app": "¿Nuevo en Recipe Master?",
-    "create_account": "Crear una cuenta",
-    "loginRequired": "Por favor inicia sesión para ver esta receta",
-    "email_changed_login_required": "Email actualizado. Por favor, inicia sesión con tu nuevo correo electrónico."
+    "create_account": "Crear una cuenta"
   },
   "search": {
     "search_recipes": "Buscar recetas",
@@ -236,6 +246,8 @@
     "delete_account": "Eliminar mi cuenta",
     "deleting_account": "Eliminando cuenta...",
     "delete_account_confirm": "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+    "delete_account_question": "¿Estás seguro de que deseas eliminar tu cuenta?",
+    "delete_account_warning_final": "Esta acción no se puede deshacer.",
     "delete_account_warning": "Al eliminar tu cuenta, se borrarán permanentemente todos tus datos, incluidas tus recetas y configuraciones personales.",
     "delete_account_failed": "Error al eliminar la cuenta"
   },

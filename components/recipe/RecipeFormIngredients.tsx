@@ -152,7 +152,7 @@ export function RecipeFormIngredients({
           disabled={!newIngredient.name.trim()}
           className="h-10 flex-1 bg-black hover:bg-black/90"
         >
-          {language === "es" ? "Añadir" : "Add"}
+          {t("common.add")}
         </Button>
       </div>
 

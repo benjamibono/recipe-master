@@ -213,9 +213,7 @@ export default function Home() {
                   {t("tips.title")}
                 </CardTitle>
                 <CardDescription>
-                  {language === "es"
-                    ? "Consejos culinarios que cambian cada minuto"
-                    : "Culinary tips that change every minute"}
+                  {t("home.tips_rotation_description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -246,17 +244,13 @@ export default function Home() {
                   {t("shopping.shopping_list")}
                 </CardTitle>
                 <CardDescription>
-                  {language === "es"
-                    ? "Gestiona tu lista de compras de manera inteligente"
-                    : "Manage your shopping list intelligently"}
+                  {t("home.shopping_description")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">
-                    {language === "es"
-                      ? "Crea tu lista de compras de forma automática a partir de tus recetas favoritas. Añade, edita y organiza ingredientes para hacer tus compras de manera eficiente."
-                      : "Create your shopping list automatically from your favorite recipes. Add, edit and organize ingredients to make your shopping efficient."}
+                    {t("home.shopping_detail")}
                   </p>
                 </div>
                 <div className="mt-4 text-right">
@@ -276,9 +270,7 @@ export default function Home() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Thermometer className="h-5 w-5" />
-                {language === "es"
-                  ? "Temperaturas de cocción"
-                  : "Cooking Temperatures"}
+                {t("home.cooking_temperatures")}
               </CardTitle>
               <CardDescription>{t("meatTemps.subtitle")}</CardDescription>
             </CardHeader>
