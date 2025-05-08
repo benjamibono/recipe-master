@@ -110,7 +110,7 @@ export default function RecipeDetailPage() {
     if (recipe) {
       onRecipeLoaded(recipe);
     }
-  }, [recipe]);
+  }, [recipe, onRecipeLoaded]);
 
   // Manejo de errores de carga
   useEffect(() => {

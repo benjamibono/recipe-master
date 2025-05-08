@@ -20,6 +20,7 @@ import {
   ImageIcon,
   BookOpen,
   Flame,
+  Thermometer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -31,6 +32,32 @@ export default function Home() {
   const { t, language } = useLanguage();
   const { user, isAuthenticated } = useAuthContext();
   const [currentTipIndex, setCurrentTipIndex] = useState(0);
+  const [recipeLimit, setRecipeLimit] = useState(3);
+
+  // Actualizar el límite de recetas según el ancho de la pantalla
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= 1024) {
+        // lg breakpoint (3 columnas)
+        setRecipeLimit(6);
+      } else if (window.innerWidth >= 640) {
+        // sm breakpoint (2 columnas)
+        setRecipeLimit(4);
+      } else {
+        // 1 columna
+        setRecipeLimit(3);
+      }
+    }
+
+    // Inicializar
+    handleResize();
+
+    // Escuchar cambios de tamaño de ventana
+    window.addEventListener("resize", handleResize);
+
+    // Limpiar
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Seleccionar la lista de consejos según el idioma
   const tips = language === "es" ? spanishTips : englishTips;
@@ -63,7 +90,7 @@ export default function Home() {
 
   // Consulta para recetas recientes
   const { data: recentRecipes = [], isLoading: recipesLoading } = useQuery({
-    queryKey: ["recipes", "recent", user?.id],
+    queryKey: ["recipes", "recent", user?.id, recipeLimit],
     queryFn: async () => {
       if (!user?.id) return [];
       const { data, error } = await supabase
@@ -71,7 +98,7 @@ export default function Home() {
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(recipeLimit);
       if (error) throw error;
       return data || [];
     },
@@ -169,7 +196,7 @@ export default function Home() {
               <div className="mt-4 text-right">
                 <Link href="/recipes">
                   <Button variant="outline" size="sm" className="gap-1">
-                    <span className="hidden sm:inline">{t("common.more")}</span>
+                    <span className="">{t("common.more")}</span>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -203,9 +230,7 @@ export default function Home() {
                 <div className="mt-4 text-right">
                   <Link href="/tips">
                     <Button variant="outline" size="sm" className="gap-1">
-                      <span className="hidden sm:inline">
-                        {t("common.more")}
-                      </span>
+                      <span className="">{t("common.more")}</span>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
@@ -237,9 +262,7 @@ export default function Home() {
                 <div className="mt-4 text-right">
                   <Link href="/shopping">
                     <Button variant="outline" size="sm" className="gap-1">
-                      <span className="hidden sm:inline">
-                        {t("common.more")}
-                      </span>
+                      <span className="">{t("common.more")}</span>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </Link>
@@ -247,6 +270,87 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Temperaturas de carnes */}
+          <Card className="col-span-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Thermometer className="h-5 w-5" />
+                {language === "es"
+                  ? "Temperaturas de cocción"
+                  : "Cooking Temperatures"}
+              </CardTitle>
+              <CardDescription>{t("meatTemps.subtitle")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-5 gap-2 mb-4">
+                <div className="text-center">
+                  <div className="w-full h-2 bg-red-500 rounded mb-1"></div>
+                  <span className="text-xs text-gray-600">
+                    {t("meatTemps.rare")}
+                  </span>
+                </div>
+                <div className="text-center">
+                  <div className="w-full h-2 bg-pink-500 rounded mb-1"></div>
+                  <span className="text-xs text-gray-600">
+                    {t("meatTemps.medium_rare")}
+                  </span>
+                </div>
+                <div className="text-center">
+                  <div className="w-full h-2 bg-orange-500 rounded mb-1"></div>
+                  <span className="text-xs text-gray-600">
+                    {t("meatTemps.medium")}
+                  </span>
+                </div>
+                <div className="text-center">
+                  <div className="w-full h-2 bg-amber-500 rounded mb-1"></div>
+                  <span className="text-xs text-gray-600">
+                    {t("meatTemps.medium_well")}
+                  </span>
+                </div>
+                <div className="text-center">
+                  <div className="w-full h-2 bg-yellow-500 rounded mb-1"></div>
+                  <span className="text-xs text-gray-600">
+                    {t("meatTemps.well_done")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center border-b pb-2 mb-2">
+                <span className="font-medium text-sm">
+                  {t("meatTemps.beef")}
+                </span>
+                <div className="flex items-center space-x-1">
+                  <span className="text-red-700 text-xs font-semibold">
+                    49°C
+                  </span>
+                  <span>-</span>
+                  <span className="text-yellow-700 text-xs font-semibold">
+                    71°C
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center border-b pb-2 mb-2">
+                <span className="font-medium text-sm">
+                  {t("meatTemps.chicken_turkey")}
+                </span>
+                <div className="flex items-center">
+                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">
+                    74°C
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 text-right">
+                <Link href="/meat-temperatures">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <span className="inline">{t("common.more")}</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
