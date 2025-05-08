@@ -117,16 +117,26 @@ export default function SettingsPage() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        email: formData.email,
-      });
+      const { error } = await supabase.auth.updateUser(
+        { email: formData.email },
+        {
+          emailRedirectTo: `${
+            window.location.origin
+          }/auth/login?message=${encodeURIComponent(
+            t(
+              "auth.email_changed_login_required",
+              "Email actualizado. Por favor, inicia sesión con tu nuevo correo electrónico."
+            )
+          )}`,
+        }
+      );
 
       if (error) throw error;
 
       toast.success(
         t(
-          "settings.email_verification_sent",
-          "Se ha enviado un correo de verificación al nuevo email"
+          "settings.email_verification_sent_logout",
+          "Se ha enviado un correo de verificación a tu nueva dirección de email. Después de confirmar, tu sesión se cerrará y tendrás que iniciar sesión nuevamente con tu nuevo correo."
         )
       );
     } catch (error) {

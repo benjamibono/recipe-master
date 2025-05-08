@@ -69,7 +69,8 @@
     "welcome_back": "Welcome Back",
     "new_to_app": "New to Recipe Master?",
     "create_account": "Create an Account",
-    "loginRequired": "Please log in to view this recipe"
+    "loginRequired": "Please log in to view this recipe",
+    "email_changed_login_required": "Email updated. Please log in with your new email address."
   },
   "search": {
     "search_recipes": "Search Recipes",
@@ -218,7 +219,7 @@
     "username": "Username",
     "email": "Email",
     "email_address": "Email address",
-    "email_verification_note": "You will receive a verification email if you change your email.",
+    "email_verification_note": "You will receive a verification email if you change your email. Your session will be closed and you will need to log in again.",
     "password": "Password",
     "current_password": "Current password",
     "new_password": "New password",
@@ -226,6 +227,7 @@
     "update_password": "Update password",
     "username_updated": "Username updated successfully.",
     "email_verification_sent": "A verification email has been sent to your new email address.",
+    "email_verification_sent_logout": "A verification email has been sent to your new email address. After confirming, your session will be closed and you will need to log in again with your new email.",
     "password_updated": "Password updated successfully.",
     "update_failed": "Failed to update information."
   },
