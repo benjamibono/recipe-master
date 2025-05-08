@@ -228,6 +228,55 @@ export default function SettingsPage() {
     }
   };
 
+  // Eliminar cuenta
+  const deleteAccount = async () => {
+    if (
+      confirm(
+        t(
+          "settings.delete_account_confirm",
+          "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer."
+        )
+      )
+    ) {
+      setLoading(true);
+      try {
+        // Eliminar perfil primero (gracias a la cascada en la base de datos, esto también eliminaría datos relacionados)
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", user?.id);
+
+        if (profileError) throw profileError;
+
+        // Marcar el usuario como eliminado en los metadatos
+        // Esto es porque los clientes no pueden eliminar directamente usuarios de auth
+        const { error: userError } = await supabase.auth.updateUser({
+          data: {
+            deleted: true,
+            deleted_at: new Date().toISOString(),
+          },
+        });
+
+        if (userError) throw userError;
+
+        // Cerrar sesión
+        await supabase.auth.signOut();
+
+        // Redirigir a la página de despedida
+        window.location.href = "/goodbye";
+      } catch (error) {
+        console.error("Error eliminando cuenta:", error);
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : t("settings.delete_account_failed", "Error al eliminar la cuenta")
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   if (!user || !profile) {
     return <div className="container py-8">Cargando...</div>;
   }
@@ -249,22 +298,21 @@ export default function SettingsPage() {
             <Label htmlFor="username">
               {t("settings.username", "Nombre de usuario")}
             </Label>
-            <div className="flex gap-2">
-              <Input
-                id="username"
-                value={formData.username}
-                onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
-                }
-                className="flex-1"
-              />
-              <Button
-                onClick={updateUsername}
-                disabled={loading || formData.username === profile.username}
-              >
-                {t("common.update", "Actualizar")}
-              </Button>
-            </div>
+            <Input
+              id="username"
+              value={formData.username}
+              onChange={(e) =>
+                setFormData({ ...formData, username: e.target.value })
+              }
+              className="w-full"
+            />
+            <Button
+              onClick={updateUsername}
+              disabled={loading || formData.username === profile.username}
+              className="w-full mt-2"
+            >
+              {t("settings.update_username", "Actualizar nombre de usuario")}
+            </Button>
           </div>
         </div>
       </div>
@@ -280,23 +328,22 @@ export default function SettingsPage() {
             <Label htmlFor="email">
               {t("settings.email_address", "Dirección de correo")}
             </Label>
-            <div className="flex gap-2">
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                className="flex-1"
-              />
-              <Button
-                onClick={updateEmail}
-                disabled={loading || formData.email === user.email}
-              >
-                {t("common.update", "Actualizar")}
-              </Button>
-            </div>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className="w-full"
+            />
+            <Button
+              onClick={updateEmail}
+              disabled={loading || formData.email === user.email}
+              className="w-full mt-2"
+            >
+              {t("settings.update_email", "Actualizar email")}
+            </Button>
             <p className="text-sm text-gray-500">
               {t(
                 "settings.email_verification_note",
@@ -369,6 +416,29 @@ export default function SettingsPage() {
             {t("settings.update_password", "Actualizar contraseña")}
           </Button>
         </div>
+      </div>
+
+      {/* Sección de Eliminar Cuenta */}
+      <div className="mt-10 p-4 border rounded-lg border-destructive">
+        <h2 className="text-xl font-semibold mb-4 text-destructive">
+          {t("settings.danger_zone", "Zona de Peligro")}
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          {t(
+            "settings.delete_account_warning",
+            "Al eliminar tu cuenta, se borrarán permanentemente todos tus datos, incluidas tus recetas y configuraciones personales."
+          )}
+        </p>
+        <Button
+          variant="destructive"
+          onClick={deleteAccount}
+          disabled={loading}
+          className="w-full"
+        >
+          {loading
+            ? t("settings.deleting_account", "Eliminando cuenta...")
+            : t("settings.delete_account", "Eliminar mi cuenta")}
+        </Button>
       </div>
     </div>
   );

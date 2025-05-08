@@ -225,11 +225,19 @@
     "new_password": "Nueva contraseña",
     "confirm_password": "Confirmar nueva contraseña",
     "update_password": "Actualizar contraseña",
+    "update_username": "Actualizar nombre de usuario",
+    "update_email": "Actualizar email",
     "username_updated": "Nombre de usuario actualizado correctamente.",
     "email_verification_sent": "Se ha enviado un correo de verificación a tu nueva dirección de email.",
     "email_verification_sent_logout": "Se ha enviado un correo de verificación a tu nueva dirección de email. Después de confirmar, tu sesión se cerrará y tendrás que iniciar sesión nuevamente con tu nuevo correo.",
     "password_updated": "Contraseña actualizada correctamente.",
-    "update_failed": "Error al actualizar la información."
+    "update_failed": "Error al actualizar la información.",
+    "danger_zone": "Zona de Peligro",
+    "delete_account": "Eliminar mi cuenta",
+    "deleting_account": "Eliminando cuenta...",
+    "delete_account_confirm": "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.",
+    "delete_account_warning": "Al eliminar tu cuenta, se borrarán permanentemente todos tus datos, incluidas tus recetas y configuraciones personales.",
+    "delete_account_failed": "Error al eliminar la cuenta"
   },
   "errors": {
     "required_field": "Este campo es obligatorio",
@@ -261,5 +269,12 @@
     "protein": "Proteínas",
     "carbohydrates": "Carbohidratos",
     "fat": "Grasas"
+  },
+  "goodbye": {
+    "title": "¡Hasta pronto!",
+    "message": "Tu cuenta ha sido eliminada correctamente. Lamentamos verte partir.",
+    "comeback": "Si en algún momento deseas volver, estaremos encantados de tenerte de nuevo con nosotros.",
+    "back_to_login": "Volver a iniciar sesión",
+    "already_logged_in": "Esta página solo es accesible después de eliminar la cuenta"
   }
 }

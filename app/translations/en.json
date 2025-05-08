@@ -225,11 +225,19 @@
     "new_password": "New password",
     "confirm_password": "Confirm new password",
     "update_password": "Update password",
+    "update_username": "Update username",
+    "update_email": "Update email",
     "username_updated": "Username updated successfully.",
     "email_verification_sent": "A verification email has been sent to your new email address.",
     "email_verification_sent_logout": "A verification email has been sent to your new email address. After confirming, your session will be closed and you will need to log in again with your new email.",
     "password_updated": "Password updated successfully.",
-    "update_failed": "Failed to update information."
+    "update_failed": "Failed to update information.",
+    "danger_zone": "Danger Zone",
+    "delete_account": "Delete my account",
+    "deleting_account": "Deleting account...",
+    "delete_account_confirm": "Are you sure you want to delete your account? This action cannot be undone.",
+    "delete_account_warning": "By deleting your account, all your data will be permanently erased, including your recipes and personal settings.",
+    "delete_account_failed": "Failed to delete account"
   },
   "errors": {
     "required_field": "This field is required",
@@ -261,5 +269,12 @@
     "protein": "Protein",
     "carbohydrates": "Carbohydrates",
     "fat": "Fat"
+  },
+  "goodbye": {
+    "title": "See You Soon!",
+    "message": "Your account has been successfully deleted. We're sorry to see you go.",
+    "comeback": "If you ever wish to return, we'll be delighted to have you back.",
+    "back_to_login": "Back to login",
+    "already_logged_in": "This page is only accessible after deleting your account"
   }
 }
