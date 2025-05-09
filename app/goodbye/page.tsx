@@ -20,34 +20,23 @@ export default function GoodbyePage() {
   });
 
   return (
-    <div className="container max-w-md py-16 flex flex-col items-center text-center">
-      <h1 className="text-3xl font-bold mb-6">
-        {t("goodbye.title", "¡Hasta pronto!")}
-      </h1>
+    <div className="container flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-12 text-center">
+      <h1 className="text-3xl font-bold mb-6">¡Hasta pronto!</h1>
 
-      <div className="space-y-6">
-        <p>
-          {t(
-            "goodbye.message",
-            "Tu cuenta ha sido eliminada correctamente. Lamentamos verte partir."
-          )}
+      <div className="max-w-md mb-8">
+        <p className="mb-4">
+          Tu cuenta ha sido eliminada correctamente. Lamentamos verte partir y
+          esperamos que hayas disfrutado usando nuestra aplicación.
         </p>
-
         <p>
-          {t(
-            "goodbye.comeback",
-            "Si en algún momento deseas volver, estaremos encantados de tenerte de nuevo con nosotros."
-          )}
+          Si cambias de opinión, siempre puedes crear una nueva cuenta y volver
+          a disfrutar de nuestros servicios.
         </p>
-
-        <div className="pt-6">
-          <Link href="/auth/login">
-            <Button size="lg">
-              {t("goodbye.back_to_login", "Volver a iniciar sesión")}
-            </Button>
-          </Link>
-        </div>
       </div>
+
+      <Link href="/">
+        <Button>Volver al inicio</Button>
+      </Link>
     </div>
   );
 }

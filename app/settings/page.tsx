@@ -241,26 +241,25 @@ export default function SettingsPage() {
   const deleteAccount = async () => {
     setLoading(true);
     try {
-      // Eliminar perfil primero (gracias a la cascada en la base de datos, esto también eliminaría datos relacionados)
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", user?.id);
-
-      if (profileError) throw profileError;
-
-      // Marcar el usuario como eliminado en los metadatos
-      // Esto es porque los clientes no pueden eliminar directamente usuarios de auth
-      const { error: userError } = await supabase.auth.updateUser({
-        data: {
-          deleted: true,
-          deleted_at: new Date().toISOString(),
+      // Llamar al endpoint del servidor para eliminar la cuenta
+      const response = await fetch("/api/user/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({ userId: user?.id }),
       });
 
-      if (userError) throw userError;
+      const data = await response.json();
 
-      // Cerrar sesión
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            t("settings.delete_account_failed", "Error al eliminar la cuenta")
+        );
+      }
+
+      // Cerrar sesión en el cliente
       await supabase.auth.signOut();
 
       // Redirigir a la página de despedida
