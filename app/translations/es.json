@@ -276,6 +276,21 @@
     "incorrect_password": "La contraseña actual es incorrecta",
     "username_taken": "Ese nombre de usuario ya está en uso"
   },
+  "bug_report": {
+    "report_bug": "Reportar bug",
+    "title": "Reportar un problema",
+    "description": "Describe el problema que has encontrado para que podamos solucionarlo",
+    "placeholder": "Describe paso a paso cómo reproducir el problema...",
+    "screenshots": "Capturas de pantalla (opcional)",
+    "screenshots_help": "Puedes adjuntar hasta 3 imágenes que ayuden a explicar el problema",
+    "max_screenshots": "Máximo {maxScreenshots} capturas de pantalla permitidas",
+    "description_required": "Por favor, describe el problema encontrado",
+    "success": "¡Gracias! Hemos recibido tu reporte y lo revisaremos pronto.",
+    "error": "Error al enviar el reporte",
+    "sending": "Enviando...",
+    "send": "Enviar reporte",
+    "help_text": "¿Encontraste un error? Ayúdanos a mejorar reportando los problemas que encuentres."
+  },
   "nutrition": {
     "energy_value": "Valor energético",
     "protein": "Proteínas",

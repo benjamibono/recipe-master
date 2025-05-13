@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "../contexts/LanguageContext";
+import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -72,6 +73,17 @@ const safeTemperatures: SafeTemperature[] = [
 
 export default function MeatTemperaturesPage() {
   const { t } = useLanguage();
+
+  // Usar el hook para redirigir a usuarios no autenticados
+  useAuthRedirect({
+    ifNotAuthenticated: "/auth/login",
+    message: {
+      notAuthenticated: t(
+        "auth.login_required",
+        "Debes iniciar sesión para acceder a esta página"
+      ),
+    },
+  });
 
   return (
     <div className="container mx-auto py-8 px-4">

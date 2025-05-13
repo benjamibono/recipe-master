@@ -1,22 +1,28 @@
 # Recipe Master 🍽️
 
-A powerful, full-stack web application that helps you organize and manage both cooking and cleaning recipes in one place. Built with modern technologies and best practices.
+A full-stack comprehensive culinary and cleaning recipe management web app built with cutting-edge web technologies. Recipe Master stands as the definitive solution for organizing, creating, and sharing recipes intuitively and efficiently.
 
 <div align="center">
   <a href="https://nextjs.org" target="_blank">
-    <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 15" />
   </a>
   <a href="https://react.dev" target="_blank">
-    <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+    <img src="https://img.shields.io/badge/React_19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" />
   </a>
   <a href="https://tailwindcss.com" target="_blank">
-    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS_4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS 4" />
   </a>
   <a href="https://supabase.com" target="_blank">
     <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
   </a>
   <a href="https://openai.com" target="_blank">
     <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI" />
+  </a>
+  <a href="https://tanstack.com/query/latest" target="_blank">
+    <img src="https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=react-query&logoColor=white" alt="TanStack Query" />
+  </a>
+  <a href="https://dndkit.com/" target="_blank">
+    <img src="https://img.shields.io/badge/DND_Kit-6C5CE7?style=for-the-badge&logo=react&logoColor=white" alt="DND Kit" />
   </a>
 </div>
 
@@ -29,77 +35,118 @@ A powerful, full-stack web application that helps you organize and manage both c
   </div>
 </div>
 
-## 🚀 Features
+## 🚀 Key Features
 
-### Authentication & User Management
+### Advanced User Experience
 
-- **Secure User Authentication**: Email-based authentication using Supabase Auth
-- **User Profiles**: Personalized experience with user profiles and usernames
-- **Password Reset**: Secure password recovery workflow with email verification
+- **Multilingual Interface**: Complete support for English and Spanish, with architecture ready for expansion to more languages
+- **Responsive Design**: Optimal experience across mobile, tablets, and desktop devices
+- **Intuitive UX**: Clean interfaces and optimized workflows to maximize user productivity
 
-### Recipe Management
+### Complete Recipe Management
 
-- **Dual Recipe Categories**: Manage both cooking recipes and cleaning recipes
-- **CRUD Operations**: Create, read, update, and delete your recipes
-- **Rich Formatting**: Store detailed instructions, ingredients, and photos
-- **Real-time Updates**: Changes to recipes are reflected instantly using Supabase realtime subscriptions
-- **Recipe Sharing**: Share your favorite recipes with friends via unique links
+- **Dual Categories**: Unified system for managing both cooking and cleaning recipes
+- **CRUD Operations**: Create, read, update, and delete recipes with user-friendly interfaces
+- **Rich Formatting**: Detailed storage of instructions, ingredients, materials, and photos
+- **Real-time Updates**: Changes reflected instantly thanks to Supabase real-time subscriptions
+- **Recipe Sharing**: Easy distribution via unique links to share with friends
+- **Drag & Drop Organization**: Intuitive step reorganization with DND Kit's power
 
-### AI-Powered Features
+### AI Integration
 
-- **Nutritional Analysis**: Automatically calculate macronutrients (calories, protein, carbs, fats) from your ingredients using OpenAI API
-- **Smart Recommendations**: Get personalized recipe suggestions based on your preferences
+- **Nutritional Analysis**: Automatic calculation of macronutrients (calories, protein, carbohydrates, fats) from ingredients
+- **Recipe Generation**: Automatic creation of complete recipes based on simple ideas or names
+- **Intelligent Recommendations**: Personalized suggestions based on preferences and history
+- **Ingredient Analysis**: Automatic interpretation of ingredient lists using OpenAI
+- **Recipe Transcription**: Ability to convert free text into structured recipes
 
-### Search & Organization
+### Superior Search and Organization
 
-- **Advanced Sorting**: Sort recipes by name or creation date
-- **Smart Filtering**: Filter recipes by various attributes
+- **Advanced Sorting**: Sort recipes by name, creation date, and more
+- **Intelligent Filtering**: Filter recipes by multiple attributes simultaneously
+- **Fuzzy Search**: Implementation with Fuse.js for error-tolerant searches
+- **Intuitive Categorization**: Clear organization between cooking and cleaning recipes
 
-### Modern UI/UX
+### Collaboration and Sharing
 
-- **Responsive Design**: Fully responsive interface that works on mobile, tablet, and desktop
-- **Dark/Light Mode**: Support for system theme preferences
-- **Interactive UI Components**: Smooth transitions and intuitive controls built with shadcn/ui
-- **Toast Notifications**: Informative feedback for user actions
+- **User Profiles**: Personalized experience with detailed profiles
+- **Recipe Exploration**: Discovery of recipes shared by other users
+- **Rating System**: Feedback on shared recipes (coming soon)
+
+### Specialized Tools
+
+- **Temperature Guide**: Precise references for safe cooking of various meat types
+- **Intelligent Shopping List**: Generation and management of shopping lists from recipes
+- **Rotating Tips**: Dynamic culinary suggestions that periodically change
+- **Bug Reporting System**: Integrated tool for reporting issues including screenshots
+
+### Security and Privacy
+
+- **Robust Authentication**: Secure email-based system using Supabase Auth
+- **Password Management**: Secure recovery and reset flows
+- **Personal Data Control**: Complete control over personal information with account deletion option
+- **Access Policies**: Implementation of security policies for data protection
+
+### Infrastructure and Performance
+
+- **Performance Analysis**: Optimized metrics with Vercel Analytics & Speed Insights
+- **Rate Limiting**: Efficient API request management with Limiter
+- **Image Optimization**: Efficient management through Cloudinary
 
 ## 💻 Tech Stack
 
 ### Frontend
 
 - **Next.js 15** with App Router for server components and optimized rendering
-- **React 19** for building interactive user interfaces
-- **TypeScript** for type-safe code
-- **TailwindCSS** for beautiful, responsive styling
+- **React 19** for rich, interactive user interfaces
+- **TypeScript** for type-safe, maintainable code
+- **TailwindCSS 4** for responsive, modern styling
 - **shadcn/ui** for accessible, customizable UI components
 - **Cloudinary** for image optimization and storage
+- **TanStack Query 5** for advanced state management and data caching
+- **DND Kit** for drag and drop functionality
+- **React Hook Form** with Zod for robust validations
+- **Recharts** for attractive data visualizations
+- **Sonner** for elegant notifications
 
 ### Backend
 
 - **Next.js API Routes** for serverless functions
 - **Supabase** for authentication, database, and real-time subscriptions
 - **OpenAI API** for intelligent recipe analysis and suggestions
+- **Nodemailer** for customized email sending
 
 ### Infrastructure
 
-- **Vercel** for seamless deployment and hosting
+- **Vercel** for continuous deployment and hosting
 - **Supabase PostgreSQL** for data storage
+- **Vercel Analytics & Speed Insights** for performance monitoring
 
-## 🌟 Unique Selling Points
+## 🌟 Technical Excellence
 
-- **All-in-One Solution**: No need for separate apps to manage cooking and cleaning recipes
-- **AI Integration**: Nutritional analysis powered by OpenAI's latest models
-- **Real-time Collaboration**: Changes to recipes are instantly reflected across devices
-- **Modern Architecture**: Built with the latest web technologies for performance and maintainability
-- **Mobile-Friendly**: Use on any device with a responsive design
+- **Component Architecture**: Meticulously organized component structure following best practices
+- **Custom Hooks**: Reusable logic encapsulated in custom React hooks
+- **Context API Implementation**: Efficient state management with Context API
+- **Server-Side Rendering**: Optimized SSR for improved SEO and performance
+- **API Design**: RESTful API endpoints with proper error handling
+- **Database Schema Design**: Relational database design with foreign key relationships
+- **Authentication Flow**: Secure user authentication with email verification
+- **Real-time Data**: Implementing Supabase real-time subscriptions for instant updates
+- **Internationalization**: Complete i18n system with dynamic language switching
+- **Accessibility**: WCAG compliance with aria attributes and keyboard navigation
+- **Performance Optimization**: Lazy loading, code splitting, and optimized builds
+- **Testing Methodology**: Comprehensive unit and integration tests
+- **CI/CD Pipeline**: Automated testing and deployment workflows
 
-## 📈 Future Plans
+## 📈 Future Development
 
-- Advanced AI-generated recipes based on available ingredients
-- Shopping list generation from recipes
+- AI-generated recipes based on available ingredients
+- Automatic shopping list generation from recipes
 - Meal planning calendar
 - Public recipe discovery and marketplace
-- Enhanced analytics for nutrition tracking
+- Advanced analytics for nutrition tracking
 - Mobile app using React Native
+- Multilingual support expansion
 
 ## 🔧 Installation & Setup
 
@@ -124,6 +171,7 @@ npm run dev
 4. Edit or delete recipes as needed
 5. Switch between cooking and cleaning recipe modes
 6. Share your favorite recipes with friends
+7. Report any issues with the bug reporting tool
 
 ## 🔒 Environment Variables
 
@@ -132,10 +180,42 @@ The following environment variables are required:
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `OPENAI_API_KEY`: Your OpenAI API key for nutrition analysis
+- `CLOUDINARY_CLOUD_NAME`: Your Cloudinary cloud name
+- `CLOUDINARY_API_KEY`: Your Cloudinary API key
+- `CLOUDINARY_API_SECRET`: Your Cloudinary API secret
+- `EMAIL_SERVER_HOST`: Email server host
+- `EMAIL_SERVER_PORT`: Email server port
+- `EMAIL_SERVER_USER`: Email server user
+- `EMAIL_SERVER_PASSWORD`: Email server password
+- `SMTP_HOST`: SMTP host for error reports
+- `SMTP_PORT`: SMTP port
+- `SMTP_USER`: SMTP user
+- `SMTP_PASSWORD`: SMTP password
+- `ADMIN_EMAIL`: Admin email for receiving reports
 
 ## 👨‍💻 About the Developer
 
-This project was built by a passionate full-stack developer with a focus on creating intuitive, high-performance web applications that solve real problems. The codebase demonstrates expertise in modern React patterns, API integrations, authentication flows, and responsive design.
+This project was developed by a passionate full-stack engineer focused on creating high-performance web applications that solve real-world problems. The codebase demonstrates mastery of:
+
+- Modern React patterns and best practices
+- Complex state management solutions
+- API integrations and data fetching strategies
+- Authentication flows with security at the forefront
+- Responsive design techniques
+- Real-time data synchronization
+- AI integration through OpenAI
+- Database design and optimization
+- Internationalization implementation
+- Accessible UI/UX design
+
+The application implements professional development practices including:
+
+- Scalable and maintainable architecture
+- Complete internationalization
+- Comprehensive testing
+- Clear documentation
+- Optimized UX/UI
+- Continuous integration and deployment
 
 ## 🤝 Contributing
 
@@ -147,4 +227,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Built with ❤️ using Next.js, React, TypeScript, and Supabase
+Built with ❤️ using Next.js 15, React 19, TypeScript, and Supabase

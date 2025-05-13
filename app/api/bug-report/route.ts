@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,6 +10,14 @@ export async function POST(req: NextRequest) {
     const userId = formData.get("userId") as string;
     const username = formData.get("username") as string;
 
+    // Log para verificar los datos recibidos
+    console.log("Datos recibidos:", {
+      description,
+      userEmail,
+      userId,
+      username,
+    });
+
     if (!description) {
       return NextResponse.json(
         { error: "La descripción es obligatoria" },
@@ -18,11 +26,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Configurar transporte de correo
-    // IMPORTANTE: Reemplazar con tus propias credenciales SMTP
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: Number(process.env.SMTP_PORT) || 587, //465 
-      secure: process.env.SMTP_SECURE === "false",
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
@@ -30,7 +37,6 @@ export async function POST(req: NextRequest) {
     });
 
     // Procesar imágenes adjuntas
-    const screenshots: Express.Multer.File[] = [];
     const attachments = [];
 
     // Buscar todas las imágenes adjuntas (pueden ser múltiples)
@@ -49,7 +55,7 @@ export async function POST(req: NextRequest) {
     // Contenido del correo
     const mailOptions = {
       from: process.env.SMTP_USER,
-      to: process.env.ADMIN_EMAIL || process.env.SMTP_USER, // Email destino
+      to: process.env.ADMIN_EMAIL || process.env.SMTP_USER,
       subject: "Reporte de Bug - Recipe Master",
       text: `
         Reporte de Bug
@@ -78,13 +84,58 @@ export async function POST(req: NextRequest) {
     // Enviar correo
     await transporter.sendMail(mailOptions);
 
-    // Guardar el reporte en la base de datos (opcional)
+    // Guardar el reporte en la base de datos
     if (userId) {
-      await supabase.from("bug_reports").insert({
-        user_id: userId,
-        description,
-        created_at: new Date().toISOString(),
-      });
+      try {
+        console.log(
+          "Intentando guardar en la base de datos con userId:",
+          userId
+        );
+
+        // Obtener el token de los headers
+        const authHeader = req.headers.get("authorization");
+        if (!authHeader?.startsWith("Bearer ")) {
+          throw new Error("No se proporcionó token de autenticación");
+        }
+        const token = authHeader.split(" ")[1];
+
+        // Crear cliente de Supabase con el token
+        const supabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            global: {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          }
+        );
+
+        // Usar el cliente autenticado para la inserción
+        const { data, error } = await supabase
+          .from("bug_reports")
+          .insert({
+            user_id: userId,
+            description,
+            created_at: new Date().toISOString(),
+          })
+          .select();
+
+        if (error) {
+          console.error("Error al guardar en la base de datos:", error);
+          throw error;
+        }
+
+        console.log("Reporte guardado exitosamente en la base de datos:", data);
+      } catch (dbError) {
+        console.error("Error al guardar en la base de datos:", dbError);
+        // No lanzamos el error para no interrumpir el envío del correo
+      }
+    } else {
+      console.warn(
+        "No se pudo guardar el reporte en la base de datos: userId no proporcionado"
+      );
     }
 
     return NextResponse.json({ success: true });

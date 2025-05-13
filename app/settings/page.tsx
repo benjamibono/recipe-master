@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { BugReportDialog } from "@/app/components/BugReportDialog";
 
 export default function SettingsPage() {
   const { t } = useLanguage();
@@ -282,163 +283,194 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container max-w-md py-8">
+    <div className="container py-8">
       <h1 className="text-2xl font-bold mb-6">
         {t("settings.title", "Configuración de Cuenta")}
       </h1>
 
-      {/* Sección de Perfil */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">
-          {t("settings.profile", "Perfil")}
-        </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Columna Izquierda */}
+        <div className="space-y-6">
+          {/* Perfil */}
+          <div className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow">
+            <h2 className="text-xl font-semibold mb-4">
+              {t("settings.profile", "Perfil")}
+            </h2>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username">
-              {t("settings.username", "Nombre de usuario")}
-            </Label>
-            <Input
-              id="username"
-              value={formData.username}
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
-              className="w-full"
-            />
-            <Button
-              onClick={updateUsername}
-              disabled={loading || formData.username === profile.username}
-              className="w-full mt-2"
-            >
-              {t("settings.update_username", "Actualizar nombre de usuario")}
-            </Button>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">
+                  {t("settings.username", "Nombre de usuario")}
+                </Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                  className="w-full"
+                />
+                <Button
+                  onClick={updateUsername}
+                  disabled={loading || formData.username === profile.username}
+                  className="w-full mt-2"
+                >
+                  {t(
+                    "settings.update_username",
+                    "Actualizar nombre de usuario"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow">
+            <h2 className="text-xl font-semibold mb-4">
+              {t("settings.email", "Email")}
+            </h2>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  {t("settings.email_address", "Dirección de correo")}
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="w-full"
+                />
+                <Button
+                  onClick={updateEmail}
+                  disabled={loading || formData.email === user.email}
+                  className="w-full mt-2"
+                >
+                  {t("settings.update_email", "Actualizar email")}
+                </Button>
+                <p className="text-sm text-gray-500">
+                  {t(
+                    "settings.email_verification_note",
+                    "Recibirás un correo de verificación"
+                  )}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Sección de Email */}
-      <div className="mb-8 p-4 border rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">
-          {t("settings.email", "Email")}
-        </h2>
+        {/* Columna Derecha */}
+        <div className="space-y-6">
+          {/* Contraseña */}
+          <div className="p-6 border rounded-lg bg-card hover:shadow-lg transition-shadow">
+            <h2 className="text-xl font-semibold mb-4">
+              {t("settings.password", "Contraseña")}
+            </h2>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">
-              {t("settings.email_address", "Dirección de correo")}
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full"
-            />
-            <Button
-              onClick={updateEmail}
-              disabled={loading || formData.email === user.email}
-              className="w-full mt-2"
-            >
-              {t("settings.update_email", "Actualizar email")}
-            </Button>
-            <p className="text-sm text-gray-500">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">
+                  {t("settings.current_password", "Contraseña actual")}
+                </Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={formData.currentPassword}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      currentPassword: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">
+                  {t("settings.new_password", "Nueva contraseña")}
+                </Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={formData.newPassword}
+                  onChange={(e) =>
+                    setFormData({ ...formData, newPassword: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">
+                  {t("settings.confirm_password", "Confirmar nueva contraseña")}
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <Button
+                onClick={updatePassword}
+                disabled={
+                  loading ||
+                  !formData.currentPassword ||
+                  !formData.newPassword ||
+                  !formData.confirmPassword
+                }
+                className="w-full"
+              >
+                {t("settings.update_password", "Actualizar contraseña")}
+              </Button>
+            </div>
+          </div>
+
+          {/* Zona de Peligro */}
+          <div className="p-6 border rounded-lg border-destructive bg-card hover:shadow-lg transition-shadow">
+            <h2 className="text-xl font-semibold mb-4 text-destructive">
+              {t("settings.danger_zone", "Zona de Peligro")}
+            </h2>
+
+            {/* Reporte de bugs */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 mb-2">
+                {t(
+                  "bug_report.help_text",
+                  "¿Encontraste un error? Ayúdanos a mejorar reportando los problemas que encuentres."
+                )}
+              </p>
+              <BugReportDialog />
+            </div>
+
+            <div className="border-t border-destructive/30 my-4"></div>
+
+            <p className="text-sm text-gray-500 mb-4">
               {t(
-                "settings.email_verification_note",
-                "Recibirás un correo de verificación"
+                "settings.delete_account_warning",
+                "Al eliminar tu cuenta, se borrarán permanentemente todos tus datos, incluidas tus recetas y configuraciones personales."
               )}
             </p>
+            <Button
+              variant="destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading
+                ? t("settings.deleting_account", "Eliminando cuenta...")
+                : t("settings.delete_account", "Eliminar mi cuenta")}
+            </Button>
           </div>
         </div>
-      </div>
-
-      {/* Sección de Contraseña */}
-      <div className="p-4 border rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">
-          {t("settings.password", "Contraseña")}
-        </h2>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword">
-              {t("settings.current_password", "Contraseña actual")}
-            </Label>
-            <Input
-              id="currentPassword"
-              type="password"
-              value={formData.currentPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, currentPassword: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">
-              {t("settings.new_password", "Nueva contraseña")}
-            </Label>
-            <Input
-              id="newPassword"
-              type="password"
-              value={formData.newPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, newPassword: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">
-              {t("settings.confirm_password", "Confirmar nueva contraseña")}
-            </Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) =>
-                setFormData({ ...formData, confirmPassword: e.target.value })
-              }
-            />
-          </div>
-
-          <Button
-            onClick={updatePassword}
-            disabled={
-              loading ||
-              !formData.currentPassword ||
-              !formData.newPassword ||
-              !formData.confirmPassword
-            }
-            className="w-full"
-          >
-            {t("settings.update_password", "Actualizar contraseña")}
-          </Button>
-        </div>
-      </div>
-
-      {/* Sección de Eliminar Cuenta */}
-      <div className="mt-10 p-4 border rounded-lg border-destructive">
-        <h2 className="text-xl font-semibold mb-4 text-destructive">
-          {t("settings.danger_zone", "Zona de Peligro")}
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          {t(
-            "settings.delete_account_warning",
-            "Al eliminar tu cuenta, se borrarán permanentemente todos tus datos, incluidas tus recetas y configuraciones personales."
-          )}
-        </p>
-        <Button
-          variant="destructive"
-          onClick={() => setDeleteDialogOpen(true)}
-          disabled={loading}
-          className="w-full"
-        >
-          {loading
-            ? t("settings.deleting_account", "Eliminando cuenta...")
-            : t("settings.delete_account", "Eliminar mi cuenta")}
-        </Button>
       </div>
 
       {/* Diálogo de confirmación para eliminar cuenta */}

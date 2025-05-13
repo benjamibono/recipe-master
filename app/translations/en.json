@@ -279,6 +279,21 @@
     "incorrect_password": "Incorrect current password",
     "username_taken": "That username is already in use"
   },
+  "bug_report": {
+    "report_bug": "Report bug",
+    "title": "Report a problem",
+    "description": "Describe the problem you've found so we can fix it",
+    "placeholder": "Describe step by step how to reproduce the problem...",
+    "screenshots": "Screenshots (optional)",
+    "screenshots_help": "You can attach up to 3 images to help explain the problem",
+    "max_screenshots": "Maximum {maxScreenshots} screenshots allowed",
+    "description_required": "Please describe the problem you found",
+    "success": "Thank you! We've received your report and will review it soon.",
+    "error": "Error sending report",
+    "sending": "Sending...",
+    "send": "Send report",
+    "help_text": "Found a bug? Help us improve by reporting any issues you encounter."
+  },
   "nutrition": {
     "energy_value": "Energy value",
     "protein": "Protein",

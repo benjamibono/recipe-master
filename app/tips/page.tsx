@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useLanguage } from "@/app/contexts/LanguageContext";
+import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
 
 export interface Tip {
   question: string;
@@ -218,6 +219,16 @@ export const spanishTips: Tip[] = [
 export default function TipsPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { t, language } = useLanguage();
+
+  useAuthRedirect({
+    ifNotAuthenticated: "/auth/login",
+    message: {
+      notAuthenticated: t(
+        "auth.login_required",
+        "Debes iniciar sesión para acceder a esta página"
+      ),
+    },
+  });
 
   const toggleTip = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
