@@ -83,7 +83,8 @@
     "email_verification_failed": "Email verification failed",
     "email_verification_success": "Email verified successfully. Redirecting...",
     "error": "Error",
-    "unknown_verification_type": "Unknown verification type"
+    "unknown_verification_type": "Unknown verification type",
+    "session_expired": "Session expired. Please login again."
   },
   "search": {
     "search_recipes": "Search Recipes",

@@ -74,10 +74,20 @@ export function BugReportDialog() {
         data: { session },
       } = await supabase.auth.getSession();
 
+      // Verificar si existe la sesión antes de usar access_token
+      if (!session) {
+        throw new Error(
+          t(
+            "auth.session_expired",
+            "Sesión expirada. Por favor, inicia sesión nuevamente."
+          )
+        );
+      }
+
       const response = await fetch("/api/bug-report", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: formData,
       });

@@ -80,7 +80,16 @@
     "enter_email": "Ingresa tu correo electrónico",
     "welcome_back": "Bienvenido/a de nuevo",
     "new_to_app": "¿Nuevo en Recipe Master?",
-    "create_account": "Crear una cuenta"
+    "create_account": "Crear una cuenta",
+    "verification_sent": "Te hemos enviado un email de verificación. Por favor, verifica tu correo para continuar.",
+    "verification_title": "Verifica tu correo electrónico",
+    "verification_description": "Te hemos enviado un correo con un enlace de verificación. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.",
+    "resend_verification": "Reenviar email de verificación",
+    "check_spam": "¿No ves el correo? Revisa tu carpeta de spam o correo no deseado",
+    "confirmation_error": "Error al confirmar tu correo electrónico",
+    "confirmation_success": "¡Correo electrónico verificado correctamente!",
+    "redirecting": "Redireccionando...",
+    "session_expired": "Sesión expirada. Por favor, inicia sesión nuevamente."
   },
   "search": {
     "search_recipes": "Buscar recetas",

@@ -95,39 +95,54 @@ export async function POST(req: NextRequest) {
         // Obtener el token de los headers
         const authHeader = req.headers.get("authorization");
         if (!authHeader?.startsWith("Bearer ")) {
-          throw new Error("No se proporcionó token de autenticación");
+          console.error("Token no proporcionado o inválido");
+          // Continuamos con el envío del correo
+          return NextResponse.json({ success: true });
         }
         const token = authHeader.split(" ")[1];
 
-        // Crear cliente de Supabase con el token
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            global: {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          }
-        );
-
-        // Usar el cliente autenticado para la inserción
-        const { data, error } = await supabase
-          .from("bug_reports")
-          .insert({
-            user_id: userId,
-            description,
-            created_at: new Date().toISOString(),
-          })
-          .select();
-
-        if (error) {
-          console.error("Error al guardar en la base de datos:", error);
-          throw error;
+        if (!token) {
+          console.error("Token vacío");
+          return NextResponse.json({ success: true });
         }
 
-        console.log("Reporte guardado exitosamente en la base de datos:", data);
+        try {
+          // Crear cliente de Supabase con el token
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+              global: {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            }
+          );
+
+          // Usar el cliente autenticado para la inserción
+          const { data, error } = await supabase
+            .from("bug_reports")
+            .insert({
+              user_id: userId,
+              description,
+              created_at: new Date().toISOString(),
+            })
+            .select();
+
+          if (error) {
+            console.error("Error al guardar en la base de datos:", error);
+            // No lanzamos el error para permitir el éxito del envío del correo
+          } else {
+            console.log(
+              "Reporte guardado exitosamente en la base de datos:",
+              data
+            );
+          }
+        } catch (supabaseError) {
+          console.error("Error al crear cliente de Supabase:", supabaseError);
+          // No lanzamos el error para permitir el éxito del envío del correo
+        }
       } catch (dbError) {
         console.error("Error al guardar en la base de datos:", dbError);
         // No lanzamos el error para no interrumpir el envío del correo
