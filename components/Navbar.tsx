@@ -10,6 +10,11 @@ export function Navbar() {
   const { isAuthenticated } = useAuthContext();
   const { t } = useLanguage();
 
+  // No mostrar el Navbar en móvil cuando el usuario está autenticado
+  if (isAuthenticated) {
+    return null;
+  }
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b">
       <div className="container mx-auto px-4">
@@ -23,18 +28,14 @@ export function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {!isAuthenticated && (
-              <>
-                <Link href="/auth/register">
-                  <Button className="w-[120px]">{t("auth.register")}</Button>
-                </Link>
-                <Link href="/auth/login">
-                  <Button variant="outline" className="w-[120px]">
-                    {t("auth.login")}
-                  </Button>
-                </Link>
-              </>
-            )}
+            <Link href="/auth/register">
+              <Button className="w-[120px]">{t("auth.register")}</Button>
+            </Link>
+            <Link href="/auth/login">
+              <Button variant="outline" className="w-[120px]">
+                {t("auth.login")}
+              </Button>
+            </Link>
             <LanguageSelector />
           </div>
 

@@ -27,6 +27,9 @@ import {
   Search,
   LineChart,
   ArrowRight,
+  Sparkles,
+  Users,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -121,24 +124,24 @@ export default function Home() {
         {!isAuthenticated ? (
           <div className="w-full">
             {/* Hero Section */}
-            <section className="py-12 md:py-20 flex flex-col items-center text-center">
+            <section className="py-10 sm:py-12 md:py-20 flex flex-col items-center text-center">
               <div className="mb-8 relative">
-                <div className="relative w-24 h-24">
-                  <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
-                    <ChefHat className="h-14 w-14 text-primary" />
-                  </div>
-                </div>
+                <ChefHat className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 text-primary" />
+                <Sparkles className="absolute top-0 right-0 h-6 w-6 text-amber-400" />
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Recipe Master
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent leading-tight">
+                {t("home.hero_title", "Master Your Kitchen with Recipe Master")}
               </h1>
 
-              <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-gray-700">
-                {t("home.description")}
+              <p className="text-lg md:text-xl max-w-3xl mx-auto mb-10 text-gray-700">
+                {t(
+                  "home.description",
+                  "The ultimate platform to organize your recipes, plan your meals, create shopping lists, and discover new culinary delights. Effortlessly manage your cooking journey from inspiration to a delicious meal."
+                )}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
                 <Link href="/auth/register">
                   <Button size="lg" className="rounded-full px-8 font-medium">
                     {t("auth.register")}
@@ -156,26 +159,56 @@ export default function Home() {
               </div>
 
               <div className="mt-12 bg-gradient-to-b from-transparent to-gray-50 w-full pt-12 pb-4">
-                <div className="max-w-4xl mx-auto relative aspect-video rounded-lg overflow-hidden shadow-2xl border">
-                  <div className="bg-gradient-to-br from-gray-100 to-gray-200 w-full h-full flex items-center justify-center">
-                    <div className="text-center px-6">
-                      <ImageIcon className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <p className="text-gray-500">{t("home.app_preview")}</p>
+                <div className="max-w-4xl mx-auto relative aspect-[16/10] rounded-xl overflow-hidden shadow-2xl border-2 border-primary/20 bg-white">
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 p-6 flex flex-col">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-3 w-3 bg-red-400 rounded-full"></span>
+                        <span className="h-3 w-3 bg-yellow-400 rounded-full"></span>
+                        <span className="h-3 w-3 bg-green-400 rounded-full"></span>
+                      </div>
+                      <div className="text-xs font-medium text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
+                        {t("home.app_preview.header_title", "RecipeMaster.app")}
+                      </div>
                     </div>
+                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="sm:col-span-1 bg-white/70 rounded-md p-3 shadow-sm">
+                        <LayoutDashboard className="h-6 w-6 text-primary mb-1.5" />
+                        <div className="h-2 w-3/4 bg-gray-300 rounded-full mb-1"></div>
+                        <div className="h-2 w-1/2 bg-gray-300 rounded-full"></div>
+                      </div>
+                      <div className="sm:col-span-2 bg-white/70 rounded-md p-3 shadow-sm">
+                        <ImageIcon className="h-6 w-6 text-pink-400 mb-1.5" />
+                        <div className="h-2 w-full bg-gray-300 rounded-full mb-1"></div>
+                        <div className="h-2 w-3/4 bg-gray-300 rounded-full"></div>
+                      </div>
+                      <div className="sm:col-span-2 bg-white/70 rounded-md p-3 shadow-sm">
+                        <ListChecks className="h-6 w-6 text-blue-400 mb-1.5" />
+                        <div className="h-2 w-full bg-gray-300 rounded-full mb-1"></div>
+                        <div className="h-2 w-2/3 bg-gray-300 rounded-full"></div>
+                      </div>
+                      <div className="sm:col-span-1 bg-white/70 rounded-md p-3 shadow-sm">
+                        <ShoppingCart className="h-6 w-6 text-green-400 mb-1.5" />
+                        <div className="h-2 w-3/4 bg-gray-300 rounded-full mb-1"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-4 right-4">
+                    <ChefHat className="h-10 w-10 text-primary/50 opacity-50" />
                   </div>
                 </div>
               </div>
             </section>
 
             {/* Características principales */}
-            <section className="py-16 bg-gray-50">
+            <section className="py-16 lg:py-20 bg-gray-50">
               <div className="container mx-auto px-4">
-                <h2 className="text-3xl font-bold text-center mb-12">
+                <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12 lg:mb-16">
                   {t("home.main_features")}
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-primary/20 transition-all duration-300 transform hover:-translate-y-1">
                     <div className="bg-primary/10 p-3 rounded-full w-fit mb-4">
                       <BookOpen className="h-6 w-6 text-primary" />
                     </div>
@@ -187,7 +220,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-primary/20 transition-all duration-300 transform hover:-translate-y-1">
                     <div className="bg-primary/10 p-3 rounded-full w-fit mb-4">
                       <ShoppingCart className="h-6 w-6 text-primary" />
                     </div>
@@ -199,7 +232,7 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 hover:shadow-primary/20 transition-all duration-300 transform hover:-translate-y-1">
                     <div className="bg-primary/10 p-3 rounded-full w-fit mb-4">
                       <LineChart className="h-6 w-6 text-primary" />
                     </div>
@@ -215,20 +248,23 @@ export default function Home() {
             </section>
 
             {/* Cómo funciona */}
-            <section className="py-16">
+            <section className="py-16 lg:py-20">
               <div className="container mx-auto px-4">
-                <h2 className="text-3xl font-bold text-center mb-4">
+                <h2 className="text-3xl lg:text-4xl font-bold text-center mb-4">
                   {t("home.how_it_works.title")}
                 </h2>
-                <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">
-                  {t("home.how_it_works.description")}
+                <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12 lg:mb-16 text-lg">
+                  {t(
+                    "home.how_it_works.description_detailed",
+                    "Getting started is simple! Just follow these easy steps to begin your culinary adventure with Recipe Master."
+                  )}
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+                  <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-primary/5 transition-colors">
+                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative ring-2 ring-primary/20">
                       <Search className="h-7 w-7 text-primary" />
-                      <div className="absolute -top-2 -right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="absolute -top-2 -right-2 bg-primary text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md">
                         1
                       </div>
                     </div>
@@ -240,10 +276,10 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative">
+                  <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-primary/5 transition-colors">
+                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative ring-2 ring-primary/20">
                       <Timer className="h-7 w-7 text-primary" />
-                      <div className="absolute -top-2 -right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="absolute -top-2 -right-2 bg-primary text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md">
                         2
                       </div>
                     </div>
@@ -255,10 +291,10 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative">
+                  <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-primary/5 transition-colors">
+                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative ring-2 ring-primary/20">
                       <ListChecks className="h-7 w-7 text-primary" />
-                      <div className="absolute -top-2 -right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="absolute -top-2 -right-2 bg-primary text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md">
                         3
                       </div>
                     </div>
@@ -270,10 +306,10 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative">
+                  <div className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-primary/5 transition-colors">
+                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4 relative ring-2 ring-primary/20">
                       <Flame className="h-7 w-7 text-primary" />
-                      <div className="absolute -top-2 -right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-medium">
+                      <div className="absolute -top-2 -right-2 bg-primary text-white w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shadow-md">
                         4
                       </div>
                     </div>
@@ -289,81 +325,91 @@ export default function Home() {
             </section>
 
             {/* Testimonios */}
-            <section className="py-16 bg-gray-50">
+            <section className="py-16 lg:py-20 bg-gray-50">
               <div className="container mx-auto px-4">
-                <h2 className="text-3xl font-bold text-center mb-12">
+                <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12 lg:mb-16">
                   {t("home.testimonials.title")}
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col">
                     <div className="flex items-center mb-4">
-                      <div className="bg-blue-500 w-10 h-10 rounded-full flex items-center justify-center text-white font-medium mr-3">
-                        AM
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-lg mr-4 shadow-md">
+                        {t("home.testimonials.testimonial1.initials", "AM")}
                       </div>
                       <div>
-                        <h4 className="font-medium">
+                        <h4 className="font-semibold text-lg">
                           {t("home.testimonials.testimonial1.name")}
                         </h4>
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-primary text-sm font-medium">
                           {t("home.testimonials.testimonial1.role")}
                         </p>
                       </div>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 italic flex-grow">
                       {t("home.testimonials.testimonial1.text")}
                     </p>
+                    <Users className="w-5 h-5 text-blue-500 mt-4 self-start" />
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col">
                     <div className="flex items-center mb-4">
-                      <div className="bg-green-500 w-10 h-10 rounded-full flex items-center justify-center text-white font-medium mr-3">
-                        JR
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-semibold text-lg mr-4 shadow-md">
+                        {t("home.testimonials.testimonial2.initials", "JR")}
                       </div>
                       <div>
-                        <h4 className="font-medium">
+                        <h4 className="font-semibold text-lg">
                           {t("home.testimonials.testimonial2.name")}
                         </h4>
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-primary text-sm font-medium">
                           {t("home.testimonials.testimonial2.role")}
                         </p>
                       </div>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 italic flex-grow">
                       {t("home.testimonials.testimonial2.text")}
                     </p>
+                    <Users className="w-5 h-5 text-green-500 mt-4 self-start" />
                   </div>
 
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                  <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col">
                     <div className="flex items-center mb-4">
-                      <div className="bg-purple-500 w-10 h-10 rounded-full flex items-center justify-center text-white font-medium mr-3">
-                        LP
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-semibold text-lg mr-4 shadow-md">
+                        {t("home.testimonials.testimonial3.initials", "LP")}
                       </div>
                       <div>
-                        <h4 className="font-medium">
+                        <h4 className="font-semibold text-lg">
                           {t("home.testimonials.testimonial3.name")}
                         </h4>
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-primary text-sm font-medium">
                           {t("home.testimonials.testimonial3.role")}
                         </p>
                       </div>
                     </div>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 italic flex-grow">
                       {t("home.testimonials.testimonial3.text")}
                     </p>
+                    <Users className="w-5 h-5 text-purple-500 mt-4 self-start" />
                   </div>
                 </div>
               </div>
             </section>
 
             {/* CTA final */}
-            <section className="py-16 bg-gradient-to-br from-primary/80 to-primary">
+            <section className="py-16 lg:py-24 bg-gradient-to-br from-primary to-primary/80">
               <div className="container mx-auto px-4 text-center">
-                <h2 className="text-3xl font-bold text-white mb-4">
-                  {t("home.cta.title")}
+                <ChefHat className="h-16 w-16 text-white mx-auto mb-6 opacity-80" />
+                <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
+                  {t(
+                    "home.cta.title_strong",
+                    "Ready to Transform Your Cooking Experience?"
+                  )}
                 </h2>
-                <p className="text-white/90 max-w-2xl mx-auto mb-8">
-                  {t("home.cta.description")}
+                <p className="text-white/90 max-w-2xl mx-auto mb-10 text-lg">
+                  {t(
+                    "home.cta.description_compelling",
+                    "Sign up today and join a growing community of food lovers."
+                  )}
                 </p>
                 <Link href="/auth/register">
                   <Button
@@ -381,15 +427,15 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-6 max-w-6xl mx-auto">
             <h1 className="text-2xl font-bold mb-6 text-center">
               {!profileLoading && isAuthenticated && profile?.username
-                ? `${t("home.welcome_back")}, ${profile.username}`
+                ? `${t("home.welcome_back")}, ${profile.username}!`
                 : t("home.welcome")}
             </h1>
 
             {/* Recetas recientes */}
             <Card className="col-span-1">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <BookOpen className="h-5 w-5 text-primary" />
                   {t("recipes.your_recipes")}
                 </CardTitle>
                 <CardDescription>
@@ -404,40 +450,42 @@ export default function Home() {
                     {t("recipes.no_recipes")}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {recentRecipes.map((recipe) => (
                       <Link
                         key={recipe.id}
                         href={`/recipes/${recipe.id}`}
-                        className="group block"
+                        className="group block bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden border border-gray-200"
                       >
-                        <div className="relative aspect-[4/3] overflow-hidden rounded-lg border bg-muted">
+                        <div className="relative aspect-[16/10] overflow-hidden">
                           {recipe.image_url ? (
                             <Image
                               src={recipe.image_url}
                               alt={recipe.name}
                               fill
-                              className="object-cover transition-transform group-hover:scale-105"
+                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-cover transition-transform duration-300 group-hover:scale-110"
                             />
                           ) : (
                             <div className="flex h-full items-center justify-center bg-muted">
-                              <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                              <ImageIcon className="h-12 w-12 text-gray-400" />
                             </div>
                           )}
                         </div>
-                        <div className="p-3">
-                          <h3 className="font-medium text-lg mb-1 line-clamp-1">
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg mb-1.5 line-clamp-1 group-hover:text-primary transition-colors">
                             {recipe.name}
                           </h3>
-                          <div className="flex items-center text-sm text-gray-500 gap-4">
+                          <div className="flex items-center text-sm text-gray-500 gap-4 mb-1">
                             <div className="flex items-center">
-                              <Clock className="h-4 w-4 mr-1" />
+                              <Clock className="h-4 w-4 mr-1 text-orange-500" />
                               <span>
-                                {recipe.time} {t("recipes.minutes")}
+                                {recipe.time}{" "}
+                                {t("recipes.minutes_short", "min")}
                               </span>
                             </div>
                             <div className="flex items-center">
-                              <Flame className="h-4 w-4 mr-1" />
+                              <Flame className="h-4 w-4 mr-1 text-orange-500" />
                               <span>
                                 {recipe.macros_data
                                   ? Math.round(
@@ -452,6 +500,13 @@ export default function Home() {
                               </span>
                             </div>
                           </div>
+                          <p className="text-xs text-gray-400 line-clamp-2">
+                            {recipe.description ||
+                              t(
+                                "recipes.default_short_desc",
+                                "A delicious recipe to try."
+                              )}
+                          </p>
                         </div>
                       </Link>
                     ))}
@@ -470,10 +525,10 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Consejo del día */}
-              <Card>
+              <Card className="shadow-md border-gray-200">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Info className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <Info className="h-5 w-5 text-primary" />
                     {t("tips.title")}
                   </CardTitle>
                   <CardDescription>
@@ -501,10 +556,10 @@ export default function Home() {
               </Card>
 
               {/* Lista de compras */}
-              <Card>
+              <Card className="shadow-md border-gray-200">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ShoppingCart className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <ShoppingCart className="h-5 w-5 text-primary" />
                     {t("shopping.shopping_list")}
                   </CardTitle>
                   <CardDescription>
@@ -530,74 +585,47 @@ export default function Home() {
             </div>
 
             {/* Temperaturas de carnes */}
-            <Card className="col-span-1">
+            <Card className="col-span-1 md:col-span-2 lg:col-span-1 shadow-md border-gray-200">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Thermometer className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Thermometer className="h-5 w-5 text-primary" />
                   {t("home.cooking_temperatures")}
                 </CardTitle>
                 <CardDescription>{t("meatTemps.subtitle")}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-5 gap-2 mb-4">
-                  <div className="text-center">
-                    <div className="w-full h-2 bg-red-500 rounded mb-1"></div>
-                    <span className="text-xs text-gray-600">
-                      {t("meatTemps.rare")}
-                    </span>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-full h-2 bg-pink-500 rounded mb-1"></div>
-                    <span className="text-xs text-gray-600">
-                      {t("meatTemps.medium_rare")}
-                    </span>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-full h-2 bg-orange-500 rounded mb-1"></div>
-                    <span className="text-xs text-gray-600">
-                      {t("meatTemps.medium")}
-                    </span>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-full h-2 bg-amber-500 rounded mb-1"></div>
-                    <span className="text-xs text-gray-600">
-                      {t("meatTemps.medium_well")}
-                    </span>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-full h-2 bg-yellow-500 rounded mb-1"></div>
-                    <span className="text-xs text-gray-600">
-                      {t("meatTemps.well_done")}
-                    </span>
-                  </div>
+                <div className="text-center p-1 rounded bg-red-100">
+                  <div className="w-full h-2 bg-red-500 rounded mb-1"></div>
+                  <span className="text-xs text-red-700 font-medium">
+                    {t("meatTemps.rare")}
+                  </span>
+                </div>
+                <div className="text-center p-1 rounded bg-pink-100">
+                  <div className="w-full h-2 bg-pink-500 rounded mb-1"></div>
+                  <span className="text-xs text-pink-700 font-medium">
+                    {t("meatTemps.medium_rare")}
+                  </span>
+                </div>
+                <div className="text-center p-1 rounded bg-orange-100">
+                  <div className="w-full h-2 bg-orange-500 rounded mb-1"></div>
+                  <span className="text-xs text-orange-700 font-medium">
+                    {t("meatTemps.medium")}
+                  </span>
+                </div>
+                <div className="text-center p-1 rounded bg-amber-100">
+                  <div className="w-full h-2 bg-amber-500 rounded mb-1"></div>
+                  <span className="text-xs text-amber-700 font-medium">
+                    {t("meatTemps.medium_well")}
+                  </span>
+                </div>
+                <div className="text-center p-1 rounded bg-yellow-100">
+                  <div className="w-full h-2 bg-yellow-500 rounded mb-1"></div>
+                  <span className="text-xs text-yellow-700 font-medium">
+                    {t("meatTemps.well_done")}
+                  </span>
                 </div>
 
-                <div className="flex justify-between items-center border-b pb-2 mb-2">
-                  <span className="font-medium text-sm">
-                    {t("meatTemps.beef")}
-                  </span>
-                  <div className="flex items-center space-x-1">
-                    <span className="text-red-700 text-xs font-semibold">
-                      49°C
-                    </span>
-                    <span>-</span>
-                    <span className="text-yellow-700 text-xs font-semibold">
-                      71°C
-                    </span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center border-b pb-2 mb-2">
-                  <span className="font-medium text-sm">
-                    {t("meatTemps.chicken_turkey")}
-                  </span>
-                  <div className="flex items-center">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded">
-                      74°C
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-4 text-right">
+                <div className="mt-6 text-right">
                   <Link href="/meat-temperatures">
                     <Button variant="outline" size="sm" className="gap-1">
                       <span className="inline">{t("common.more")}</span>

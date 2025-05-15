@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
 import { Navbar } from "@/components/Navbar";
+import { ChefHat /* ShieldCheck */ } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -81,25 +82,70 @@ export default function RegisterPage() {
   return (
     <>
       <Navbar />
-      <div className="h-screen flex flex-col">
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-md">
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold mb-2">
-                {t("auth.create_account")}
+      <div className="min-h-screen flex flex-col lg:flex-row">
+        {/* Hero/Value Proposition Section - Visible on LG screens and above */}
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 to-primary/5 items-center justify-center p-12">
+          <div className="text-center">
+            <ChefHat className="h-24 w-24 text-primary mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
+              {t("auth.join_app", "Join Recipe Master Today!")}
+            </h1>
+            <p className="text-gray-600 text-lg mb-2">
+              {t(
+                "auth.register_benefit1",
+                "Organize your favorite recipes, create shopping lists, and plan your meals with ease."
+              )}
+            </p>
+            <p className="text-gray-600 text-lg">
+              {t(
+                "auth.register_benefit2",
+                "Unlock a world of culinary inspiration!"
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Form Section */}
+        <div className="flex-1 flex items-center justify-center p-4 lg:p-12 bg-white">
+          <div className="w-full max-w-md space-y-8">
+            <div className="text-center">
+              {/* Mobile-only Welcome Icon - Hidden on LG and above */}
+              <ChefHat className="h-16 w-16 text-primary mx-auto mb-4 lg:hidden" />
+              <h1 className="text-2xl lg:text-3xl font-bold mb-2">
+                {t("auth.create_your_account", "Create Your Account")}
               </h1>
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1">
                 <p className="text-gray-500">
-                  {t("auth.already_have_account")}
+                  {t("auth.already_have_account", "Already have an account?")}
                 </p>
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                  className="font-medium text-primary hover:underline"
                 >
-                  {t("auth.login")}
+                  {t("auth.login_here", "Login here")}
                 </Link>
               </div>
             </div>
+
+            {/* Placeholder for Social Logins (optional enhancement) */}
+            {/* <div className="space-y-3">
+              <Button variant="outline" className="w-full">
+                Sign up with Google
+              </Button>
+              <Button variant="outline" className="w-full">
+                Sign up with Facebook
+              </Button>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">
+                  Or continue with email
+                </span>
+              </div>
+            </div> */}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -172,9 +218,28 @@ export default function RegisterPage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading
                   ? t("auth.creating_account")
-                  : t("auth.create_account")}
+                  : t(
+                      "auth.create_account_cta",
+                      "Create Account & Get Started"
+                    )}
               </Button>
             </form>
+
+            {/* <div className="text-xs text-center text-gray-500">
+              <ShieldCheck className="h-4 w-4 inline mr-1 text-green-600" />
+              {t(
+                "auth.tos_agreement_start",
+                "By creating an account, you agree to our"
+              )}{" "}
+              <Link href="/terms" className="underline hover:text-primary">
+                {t("auth.terms_of_service", "Terms of Service")}
+              </Link>{" "}
+              {t("auth.and", "and")}{" "}
+              <Link href="/privacy" className="underline hover:text-primary">
+                {t("auth.privacy_policy", "Privacy Policy")}
+              </Link>
+              .
+            </div> */}
           </div>
         </div>
       </div>

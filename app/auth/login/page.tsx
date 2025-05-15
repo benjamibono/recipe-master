@@ -18,6 +18,7 @@ import {
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
 import { Navbar } from "@/components/Navbar";
+import { ChefHat } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -155,16 +156,44 @@ export default function LoginPage() {
   return (
     <>
       <Navbar />
-      <div className="h-screen flex flex-col">
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="w-full max-w-md">
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold mb-2">
-                {t("auth.welcome_back")}
+      <div className="min-h-screen flex flex-col lg:flex-row">
+        {/* Hero/Welcome Section - Visible on LG screens and above */}
+        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary/10 to-primary/5 items-center justify-center p-12">
+          <div className="text-center">
+            <ChefHat className="h-24 w-24 text-primary mx-auto mb-6" />
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
+              {t("auth.welcome_to_app", "Welcome to Recipe Master!")}
+            </h1>
+            <p className="text-gray-600 text-lg">
+              {t(
+                "auth.login_greeting",
+                "Access your saved recipes, shopping lists, and more."
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Form Section */}
+        <div className="flex-1 flex items-center justify-center p-4 lg:p-12 bg-white">
+          <div className="w-full max-w-md space-y-8">
+            <div className="text-center">
+              {/* Mobile-only Welcome Icon - Hidden on LG and above */}
+              <ChefHat className="h-16 w-16 text-primary mx-auto mb-4 lg:hidden" />
+              <h1 className="text-2xl lg:text-3xl font-bold mb-2">
+                {t("auth.login_now", "Log In")}
               </h1>
+              <p className="text-gray-500">
+                {t("auth.dont_have_account", "Don't have an account?")}{" "}
+                <Link
+                  href="/auth/register"
+                  className="font-medium text-primary hover:underline"
+                >
+                  {t("auth.register_here", "Register here")}
+                </Link>
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="identifier">
                   {t("auth.username_or_email")}
@@ -260,25 +289,6 @@ export default function LoginPage() {
                 {loading ? t("auth.logging_in") : t("auth.login")}
               </Button>
             </form>
-
-            <div className="mt-8 text-center space-y-4">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">
-                    {t("auth.new_to_app")}
-                  </span>
-                </div>
-              </div>
-
-              <Link href="/auth/register">
-                <Button variant="outline" className="w-full">
-                  {t("auth.create_account")}
-                </Button>
-              </Link>
-            </div>
           </div>
         </div>
       </div>

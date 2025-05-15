@@ -101,7 +101,8 @@ export default function Sidebar() {
         className={cn(
           "fixed top-0 left-0 h-[100dvh] w-full lg:w-64 bg-white shadow-lg z-50 transition-all duration-300 ease-in-out",
           isOpen ? "opacity-100 visible" : "opacity-0 invisible",
-          "lg:opacity-100 lg:visible lg:sticky lg:top-0 lg:z-0 lg:shadow-none lg:translate-x-0"
+          "lg:opacity-100 lg:visible lg:sticky lg:top-0 lg:z-0 lg:shadow-none lg:translate-x-0",
+          !isAuthenticated && "hidden"
         )}
       >
         <div className="h-full flex flex-col">

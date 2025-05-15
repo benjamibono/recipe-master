@@ -31,7 +31,8 @@
   "home": {
     "welcome": "Bienvenido/a a Recipe Master",
     "welcome_back": "Bienvenido/a de nuevo",
-    "description": "Tu asistente culinario inteligente que revoluciona la forma de cocinar, organizar recetas y planificar comidas",
+    "hero_title": "Domina Tu Cocina con Recipe Master",
+    "description": "La plataforma definitiva para organizar tus recetas, planificar tus comidas, crear listas de compras y descubrir nuevas delicias culinarias. Gestiona sin esfuerzo tu viaje culinario desde la inspiración hasta una comida deliciosa.",
     "app_preview": "Vista previa de la aplicación",
     "main_features": "Características principales",
     "features": {
@@ -50,6 +51,7 @@
     },
     "how_it_works": {
       "title": "Cómo funciona",
+      "description_detailed": "¡Empezar es simple! Solo sigue estos sencillos pasos para comenzar tu aventura culinaria con Recipe Master.",
       "description": "Recipe Master simplifica tu experiencia culinaria en solo unos pasos",
       "step1": {
         "title": "Crea o importa recetas",
@@ -73,20 +75,25 @@
       "testimonial1": {
         "name": "Ana Martínez",
         "role": "Aficionada a la cocina",
+        "initials": "AM",
         "text": "Recipe Master me ha ayudado a organizar todas mis recetas familiares. La función de lista de compras me ahorra muchísimo tiempo cada semana."
       },
       "testimonial2": {
         "name": "Juan Rodríguez",
         "role": "Chef profesional",
+        "initials": "JR",
         "text": "Como chef, necesito acceder a mis recetas rápidamente. Esta app me permite tener todo organizado y poder calcular raciones al instante."
       },
       "testimonial3": {
         "name": "Laura Pérez",
         "role": "Nutricionista",
+        "initials": "LP",
         "text": "Los análisis nutricionales que ofrece son increíblemente útiles para mis pacientes que necesitan seguir planes alimenticios específicos."
       }
     },
     "cta": {
+      "title_strong": "¿Listo para Transformar Tu Experiencia Culinaria?",
+      "description_compelling": "Regístrate hoy y únete a una creciente comunidad de amantes de la comida.",
       "title": "Comienza tu aventura culinaria hoy",
       "description": "Únete a miles de usuarios que ya están disfrutando de una experiencia culinaria más organizada, eficiente y divertida."
     },
@@ -141,6 +148,20 @@
     "welcome_back": "Bienvenido/a de nuevo",
     "new_to_app": "¿Nuevo en Recipe Master?",
     "create_account": "Crear una cuenta",
+    "create_your_account": "Crea Tu Cuenta",
+    "create_account_cta": "Crear Cuenta y Empezar",
+    "welcome_to_app": "¡Bienvenido a Recipe Master!",
+    "login_greeting": "Accede a tus recetas guardadas, listas de compras y más.",
+    "login_now": "Iniciar Sesión",
+    "register_here": "Regístrate aquí",
+    "login_here": "Inicia sesión aquí",
+    "join_app": "¡Únete a Recipe Master Hoy!",
+    "register_benefit1": "Organiza tus recetas favoritas, crea listas de compras y planifica tus comidas con facilidad.",
+    "register_benefit2": "¡Desbloquea un mundo de inspiración culinaria!",
+    "tos_agreement_start": "Al crear una cuenta, aceptas nuestros",
+    "terms_of_service": "Términos de Servicio",
+    "and": "y",
+    "privacy_policy": "Política de Privacidad",
     "verification_sent": "Te hemos enviado un email de verificación. Por favor, verifica tu correo para continuar.",
     "verification_title": "Verifica tu email",
     "verification_description": "Te hemos enviado un correo con un enlace de verificación. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.",
@@ -172,6 +193,7 @@
     "your_recipes": "Tus Recetas",
     "text_too_long": "El texto es demasiado largo. El máximo de caracteres permitidos es {{max}}",
     "minutes": "minutos",
+    "minutes_short": "min",
     "name": "Nombre",
     "enter_recipe_name": "Ingresa el nombre de la receta",
     "wand_explanation": "Haz clic en el botón varita para dejar que la IA cree una receta por ti.",
@@ -208,6 +230,7 @@
     "noNotesAvailable": "No hay notas disponibles",
     "noInstructionsAvailable": "No hay instrucciones disponibles",
     "clickToAdd": "Haz clic en el botón de editar para añadir {{type}}",
+    "default_short_desc": "Una deliciosa receta para probar.",
     "nutritionalInfo": "Información Nutricional",
     "analyzingNutrition": "Analizando información nutricional...",
     "nutritionAnalysisTime": "Esto puede tardar un momento mientras la IA analiza los ingredientes",
@@ -268,9 +291,11 @@
     "well_done": "Muy Hecha",
     "beef": "Ternera",
     "pork": "Cerdo",
+    "lamb": "Cordero",
     "fish": "Pescado",
     "chicken_turkey": "Pollo / Pavo",
     "ground_meat": "Carne Picada",
+    "internal_temp_simple": "Interna 74°C",
     "temperature_note": "Nota: Siempre use un termómetro de cocina para mayor precisión",
     "beef_tip": "La carne de ternera puede consumirse con seguridad a temperaturas más bajas",
     "pork_tip": "El cerdo moderno puede estar ligeramente rosado cuando está bien cocinado",
