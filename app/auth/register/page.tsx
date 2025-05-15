@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
+import { Navbar } from "@/components/Navbar";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -78,81 +79,105 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="container max-w-md py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold mb-2">Create an Account</h1>
-        <p className="text-gray-500">
-          Already have an account?{" "}
-          <Link href="/auth/login" className="text-primary hover:underline">
-            Log in
-          </Link>
-        </p>
+    <>
+      <Navbar />
+      <div className="h-screen flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold mb-2">
+                {t("auth.create_account")}
+              </h1>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-gray-500">
+                  {t("auth.already_have_account")}
+                </p>
+                <Link
+                  href="/auth/login"
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+                >
+                  {t("auth.login")}
+                </Link>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">{t("auth.username")}</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      username: e.target.value,
+                    }))
+                  }
+                  placeholder={t("auth.enter_username")}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">{t("auth.email")}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  placeholder={t("auth.enter_email")}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">{t("auth.password")}</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                  placeholder={t("auth.enter_password")}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">
+                  {t("auth.confirm_password")}
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      confirmPassword: e.target.value,
+                    }))
+                  }
+                  placeholder={t("auth.confirm_password")}
+                  required
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading
+                  ? t("auth.creating_account")
+                  : t("auth.create_account")}
+              </Button>
+            </form>
+          </div>
+        </div>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            type="text"
-            value={formData.username}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, username: e.target.value }))
-            }
-            placeholder="Enter your username"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, email: e.target.value }))
-            }
-            placeholder="Enter your email"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, password: e.target.value }))
-            }
-            placeholder="Create a password"
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input
-            id="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                confirmPassword: e.target.value,
-              }))
-            }
-            placeholder="Confirm your password"
-            required
-          />
-        </div>
-
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Creating account..." : "Create account"}
-        </Button>
-      </form>
-    </div>
+    </>
   );
 }

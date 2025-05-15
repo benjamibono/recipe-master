@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useAuthRedirect } from "@/lib/hooks/useAuthRedirect";
+import { Navbar } from "@/components/Navbar";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -152,131 +153,135 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container max-w-md py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold mb-2">
-          {t("auth.welcome_back", "Welcome Back")}
-        </h1>
-      </div>
+    <>
+      <Navbar />
+      <div className="h-screen flex flex-col">
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl font-bold mb-2">
+                {t("auth.welcome_back")}
+              </h1>
+            </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="identifier">
-            {t("auth.username_or_email", "Username or Email")}
-          </Label>
-          <Input
-            id="identifier"
-            type="text"
-            value={formData.identifier}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, identifier: e.target.value }))
-            }
-            placeholder={t(
-              "auth.enter_username_or_email",
-              "Enter your username or email"
-            )}
-            required
-          />
-        </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="identifier">
+                  {t("auth.username_or_email")}
+                </Label>
+                <Input
+                  id="identifier"
+                  type="text"
+                  value={formData.identifier}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      identifier: e.target.value,
+                    }))
+                  }
+                  placeholder={t("auth.enter_username_or_email")}
+                  required
+                />
+              </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Label htmlFor="password">{t("auth.password", "Password")}</Label>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="link"
-                  className="text-sm text-primary p-0 h-auto font-normal"
-                >
-                  {t("auth.forgot_password", "Forgot password?")}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="password">{t("auth.password")}</Label>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="link"
+                        className="text-sm text-primary p-0 h-auto font-normal"
+                      >
+                        {t("auth.forgot_password")}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{t("auth.reset_password")}</DialogTitle>
+                      </DialogHeader>
+                      {resetEmailSent ? (
+                        <div className="text-center py-4">
+                          <p className="mb-4">
+                            {t("auth.reset_email_sent_message")}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {t("auth.check_inbox")}
+                          </p>
+                        </div>
+                      ) : (
+                        <form
+                          onSubmit={handlePasswordReset}
+                          className="space-y-4"
+                        >
+                          <div className="space-y-2">
+                            <Label htmlFor="resetEmail">
+                              {t("auth.email")}
+                            </Label>
+                            <Input
+                              id="resetEmail"
+                              type="email"
+                              value={resetEmail}
+                              onChange={(e) => setResetEmail(e.target.value)}
+                              placeholder={t("auth.enter_email")}
+                              required
+                            />
+                          </div>
+                          <Button
+                            type="submit"
+                            className="w-full"
+                            disabled={loading}
+                          >
+                            {loading
+                              ? t("auth.sending")
+                              : t("auth.send_reset_instructions")}
+                          </Button>
+                        </form>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                  placeholder={t("auth.enter_password")}
+                  required
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? t("auth.logging_in") : t("auth.login")}
+              </Button>
+            </form>
+
+            <div className="mt-8 text-center space-y-4">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">
+                    {t("auth.new_to_app")}
+                  </span>
+                </div>
+              </div>
+
+              <Link href="/auth/register">
+                <Button variant="outline" className="w-full">
+                  {t("auth.create_account")}
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {t("auth.reset_password", "Reset Password")}
-                  </DialogTitle>
-                </DialogHeader>
-                {resetEmailSent ? (
-                  <div className="text-center py-4">
-                    <p className="mb-4">
-                      {t(
-                        "auth.reset_email_sent_message",
-                        "Password reset instructions have been sent to your email."
-                      )}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {t(
-                        "auth.check_inbox",
-                        "Please check your inbox and follow the instructions to reset your password."
-                      )}
-                    </p>
-                  </div>
-                ) : (
-                  <form onSubmit={handlePasswordReset} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="resetEmail">
-                        {t("auth.email", "Email")}
-                      </Label>
-                      <Input
-                        id="resetEmail"
-                        type="email"
-                        value={resetEmail}
-                        onChange={(e) => setResetEmail(e.target.value)}
-                        placeholder={t("auth.enter_email", "Enter your email")}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                      {loading
-                        ? t("auth.sending", "Sending...")
-                        : t(
-                            "auth.send_reset_instructions",
-                            "Send Reset Instructions"
-                          )}
-                    </Button>
-                  </form>
-                )}
-              </DialogContent>
-            </Dialog>
-          </div>
-          <Input
-            id="password"
-            type="password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, password: e.target.value }))
-            }
-            placeholder={t("auth.enter_password", "Enter your password")}
-            required
-          />
-        </div>
-
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading
-            ? t("auth.logging_in", "Logging in...")
-            : t("common.login", "Log in")}
-        </Button>
-      </form>
-
-      <div className="mt-8 text-center space-y-4">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
-              {t("auth.new_to_app", "New to Recipe Master?")}
-            </span>
+              </Link>
+            </div>
           </div>
         </div>
-
-        <Link href="/auth/register">
-          <Button variant="outline" className="w-full">
-            {t("auth.create_account", "Create an Account")}
-          </Button>
-        </Link>
       </div>
-    </div>
+    </>
   );
 }

@@ -52,7 +52,7 @@ function ConfirmContent() {
           setMessage(
             t(
               "auth.email_changed_login_required",
-              "Email actualizado. Por favor, inicia sesión con tu nuevo correo electrónico."
+              "Email actualizado. Por favor, inicia sesión con tu nuevo email."
             )
           );
           setTimeout(() => {
@@ -62,7 +62,7 @@ function ConfirmContent() {
                 encodeURIComponent(
                   t(
                     "auth.email_changed_login_required",
-                    "Email actualizado. Por favor, inicia sesión con tu nuevo correo electrónico."
+                    "Email actualizado. Por favor, inicia sesión con tu nuevo email."
                   )
                 );
             router.push(destination);

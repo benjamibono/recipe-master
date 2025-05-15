@@ -11,8 +11,6 @@
     "language": "Idioma",
     "settings": "Configuración",
     "logout": "Cerrar sesión",
-    "login": "Iniciar sesión",
-    "register": "Registrarse",
     "profile": "Perfil",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -33,7 +31,65 @@
   "home": {
     "welcome": "Bienvenido/a a Recipe Master",
     "welcome_back": "Bienvenido/a de nuevo",
-    "description": "Tu asistente culinario para todas tus necesidades en la cocina",
+    "description": "Tu asistente culinario inteligente que revoluciona la forma de cocinar, organizar recetas y planificar comidas",
+    "app_preview": "Vista previa de la aplicación",
+    "main_features": "Características principales",
+    "features": {
+      "organize": {
+        "title": "Organiza tus recetas",
+        "description": "Guarda, categoriza y accede a todas tus recetas favoritas en un solo lugar, organizadas para un acceso rápido."
+      },
+      "shopping": {
+        "title": "Lista de compras inteligente",
+        "description": "Genera automáticamente listas de compras basadas en tus recetas planificadas, ahorrando tiempo y evitando olvidos."
+      },
+      "nutrition": {
+        "title": "Control nutricional",
+        "description": "Analiza los valores nutricionales de tus recetas y mantén un seguimiento de tu ingesta calórica y macronutrientes."
+      }
+    },
+    "how_it_works": {
+      "title": "Cómo funciona",
+      "description": "Recipe Master simplifica tu experiencia culinaria en solo unos pasos",
+      "step1": {
+        "title": "Crea o importa recetas",
+        "description": "Añade tus propias recetas o importa desde tus sitios favoritos"
+      },
+      "step2": {
+        "title": "Planifica tus comidas",
+        "description": "Organiza tu menú semanal con un calendario intuitivo"
+      },
+      "step3": {
+        "title": "Genera lista de compras",
+        "description": "Obtén automáticamente todos los ingredientes necesarios"
+      },
+      "step4": {
+        "title": "Cocina como un chef",
+        "description": "Sigue las instrucciones paso a paso y disfruta de tus creaciones"
+      }
+    },
+    "testimonials": {
+      "title": "Lo que dicen nuestros usuarios",
+      "testimonial1": {
+        "name": "Ana Martínez",
+        "role": "Aficionada a la cocina",
+        "text": "Recipe Master me ha ayudado a organizar todas mis recetas familiares. La función de lista de compras me ahorra muchísimo tiempo cada semana."
+      },
+      "testimonial2": {
+        "name": "Juan Rodríguez",
+        "role": "Chef profesional",
+        "text": "Como chef, necesito acceder a mis recetas rápidamente. Esta app me permite tener todo organizado y poder calcular raciones al instante."
+      },
+      "testimonial3": {
+        "name": "Laura Pérez",
+        "role": "Nutricionista",
+        "text": "Los análisis nutricionales que ofrece son increíblemente útiles para mis pacientes que necesitan seguir planes alimenticios específicos."
+      }
+    },
+    "cta": {
+      "title": "Comienza tu aventura culinaria hoy",
+      "description": "Únete a miles de usuarios que ya están disfrutando de una experiencia culinaria más organizada, eficiente y divertida."
+    },
     "get_started": "Comenzar",
     "learn_more": "Más información",
     "recipes_description": "Explora y gestiona tus recetas de cocina favoritas",
@@ -46,24 +102,28 @@
     "cooking_temperatures": "Temperaturas de cocción"
   },
   "auth": {
-    "email": "Correo electrónico",
+    "email": "Email",
     "password": "Contraseña",
     "confirm_password": "Confirmar contraseña",
     "forgot_password": "¿Olvidaste tu contraseña?",
     "already_have_account": "¿Ya tienes una cuenta?",
     "dont_have_account": "¿No tienes una cuenta?",
+    "login": "Iniciar sesión",
+    "username": "Nombre de usuario",
+    "enter_username": "Ingresa tu nombre de usuario",
+    "register": "Registrarse",
     "login_success": "Sesión iniciada correctamente",
     "login_failed": "Error al iniciar sesión",
     "logout_success": "Sesión cerrada correctamente",
     "logout_error": "Error al cerrar sesión",
     "logging_in": "Iniciando sesión...",
     "logging_out": "Cerrando sesión...",
-    "email_not_confirmed": "Por favor confirma tu dirección de correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada para el enlace de confirmación.",
+    "email_not_confirmed": "Por favor confirma tu dirección de email antes de iniciar sesión. Revisa tu bandeja de entrada para el enlace de confirmación.",
     "invalid_credentials": "Usuario/correo o contraseña incorrectos",
     "reset_password": "Restablecer contraseña",
     "reset_email_sent": "Instrucciones para restablecer la contraseña enviadas a tu correo",
     "reset_email_failed": "Error al enviar correo de restablecimiento",
-    "email_changed_login_required": "Email actualizado. Por favor, inicia sesión con tu nuevo correo electrónico.",
+    "email_changed_login_required": "Email actualizado. Por favor, inicia sesión con tu nuevo email.",
     "login_required": "Inicia sesión para acceder a la configuración",
     "confirming": "Confirmando...",
     "invalid_link": "Enlace de confirmación inválido",
@@ -74,20 +134,20 @@
     "unknown_verification_type": "Tipo de verificación desconocido",
     "sending": "Enviando...",
     "send_reset_instructions": "Enviar instrucciones de restablecimiento",
-    "username_or_email": "Usuario o correo electrónico",
-    "enter_username_or_email": "Ingresa tu usuario o correo electrónico",
+    "username_or_email": "Usuario o email",
+    "enter_username_or_email": "Ingresa tu usuario o email",
     "enter_password": "Ingresa tu contraseña",
-    "enter_email": "Ingresa tu correo electrónico",
+    "enter_email": "Ingresa tu email",
     "welcome_back": "Bienvenido/a de nuevo",
     "new_to_app": "¿Nuevo en Recipe Master?",
     "create_account": "Crear una cuenta",
     "verification_sent": "Te hemos enviado un email de verificación. Por favor, verifica tu correo para continuar.",
-    "verification_title": "Verifica tu correo electrónico",
+    "verification_title": "Verifica tu email",
     "verification_description": "Te hemos enviado un correo con un enlace de verificación. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.",
     "resend_verification": "Reenviar email de verificación",
     "check_spam": "¿No ves el correo? Revisa tu carpeta de spam o correo no deseado",
-    "confirmation_error": "Error al confirmar tu correo electrónico",
-    "confirmation_success": "¡Correo electrónico verificado correctamente!",
+    "confirmation_error": "Error al confirmar tu email",
+    "confirmation_success": "¡email verificado correctamente!",
     "redirecting": "Redireccionando...",
     "session_expired": "Sesión expirada. Por favor, inicia sesión nuevamente."
   },
@@ -262,7 +322,7 @@
   },
   "errors": {
     "required_field": "Este campo es obligatorio",
-    "invalid_email": "Correo electrónico inválido",
+    "invalid_email": "email inválido",
     "general": "Ha ocurrido un error",
     "required_name": "El nombre es obligatorio",
     "required_time": "El tiempo es obligatorio",
@@ -312,5 +372,19 @@
     "comeback": "Si en algún momento deseas volver, estaremos encantados de tenerte de nuevo con nosotros.",
     "back_to_login": "Volver a iniciar sesión",
     "already_logged_in": "Esta página solo es accesible después de eliminar la cuenta"
+  },
+  "nav": {
+    "recipes": "Recetas",
+    "tips": "Consejos",
+    "temperatures": "Temperaturas",
+    "profile": "Perfil",
+    "language": "Idioma",
+    "switch_to_english": "Cambiar a inglés",
+    "switch_to_spanish": "Cambiar a español"
+  },
+  "footer": {
+    "built_with": "Construido con",
+    "by": "por",
+    "rights_reserved": "Todos los derechos reservados"
   }
 }

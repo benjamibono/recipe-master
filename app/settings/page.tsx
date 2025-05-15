@@ -135,7 +135,7 @@ export default function SettingsPage() {
           }/auth/login?message=${encodeURIComponent(
             t(
               "auth.email_changed_login_required",
-              "Email actualizado. Por favor, inicia sesión con tu nuevo correo electrónico."
+              "Email actualizado. Por favor, inicia sesión con tu nuevo email."
             )
           )}`,
         }

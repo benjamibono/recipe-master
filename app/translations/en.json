@@ -2,17 +2,15 @@
   "common": {
     "home": "Home",
     "explore": "Explore",
-    "recipes": "Cooking Recipes",
+    "recipes": "Recipes",
     "tips": "Tips",
-    "shopping": "Shopping",
+    "shopping": "Shopping List",
     "cleaning": "Cleaning",
-    "meat_temperatures": "Temperatures",
+    "meat_temperatures": "Meat Temperatures",
     "search": "Search",
     "language": "Language",
     "settings": "Settings",
     "logout": "Logout",
-    "login": "Login",
-    "register": "Register",
     "profile": "Profile",
     "save": "Save",
     "cancel": "Cancel",
@@ -33,7 +31,7 @@
   "home": {
     "welcome": "Welcome to Recipe Master",
     "welcome_back": "Welcome back",
-    "description": "Your culinary assistant for all your kitchen needs",
+    "description": "Your intelligent culinary assistant that revolutionizes the way you cook, organize recipes, and plan meals",
     "get_started": "Get Started",
     "learn_more": "Learn More",
     "recipes_description": "Explore and manage your favorite cooking recipes",
@@ -43,16 +41,78 @@
     "tips_rotation_description": "Culinary tips that change every minute",
     "shopping_description": "Manage your shopping list intelligently",
     "shopping_detail": "Create your shopping list automatically from your favorite recipes. Add, edit and organize ingredients to make your shopping efficient.",
-    "cooking_temperatures": "Cooking Temperatures"
+    "cooking_temperatures": "Cooking Temperatures",
+    "app_preview": "App Preview",
+    "main_features": "Main Features",
+    "features": {
+      "organize": {
+        "title": "Organize Your Recipes",
+        "description": "Save, categorize, and access all your favorite recipes in one place, organized for quick access."
+      },
+      "shopping": {
+        "title": "Smart Shopping List",
+        "description": "Automatically generate shopping lists based on your planned recipes, saving time and preventing forgetfulness."
+      },
+      "nutrition": {
+        "title": "Nutritional Control",
+        "description": "Analyze the nutritional values of your recipes and keep track of your calorie and macronutrient intake."
+      }
+    },
+    "how_it_works": {
+      "title": "How It Works",
+      "description": "Recipe Master simplifies your culinary experience in just a few steps",
+      "step1": {
+        "title": "Create or Import Recipes",
+        "description": "Add your own recipes or import from your favorite sites"
+      },
+      "step2": {
+        "title": "Plan Your Meals",
+        "description": "Organize your weekly menu with an intuitive calendar"
+      },
+      "step3": {
+        "title": "Generate Shopping List",
+        "description": "Automatically get all the necessary ingredients"
+      },
+      "step4": {
+        "title": "Cook Like a Chef",
+        "description": "Follow step-by-step instructions and enjoy your creations"
+      }
+    },
+    "testimonials": {
+      "title": "What Our Users Say",
+      "testimonial1": {
+        "name": "Ana Martínez",
+        "role": "Cooking Enthusiast",
+        "text": "Recipe Master has helped me organize all my family recipes. The shopping list feature saves me so much time every week."
+      },
+      "testimonial2": {
+        "name": "Juan Rodríguez",
+        "role": "Professional Chef",
+        "text": "As a chef, I need quick access to my recipes. This app allows me to keep everything organized and calculate portions instantly."
+      },
+      "testimonial3": {
+        "name": "Laura Pérez",
+        "role": "Nutritionist",
+        "text": "The nutritional analysis it offers is incredibly useful for my patients who need to follow specific dietary plans."
+      }
+    },
+    "cta": {
+      "title": "Start Your Culinary Adventure Today",
+      "description": "Join thousands of users already enjoying a more organized, efficient, and fun culinary experience."
+    }
   },
   "auth": {
     "email": "Email",
     "password": "Password",
     "confirm_password": "Confirm Password",
-    "forgot_password": "Forgot your password?",
+    "forgot_password": "Forgot Password?",
     "already_have_account": "Already have an account?",
     "dont_have_account": "Don't have an account?",
-    "login_success": "Logged in successfully",
+    "login": "Login",
+    "username": "Username",
+    "enter_username": "Enter your username",
+    "register": "Register",
+    "login_success": "Login successful",
     "login_failed": "Failed to log in",
     "logout_success": "Logged out successfully",
     "logout_error": "Failed to log out",
@@ -307,5 +367,19 @@
     "comeback": "If you ever wish to return, we'll be delighted to have you back.",
     "back_to_login": "Back to login",
     "already_logged_in": "This page is only accessible after deleting your account"
+  },
+  "nav": {
+    "recipes": "Recipes",
+    "tips": "Tips",
+    "temperatures": "Temperatures",
+    "profile": "Profile",
+    "language": "Language",
+    "switch_to_english": "Switch to English",
+    "switch_to_spanish": "Switch to Spanish"
+  },
+  "footer": {
+    "built_with": "Built with",
+    "by": "by",
+    "rights_reserved": "All rights reserved"
   }
 }
