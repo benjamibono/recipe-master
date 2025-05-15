@@ -396,7 +396,7 @@ export default function Home() {
             </section>
 
             {/* CTA final */}
-            <section className="py-16 lg:py-24 bg-gradient-to-br from-primary to-primary/80">
+            <section className="py-16 lg:py-24 bg-gradient-to-br from-primary to-primary/80 rounded-lg">
               <div className="container mx-auto px-4 text-center">
                 <ChefHat className="h-16 w-16 text-white mx-auto mb-6 opacity-80" />
                 <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
