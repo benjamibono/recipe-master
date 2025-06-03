@@ -1,7 +1,7 @@
 "use client";
 
 import { Recipe } from "@/lib/supabase";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Clock, ArrowLeft, ChevronDown } from "lucide-react";
@@ -69,21 +69,6 @@ export default function RecipeDetailPage() {
     staleTime: 1000 * 60 * 60, // 1 hora
   });
 
-  // Función para inicializar configuración después de cargar la receta
-  const onRecipeLoaded = (data: Recipe) => {
-    setCurrentServings(data.servings);
-    setOriginalServings(data.servings);
-
-    // Si es una receta de cocina y tiene ingredientes, comprobar los macros
-    if (
-      data.type === "cooking" &&
-      data.ingredients.length > 0 &&
-      (!data.macros_data || !data.macros_data.includes(":"))
-    ) {
-      fetchNutritionalInfo(data);
-    }
-  };
-
   // Consulta para obtener los datos de la receta
   const { data: recipe, isLoading } = useQuery<Recipe>({
     queryKey: ["recipe", recipeId],
@@ -104,6 +89,91 @@ export default function RecipeDetailPage() {
     enabled: !!user?.id && !!recipeId,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
+
+  // Separate function to fetch nutritional information asynchronously
+  const fetchNutritionalInfo = useCallback(
+    async (recipeData: Recipe) => {
+      try {
+        setLoadingMacros(true);
+
+        const response = await fetch("/api/analyze-macros", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ingredients: recipeData.ingredients }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch macros: ${response.statusText}`);
+        }
+
+        const { macros } = await response.json();
+
+        // Validate the macros data format
+        if (!macros || typeof macros !== "string" || !macros.includes(":")) {
+          throw new Error("Invalid macros data format");
+        }
+
+        // Actualizar la caché de React Query con los nuevos macros
+        queryClient.setQueryData(["recipe", recipeId, "macros"], macros);
+
+        // Store the macros in the database as JSONB
+        const { error: updateError } = await supabase
+          .from("recipes")
+          .update({
+            macros_data: macros,
+          })
+          .eq("id", recipeData.id);
+
+        if (updateError) {
+          console.error("Error storing macros:", updateError);
+        } else {
+          // Actualizar la caché de la receta con los nuevos macros
+          queryClient.setQueryData<Recipe | undefined>(
+            ["recipe", recipeId],
+            (oldData) =>
+              oldData ? { ...oldData, macros_data: macros } : undefined
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching macros:", error);
+        if (!recipeData.macros_data) {
+          toast.error("Failed to load nutritional information");
+        }
+      } finally {
+        setLoadingMacros(false);
+      }
+    },
+    [queryClient, recipeId]
+  );
+
+  // Función para inicializar configuración después de cargar la receta
+  const onRecipeLoaded = useCallback(
+    (data: Recipe) => {
+      setCurrentServings(data.servings);
+      setOriginalServings(data.servings);
+
+      // Si es una receta de cocina y tiene ingredientes, comprobar los macros
+      if (
+        data.type === "cooking" &&
+        data.ingredients.length > 0 &&
+        (!data.macros_data || !data.macros_data.includes(":"))
+      ) {
+        fetchNutritionalInfo(data);
+      }
+    },
+    [fetchNutritionalInfo]
+  );
+
+  // Hook para gestionar la traducción de la receta
+  const {
+    displayData,
+    isShowingTranslation,
+    isTranslating,
+    needsTranslation,
+    toggleTranslation,
+  } = useRecipeTranslation(recipe || null);
 
   // Efecto para configurar la receta después de cargarla
   useEffect(() => {
@@ -134,70 +204,6 @@ export default function RecipeDetailPage() {
       recipe.macros_data.includes(":"),
   });
 
-  // Hook para gestionar la traducción de la receta
-  const {
-    displayData,
-    isShowingTranslation,
-    isTranslating,
-    needsTranslation,
-    toggleTranslation,
-  } = useRecipeTranslation(recipe || null);
-
-  // Separate function to fetch nutritional information asynchronously
-  const fetchNutritionalInfo = async (recipeData: Recipe) => {
-    try {
-      setLoadingMacros(true);
-
-      const response = await fetch("/api/analyze-macros", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ingredients: recipeData.ingredients }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch macros: ${response.statusText}`);
-      }
-
-      const { macros } = await response.json();
-
-      // Validate the macros data format
-      if (!macros || typeof macros !== "string" || !macros.includes(":")) {
-        throw new Error("Invalid macros data format");
-      }
-
-      // Actualizar la caché de React Query con los nuevos macros
-      queryClient.setQueryData(["recipe", recipeId, "macros"], macros);
-
-      // Store the macros in the database as JSONB
-      const { error: updateError } = await supabase
-        .from("recipes")
-        .update({
-          macros_data: macros,
-        })
-        .eq("id", recipeData.id);
-
-      if (updateError) {
-        console.error("Error storing macros:", updateError);
-      } else {
-        // Actualizar la caché de la receta con los nuevos macros
-        queryClient.setQueryData<Recipe | undefined>(
-          ["recipe", recipeId],
-          (oldData) =>
-            oldData ? { ...oldData, macros_data: macros } : undefined
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching macros:", error);
-      if (!recipeData.macros_data) {
-        toast.error("Failed to load nutritional information");
-      }
-    } finally {
-      setLoadingMacros(false);
-    }
-  };
-
   const handleDelete = async () => {
     if (!recipe) return;
     setDeleting(true);
@@ -226,7 +232,7 @@ export default function RecipeDetailPage() {
   };
 
   const calculateAdjustedQuantity = (original: number) => {
-    if (!originalServings) return original;
+    if (!originalServings || originalServings <= 0) return original;
     return Math.round((original * currentServings) / originalServings);
   };
 
