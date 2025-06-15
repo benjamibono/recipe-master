@@ -180,9 +180,6 @@ The following environment variables are required:
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
 - `OPENAI_API_KEY`: Your OpenAI API key for nutrition analysis
-- `CLOUDINARY_CLOUD_NAME`: Your Cloudinary cloud name
-- `CLOUDINARY_API_KEY`: Your Cloudinary API key
-- `CLOUDINARY_API_SECRET`: Your Cloudinary API secret
 - `EMAIL_SERVER_HOST`: Email server host
 - `EMAIL_SERVER_PORT`: Email server port
 - `EMAIL_SERVER_USER`: Email server user
